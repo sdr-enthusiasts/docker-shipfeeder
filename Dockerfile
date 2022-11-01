@@ -14,7 +14,7 @@ RUN set -x && \
     SX_PACKAGES+=(aiscatcher) && \
     #
     TEMP_PACKAGES+=(gnupg) && \
-    TEMP_PACKAGES+=(systemd) && \
+    # TEMP_PACKAGES+=(systemd) && \
     # install packages
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 1D043681 && \
     echo 'deb https://apt.rb24.com/ bullseye main' > /etc/apt/sources.list.d/rb24.list && \
@@ -35,6 +35,7 @@ RUN set -x && \
     fi && \
     #
     # clean up
+    apt-mark manual "${SX_PACKAGES[@]}" && \
     if [[ "${#TEMP_PACKAGES[@]}" -gt 0 ]]; then \
         apt-get remove -y "${TEMP_PACKAGES[@]}"; \
     fi && \
