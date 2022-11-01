@@ -9,5 +9,8 @@ do
     sleep 1
 done
 
+# Give AIS-catcher a bit of time to establish the connection to the SDR:
+sleep 5
+
 /usr/bin/sxfeeder 2>&1 | \
-    stdbuf -oL awk '{print "[rbfeeder] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
+    stdbuf -oL awk '{print "[sxfeeder] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
