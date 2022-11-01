@@ -40,7 +40,8 @@ Set environment var SERIAL_NUMBER to the Serial Number displayed below - this is
 They must be set for this container to run.
 Please set it and restart the container.
 
-[2022-11-01 19:48:19]  Your new key is f1baxxxxxxxxxxxxxxxxxxxxxe57 and Serial Number (SN) is SXTRPIxxxxxx. Please save this key for future use. You will have to know this key to link this receiver to your account in https://www.shipxplorer.com/. This key is also saved in configuration file (/etc/sxfeeder.ini)
+[2022-11-01 19:48:19]  Your new key is f1baxxxxxxxxxxxxxxxxxxxxxe57 and Serial Number (SN) is SXTRPIxxxxxx. Please save this key for future use. You will have to know this key to link this receiver to your account
+in https://www.shipxplorer.com/. This key is also saved in configuration file (/etc/sxfeeder.ini)
 ```
 You can press CTRL-C now to finish.
 Take a note of the Sharing Key (`f1...57` - yours will be a different number) and the Serial Number (`SXTRPIxxxxxx`), and add these to the `SHARING_KEY` and `SERIAL_NUMBER` parameters of your `docker-compose.yml` file.
