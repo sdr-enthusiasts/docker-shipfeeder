@@ -1,0 +1,51 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+# Check to make sure the correct command line arguments have been set
+
+# Generate /etc/sxfeeder.ini based on environment variables
+echo """
+[client]
+pid=/var/run/sxfeeder/sxfeeder.pid
+disable_log=false
+log_file=/var/log/sxfeeder.log
+#SHARINGKEY
+#SERIALNUMBER
+
+[network]
+udp_listen_port=34995
+""" > /etc/sxfeeder.ini
+
+if [ -z "${SHARING_KEY}" ] || [ -z "${SERIAL_NUMBER}" ]
+then
+  echo ""
+  echo "WARNING: SHARING_KEY or SERIAL_NUMBER environment variable was not set!"
+  echo "Please make sure you note down the keys generated."
+  echo "Set environment var SHARING_KEY to the new key displayed below - this is the long hex number"
+  echo "Set environment var SERIAL_NUMBER to the Serial Number displayed below - this is the SXTRPIxxxxxx string"
+  echo "They must be set for this container to run."
+  echo "Please set it and restart the container."
+  echo ""
+  timeout 10 /usr/bin/sxfeeder 2>&1 | grep "Your new key is"
+  sleep inifinity
+else
+  sed -i 's/#SHARINGKEY/key='"$SHARING_KEY"'/g' /etc/sxfeeder.ini
+  sed -i 's/#SERIALNUMBER/sn='"$SERIAL_NUMBER"'/g' /etc/sxfeeder.ini
+fi
+
+if [ -z "${RTLSDR_DEVICE_SERIAL}" ]
+then
+    echo ""
+    echo "ERROR: RTLSDR_DEVICE_SERIAL variable was not set!"
+    echo "It must be set for this container to run."
+    echo "Please set it and restart the container."
+    sleep infinity
+fi
+
+# Create log dirs
+mkdir -p /var/run/sxfeeder
+chmod a+rwx /var/run/sxfeeder
+touch /var/log/rbfeeder.log
+chmod a+rwx /var/log/rbfeeder.log
+truncate --size=0 /var/log/rbfeeder.log
+chmod a+rw /etc/sxfeeder.ini
