@@ -32,7 +32,7 @@ timeout 180s docker run \
     ghcr.io/sdr-enthusiasts/shipxplorer:latest
 ```
 
-This will run the container for five minutes, allowing a sharing key to be generated.
+This will run the container for 3 minutes, allowing a sharing key to be generated.
 Shortly after, you will see something like this:
 ```
 WARNING: SHARING_KEY or SERIAL_NUMBER environment variable was not set!
@@ -46,7 +46,7 @@ Please set it and restart the container.
 Please save this key for future use. You will have to know this key to link this receiver to your account
 in https://www.shipxplorer.com/. This key is also saved in configuration file (/etc/sxfeeder.ini)
 ```
-You can press CTRL-C now to finish.
+You can wait for the 3 minutes to pass, or you can press CTRL-C now to finish.
 Take a note of the Sharing Key (`f1...57` - yours will be a different number) and the Serial Number (`SXTRPIxxxxxx`), and add these to the `SHARING_KEY` and `SERIAL_NUMBER` parameters of your `docker-compose.yml` file.
 
 If you're not a first time user and are migrating from another installation, you can retrieve your sharing key by doing this:
