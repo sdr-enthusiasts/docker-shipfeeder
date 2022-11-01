@@ -2,7 +2,7 @@
 
 [![Discord](https://img.shields.io/discord/734090820684349521)](https://discord.gg/sTf9uYF)
 
-Docker container running [AirNav ShipXplorer](https://www.shipxplorer.com)'s `sxfeeder` and `AIS-catcher`. Builds and runs on `arm64` and `arm32v7`.
+Docker container running [AirNav ShipXplorer](https://www.shipxplorer.com)'s `sxfeeder` and `AIS-catcher`. Builds and runs on `arm64`, `armv7/armhf`, and `amd64/x86`.
 
 `AIS-catcher` pulls AIS information from a RTL-SDR dongle.
 `sxfeeder` sends this data to RadarBox.
