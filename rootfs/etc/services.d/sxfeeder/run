@@ -4,7 +4,7 @@
 
 
 # Wait for AIS-catcher to be up and running
-while ! pgrep AIS-catcher >/dev/null 2>&1 || ! prgrep qemu-arm-static >/dev/null 2>&1
+while ! pgrep AIS-catcher >/dev/null 2>&1 || ! pgrep qemu-arm-static >/dev/null 2>&1
 do
     sleep 1
 done
