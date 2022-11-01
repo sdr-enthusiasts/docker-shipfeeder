@@ -9,6 +9,7 @@ services:
       - SHARING_KEY=
       - SERIAL_NUMBER=
       - RTLSDR_DEVICE_SERIAL=device_serial
+      - VERBOSE_LOGS=true
 #    ports:
     devices:
       - /dev/bus/usb
