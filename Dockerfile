@@ -1,20 +1,26 @@
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
-ARG TARGETARCH
+ARG TARGETPLATFORM TARGETOS TARGETARCH
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN set -x && \
+#
+echo "TARGETPLATFORM $TARGETPLATFORM" && \
+echo "TARGETOS $TARGETOS" && \
+echo "TARGETARCH $TARGETARCH" && \
+#
     # define required packages
     TEMP_PACKAGES=() && \
     KEPT_PACKAGES=() && \
     SX_PACKAGES=() && \
     #
-    SX_PACKAGES+=(sxfeeder) && \
-    SX_PACKAGES+=(aiscatcher) && \
+    SX_PACKAGES+=(sxfeeder:armhf) && \
+    SX_PACKAGES+=(aiscatcher:armhf) && \
     #
     TEMP_PACKAGES+=(gnupg) && \
-    # TEMP_PACKAGES+=(systemd) && \
+    if [ "${TARGETARCH:0:3}" != "arm" ]; then KEPT_PACKAGES+=(qemu-user-static); fi && \
+    #
     # install packages
     apt-get update && \
     apt-get install -q -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
@@ -22,22 +28,21 @@ RUN set -x && \
         "${TEMP_PACKAGES[@]}" \
         && \
     #
+    # install shipxplorer packages
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 1D043681 && \
     echo 'deb https://apt.rb24.com/ bullseye main' > /etc/apt/sources.list.d/rb24.list && \
     #
-    if [ "$TARGETARCH" == "arm64" ]; then \
+    if [ "$TARGETPLATFORM" != "linux/arm/v7" ]; then \
         dpkg --add-architecture armhf && \
-        apt-get update -q && \
-        apt-get install -q -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
-            "${SX_PACKAGES[@]/%/:armhf}"; \
-    else \
-        apt-get update -q && \
-        apt-get install -q -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
-            "${SX_PACKAGES[@]}"; \
+        apt-get update -q; \
     fi && \
     #
+    apt-get update -q && \
+    apt-get install -q -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
+            "${SX_PACKAGES[@]}"; \
+    #
+    #
     # clean up
-    apt-mark manual "${SX_PACKAGES[@]}" && \
     if [[ "${#TEMP_PACKAGES[@]}" -gt 0 ]]; then \
         apt-get remove -y "${TEMP_PACKAGES[@]}"; \
     fi && \
