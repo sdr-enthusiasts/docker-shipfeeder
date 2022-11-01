@@ -13,5 +13,3 @@ else
     qemu-arm-static /usr/bin/AIS-catcher -u 127.0.0.1 34995 -d "${RTLSDR_DEVICE_SERIAL}" -gr tuner 33.3 rtlagc ON 2>&1 | \
         stdbuf -oL awk '{print "[aiscatcher] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
 fi
-/usr/bin/AIS-catcher -u 127.0.0.1 34995 -d "${RTLSDR_DEVICE_SERIAL}" -gr tuner 33.3 rtlagc ON 2>&1 | \
-    stdbuf -oL awk '{print "[aiscatcher] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
