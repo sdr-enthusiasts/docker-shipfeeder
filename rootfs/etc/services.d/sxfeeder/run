@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bash
+#shellcheck shell=bash
+#shellcheck disable=SC2016
+
+
+# Wait for AIS-atcher to be up and running
+while ! pgrep AIS-catcher >/dev/null 2>&1
+do
+    sleep 1
+done
+
+/usr/bin/sxfeeder 2>&1 | \
+    stdbuf -oL awk '{print "[rbfeeder] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
