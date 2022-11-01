@@ -19,11 +19,11 @@ Currently, this image should pull and run on the following architectures:
 Other architectures (Windows, Mac) are not currently supported, but feel free to see if the container builds and runs for these.
 In theory, it should work, but I don't have the time nor inclination to test it.
 
-## Obtaining a RadarBox Sharing Key (NEEDS UPDATING)
+## Obtaining a ShipXplorer Sharing Key
 
-First-time users should obtain a RadarBox sharing key.
+First-time users should obtain a ShipXplorer sharing key.
 
-In order to obtain a RadarBox sharing key, on the first run of the container, `rbfeeder` will generate a sharing key and print this to the container log.
+In order to obtain a ShipXplorer sharing key, on the first run of the container, it will generate a sharing key and print this to the container log.
 
 ```shell
 timeout 180s docker run \
@@ -36,7 +36,7 @@ This will run the container for 3 minutes, allowing a sharing key to be generate
 Shortly after, you will see something like this:
 ```
 WARNING: SHARING_KEY or SERIAL_NUMBER environment variable was not set!
-Please make sure you note down the keys generated.
+Please make sure you note down the keys generated and update your docker-compose.yml with these values.
 Set environment var SHARING_KEY to the new key displayed below - this is the long hex number
 Set environment var SERIAL_NUMBER to the Serial Number displayed below - this is the SXTRPIxxxxxx string
 They must be set for this container to run.
