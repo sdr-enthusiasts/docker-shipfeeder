@@ -12,10 +12,12 @@ Docker container running [AirNav ShipXplorer](https://www.shipxplorer.com)'s `sx
 
 Currently, this image should pull and run on the following architectures:
 
-* `arm32v7`, `armv7l`: ARMv7 32-bit (Odroid HC1/HC2/XU4, RPi 2/3)
+* `arm32v7`, `armv7l`, `armhf`: ARMv7 32-bit (Odroid HC1/HC2/XU4, RPi 2/3/4 32-bit)
 * `arm64`, `aarch64`: ARMv8 64-bit (RPi 4 64-bit OSes)
+* `amd64`, `x86_84`: X86 64-bit Linux (Linux PC)
 
-We will attempt to add `amd64` (`x86`) Linux PC architecture in the future
+Other architectures (Windows, Mac) are not currently supported, but feel free to see if the container builds and runs for these.
+In theory, it should work, but I don't have the time nor inclination to test it.
 
 ## Obtaining a RadarBox Sharing Key (NEEDS UPDATING)
 
