@@ -20,7 +20,7 @@ if [ -z "${SHARING_KEY}" ] || [ -z "${SERIAL_NUMBER}" ]
 then
   echo ""
   echo "WARNING: SHARING_KEY or SERIAL_NUMBER environment variable was not set!"
-  echo "Please make sure you note down the keys generated."
+  echo "Please make sure you note down the keys generated and update your docker-compose.yml with these values."
   echo "Set environment var SHARING_KEY to the new key displayed below - this is the long hex number"
   echo "Set environment var SERIAL_NUMBER to the Serial Number displayed below - this is the SXTRPIxxxxxx string"
   echo "They must be set for this container to run."
