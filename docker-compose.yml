@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  shipxplorer:
+    image: ghcr.io/sdr-enthusiasts/shipxplorer
+    container_name: shipxplorer
+    hostname: shipxplorer
+    restart: always
+    environment:
+      - SHARING_KEY=
+      - SERIAL_NUMBER=
+      - RTLSDR_DEVICE_SERIAL=device_serial
+#    ports:
+    devices:
+      - /dev/bus/usb
+    tmpfs:
+      - /tmp
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"

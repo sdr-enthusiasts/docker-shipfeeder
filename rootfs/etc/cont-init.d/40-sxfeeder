@@ -27,7 +27,7 @@ then
   echo "Please set it and restart the container."
   echo ""
   timeout 10 /usr/bin/sxfeeder 2>&1 | grep "Your new key is"
-  sleep inifinity
+  sleep infinity
 else
   sed -i 's/#SHARINGKEY/key='"$SHARING_KEY"'/g' /etc/sxfeeder.ini
   sed -i 's/#SERIALNUMBER/sn='"$SERIAL_NUMBER"'/g' /etc/sxfeeder.ini
