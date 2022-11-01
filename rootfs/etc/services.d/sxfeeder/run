@@ -3,7 +3,7 @@
 #shellcheck disable=SC2016
 
 
-# Wait for AIS-atcher to be up and running
+# Wait for AIS-catcher to be up and running
 while ! pgrep AIS-catcher >/dev/null 2>&1
 do
     sleep 1
@@ -12,5 +12,14 @@ done
 # Give AIS-catcher a bit of time to establish the connection to the SDR:
 sleep 5
 
-/usr/bin/sxfeeder 2>&1 | \
-    stdbuf -oL awk '{print "[sxfeeder] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
+# Test sxfeeder can run natively (without qemu)
+if /usr/bin/sxfeeder --help > /dev/null 2>&1
+then
+    # can be run natively
+    /usr/bin/sxfeeder 2>&1 | \
+        stdbuf -oL awk '{print "[sxfeeder] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
+else
+    # needs qemu
+    qemu-arm-static /usr/bin/sxfeeder 2>&1 | \
+        stdbuf -oL awk '{print "[sxfeeder] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
+fi
