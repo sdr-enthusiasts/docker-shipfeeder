@@ -4,10 +4,18 @@
 
 
 # Wait for AIS-catcher to be up and running
-while ! pgrep AIS-catcher >/dev/null 2>&1 || ! pgrep qemu-arm-static >/dev/null 2>&1
-do
-    sleep 1
-done
+if /usr/bin/AIS-catcher -h > /dev/null 2>&1
+then
+    while ! pgrep AIS-catcher >/dev/null 2>&1
+    do
+        sleep 1
+    done
+else
+    while ! pgrep qemu-arm-static >/dev/null 2>&1
+    do
+        sleep 1
+    done
+fi
 
 # Give AIS-catcher a bit of time to establish the connection to the SDR:
 sleep 5
