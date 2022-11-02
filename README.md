@@ -97,12 +97,7 @@ Once your container is up and running, you should claim your receiver.
 2. Create an account or sign in
 3. Claim your receiver by visiting <https://www.shipxplorer.com/addcoverage> and following the instructions
 
-Note - you will need your `SHARING_KEY`, `SERIAL_NUMBER`, and your public IP address.
-You can get your public IP address by using SSH to log into you machine, and executing one of the following commands:
-```
-curl ifconfig.me
-wget -qO- fconfig.me
-```
+Note - you will need your `SHARING_KEY` and the location of your feeder (coordinates or pick on map). As of now, it appears that you don't need your SN or Public IP address.
 
 ## Runtime Environment Variables
 
