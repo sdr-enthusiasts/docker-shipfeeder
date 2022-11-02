@@ -7,6 +7,13 @@ Docker container running [AirNav ShipXplorer](https://www.shipxplorer.com)'s `sx
 `AIS-catcher` pulls AIS information from a RTL-SDR dongle.
 `sxfeeder` sends this data to RadarBox.
 
+## Prerequisites
+
+We expect you to have the following:
+* a piece of hardware that runs Linux. The prebuilt containers support `armhf`, `arm64`, and `amd64`. Systems with those architectures include Raspberry Pi 3B+, 4, and Linux PCs with Ubuntu.
+* a dedicated RTL-SDR dongle that can receive at 160 MHz, with an appropriate antenna
+* Docker must be installed on your system. If you don't know how to do that, please read [here](https://github.com/sdr-enthusiasts/docker-install).
+* Some basic knowledge on how to use Linux and how to configure docker containers with `docker-compose`.
 
 ## Multi Architecture Support
 
@@ -14,7 +21,7 @@ Currently, this image should pull and run on the following architectures:
 
 * `arm32v7`, `armv7l`, `armhf`: ARMv7 32-bit (Odroid HC1/HC2/XU4, RPi 2/3/4 32-bit)
 * `arm64`, `aarch64`: ARMv8 64-bit (RPi 4 64-bit OSes)
-* `amd64`, `x86_84`: X86 64-bit Linux (Linux PC)
+* `amd64`, `x86_64`: X86 64-bit Linux (Linux PC)
 
 Other architectures (Windows, Mac) are not currently supported, but feel free to see if the container builds and runs for these.
 In theory, it should work, but I don't have the time nor inclination to test it.
@@ -130,6 +137,11 @@ You can now map this file into your container:
   - /opt/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo
 ```
 
+## Hardware requirements
+
+AIS data is transmitted in the 160 MHz band, for which you'd need a suitable antenna. Note -- ADSB/UAT antennas will definitely not work!
+You would need a RTL-SDR dongle, potentially with an LNA, and potentially with a filter. The filter must be dedicated to the 160 MHz band. Dongles with built-in filters for the ADSB or UAT bands won't work.
+Last - the software will run on a Raspberry Pi 3B+ or 4, with Raspberry Pi OS, Ubuntu, or a similar Debian-based operating system. It will also run on X86 (Linux PC) systems with Ubuntu. The prebuilt Docker container will work on `armhf`/`arm64`/`x86_64` (`amd64`) architectures. You may be able to build containers for other systems, but for that you're on your own.
 
 ## Getting Help
 
