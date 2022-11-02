@@ -18,3 +18,4 @@ services:
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "/etc/timezone:/etc/timezone:ro"
+      - /opt/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo

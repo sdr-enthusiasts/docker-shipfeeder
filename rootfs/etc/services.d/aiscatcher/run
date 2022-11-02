@@ -4,7 +4,7 @@
 
 # Test AIS-catcher can run natively (without qemu)
 
-[[ -n "$VERBOSE_LOGS" ]] && SHOWLOGS="-q" || SHOWLOGS=""
+[[ -n "$VERBOSE_LOGGING" ]] && SHOWLOGS="" || SHOWLOGS="-q"
 
 if /usr/bin/AIS-catcher -h > /dev/null 2>&1
 then
