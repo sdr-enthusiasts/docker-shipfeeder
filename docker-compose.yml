@@ -10,6 +10,7 @@ services:
       - SERIAL_NUMBER=
       - RTLSDR_DEVICE_SERIAL=device_serial
       - VERBOSE_LOGS=true
+      - UDP_FEEDS=
 #    ports:
     devices:
       - /dev/bus/usb
@@ -18,4 +19,4 @@ services:
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "/etc/timezone:/etc/timezone:ro"
-      - /opt/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo
+      # - /opt/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo # only for x86 systems - see README.md
