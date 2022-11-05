@@ -134,6 +134,12 @@ You can now map this file into your container:
   - /opt/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo
 ```
 
+## Feeding other services
+You can use the `UDP_FEEDS` parameter to feed additional services, as long as they can accept the UDP data format.  for example to feed MarineTraffic:
+```
+     - UDP_FEEDS=5.9.207.224:5321
+```
+If you signed up and configured a station at their website, please replace the IP:port by the one allocated to your station.
 ## Hardware requirements
 
 AIS data is transmitted in the 160 MHz band, for which you'd need a suitable antenna. Note -- ADSB/UAT antennas will definitely not work!
