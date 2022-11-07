@@ -24,7 +24,7 @@ set -x
 
 git pull -a
 cp -f Dockerfile.build-aiscatcher /tmp
-sed -i 's/##BRANCH##/'"$BRANCH"'/g' Dockerfile.build-aiscatcher
+sed -i  '' 's/##BRANCH##/'"$BRANCH"'/g' Dockerfile.build-aiscatcher
 docker buildx build -f Dockerfile.build-aiscatcher --compress --push $2 --platform $ARCHS --tag "$IMAGE1" .
 # [[ $? ]] && docker buildx build --compress --push $2 --platform $ARCHS --tag $IMAGE2 .
 mv -f /tmp/Dockerfile.build-aiscatcher .

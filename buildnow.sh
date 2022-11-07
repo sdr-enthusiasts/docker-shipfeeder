@@ -24,7 +24,7 @@ set -x
 
 git pull -a
 cp -f Dockerfile /tmp
-sed -i 's/##BRANCH##/'"$BRANCH"'/g' Dockerfile
+sed -i '' 's/##BRANCH##/'"$BRANCH"'/g' Dockerfile
 docker buildx build --compress --push $2 --platform $ARCHS --tag "$IMAGE1" .
 # [[ $? ]] && docker buildx build --compress --push $2 --platform $ARCHS --tag $IMAGE2 .
 mv -f /tmp/Dockerfile .
