@@ -110,6 +110,7 @@ There are a series of available environment variables:
 | `RTLSDR_DEVICE_SERIAL` | Required. Serial Number of your RTL-SDR dongle. See instructions above |
 | `UDP_FEEDS`            | Optional. Defines target UDP feeds in addition to ShipExplorer. Format: `UDP_FEEDS=domain1.com:port1,domain2,com:port2,...` |
 | `VERBOSE_LOGGING`      | Optional. If set to any non-empty string, AIS messages are shown in the docker logs. Default: empty |
+| `RTLSDR_DEVICE_GAIN`   | Optional. SDR device gain. If omitted, default value is 33.3 is used |
 | `AISCATCHER_EXTRA_OPTIONS` | Optional. Any additional command line parameters you wish to pass to `AIS-catcher`. Default: empty |
 | `SXFEEDER_EXTRA_OPTIONS` | Optional. Any additional command line parameters you wish to pass to `sxfeeder`. Default: empty |
 
@@ -135,6 +136,12 @@ You can now map this file into your container:
   - /opt/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo
 ```
 
+## Feeding other services
+You can use the `UDP_FEEDS` parameter to feed additional services, as long as they can accept the UDP data format.  for example to feed MarineTraffic:
+```
+     - UDP_FEEDS=5.9.207.224:5321
+```
+If you signed up and configured a station at their website, please replace the IP:port by the one allocated to your station.
 ## Hardware requirements
 
 AIS data is transmitted in the 160 MHz band, for which you'd need a suitable antenna. Note -- ADSB/UAT antennas will definitely not work!

@@ -11,6 +11,7 @@ services:
       - RTLSDR_DEVICE_SERIAL=device_serial
       - VERBOSE_LOGS=true
       - UDP_FEEDS=
+      - RTLSDR_DEVICE_GAIN=
       - SXFEEDER_EXTRA_OPTIONS=
       - AISCATCHER_EXTRA_OPTIONS=
 #    ports:
