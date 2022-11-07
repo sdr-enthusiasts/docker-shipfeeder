@@ -20,14 +20,16 @@ fi
 # Give AIS-catcher a bit of time to establish the connection to the SDR:
 sleep 5
 
+sxfeeder_command="/usr/bin/sxfeeder $SXFEEDER_EXTRA_OPTIONS"
+echo "[sxfeeder][$(date +"%Y/%m/%d %H:%M:%S")] Starting: $sxfeeder_command"
 # Test sxfeeder can run natively (without qemu)
 if /usr/bin/sxfeeder --help > /dev/null 2>&1
 then
     # can be run natively
-    /usr/bin/sxfeeder $SXFEEDER_EXTRA_OPTIONS 2>&1 | \
-        stdbuf -oL awk '{print "[sxfeeder] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
+    $sxfeeder_command 2>&1 | \
+        stdbuf -oL awk '{print "[sxfeeder][" strftime("%Y/%m/%d %H:%M:%S", systime()) "] " $0}'
 else
     # needs qemu
-    qemu-arm-static /usr/bin/sxfeeder $SXFEEDER_EXTRA_OPTIONS 2>&1 | \
-        stdbuf -oL awk '{print "[sxfeeder] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
+    qemu-arm-static $sxfeeder_command 2>&1 | \
+        stdbuf -oL awk '{print "[sxfeeder][" strftime("%Y/%m/%d %H:%M:%S", systime()) "] " $0}'
 fi
