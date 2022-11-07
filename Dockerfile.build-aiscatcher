@@ -28,6 +28,8 @@ echo "TARGETARCH $TARGETARCH" && \
     TEMP_PACKAGES+=(pkg-config) && \
     TEMP_PACKAGES+=(librtlsdr-dev) && \
     #
+    KEPT_PACKAGES+=(librtlsdr0) && \
+    #
     # install packages
     apt-get update && \
     apt-get install -q -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
@@ -57,6 +59,7 @@ echo "TARGETARCH $TARGETARCH" && \
         cmake .. && \
         make && \
         make install && \
+        ln -f /usr/local/bin/AIS-catcher /usr/bin
     popd && \
     # clean up
     if [[ "${#TEMP_PACKAGES[@]}" -gt 0 ]]; then \
