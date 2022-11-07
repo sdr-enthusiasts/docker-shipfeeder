@@ -25,7 +25,7 @@ fi
 # get gain
 [[ -x "$RTLSDR_DEVICE_GAIN" ]] && RTLSDR_DEVICE_GAIN="33.3"
 
-aiscatcher_command="/usr/bin/AIS-catcher $AISCATCHER_EXTRA_OPTIONS -u 127.0.0.1 34995 ${FEEDSTRING[*]} $SHOWLOGS -d ${RTLSDR_DEVICE_SERIAL} -gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ON"
+aiscatcher_command="/usr/bin/AIS-catcher -u 127.0.0.1 34995 ${FEEDSTRING[*]} $SHOWLOGS -d ${RTLSDR_DEVICE_SERIAL} -gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ON $AISCATCHER_EXTRA_OPTIONS"
 echo "[aiscatcher][$(date +"%Y/%m/%d %H:%M:%S")] Starting: $aiscatcher_command"
 
 # Test AIS-catcher can run natively (without qemu)
