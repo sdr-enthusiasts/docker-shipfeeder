@@ -26,8 +26,20 @@ echo "TARGETARCH $TARGETARCH" && \
     TEMP_PACKAGES+=(cmake) && \
     TEMP_PACKAGES+=(pkg-config) && \
     TEMP_PACKAGES+=(librtlsdr-dev) && \
+    TEMP_PACKAGES+=(libairspy-dev) && \
+    TEMP_PACKAGES+=(libhackrf-dev) && \
+    TEMP_PACKAGES+=(libairspyhf-dev) && \
+    TEMP_PACKAGES+=(libzmq3-dev) && \
+    TEMP_PACKAGES+=(libsoxr-dev) && \
+    TEMP_PACKAGES+=(libcurl4-openssl-dev) && \
     #
     KEPT_PACKAGES+=(librtlsdr0) && \
+    KEPT_PACKAGES+=(libairspy0) && \
+    KEPT_PACKAGES+=(libhackrf0) && \
+    KEPT_PACKAGES+=(libairspyhf1) && \
+    KEPT_PACKAGES+=(libzmq5) && \
+    KEPT_PACKAGES+=(libsoxr0) && \
+    KEPT_PACKAGES+=(libcurl4) && \
     KEPT_PACKAGES+=(git) && \
     KEPT_PACKAGES+=(nano) && \
     #
