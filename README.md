@@ -110,6 +110,8 @@ There are a series of available environment variables:
 | `RTLSDR_DEVICE_SERIAL` | Required. Serial Number of your RTL-SDR dongle. See instructions above |
 | `UDP_FEEDS`            | Optional. Defines target UDP feeds in addition to ShipExplorer. Format: `UDP_FEEDS=domain1.com:port1,domain2,com:port2,...` |
 | `VERBOSE_LOGGING`      | Optional. If set to any non-empty string, AIS messages are shown in the docker logs. Default: empty |
+| `AISCATCHER_EXTRA_OPTIONS` | Optional. Any additional command line parameters you wish to pass to `AIS-catcher`. Default: empty |
+| `SXFEEDER_EXTRA_OPTIONS` | Optional. Any additional command line parameters you wish to pass to `sxfeeder`. Default: empty |
 
 
 ## Logging

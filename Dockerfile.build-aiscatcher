@@ -1,0 +1,74 @@
+FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
+
+ARG TARGETPLATFORM TARGETOS TARGETARCH
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN set -x && \
+#
+echo "TARGETPLATFORM $TARGETPLATFORM" && \
+echo "TARGETOS $TARGETOS" && \
+echo "TARGETARCH $TARGETARCH" && \
+#
+    # define required packages
+    TEMP_PACKAGES=() && \
+    KEPT_PACKAGES=() && \
+    SX_PACKAGES=() && \
+    #
+    SX_PACKAGES+=(sxfeeder:armhf) && \
+    # SX_PACKAGES+=(aiscatcher:armhf) && \
+    #
+    TEMP_PACKAGES+=(gnupg) && \
+    if [ "${TARGETARCH:0:3}" != "arm" ]; then KEPT_PACKAGES+=(qemu-user-static); fi && \
+    TEMP_PACKAGES+=(git) && \
+    TEMP_PACKAGES+=(make) && \
+    TEMP_PACKAGES+=(gcc) && \
+    TEMP_PACKAGES+=(g++) && \
+    TEMP_PACKAGES+=(cmake) && \
+    TEMP_PACKAGES+=(pkg-config) && \
+    TEMP_PACKAGES+=(librtlsdr-dev) && \
+    #
+    # install packages
+    apt-get update && \
+    apt-get install -q -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
+        "${KEPT_PACKAGES[@]}" \
+        "${TEMP_PACKAGES[@]}" \
+        && \
+    #
+    # install shipxplorer packages
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 1D043681 && \
+    echo 'deb https://apt.rb24.com/ bullseye main' > /etc/apt/sources.list.d/rb24.list && \
+    #
+    if [ "$TARGETPLATFORM" != "linux/arm/v7" ]; then \
+        dpkg --add-architecture armhf && \
+        apt-get update -q; \
+    fi && \
+    #
+    apt-get update -q && \
+    apt-get install -q -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
+            "${SX_PACKAGES[@]}"; \
+    #
+    # Build AIS-Feeder:
+    pushd /tmp && \
+        git clone --depth=1 https://github.com/jvde-github/AIS-catcher.git && \
+        cd AIS-catcher && \
+        mkdir build && \
+        cd build && \
+        cmake .. && \
+        make && \
+        make install && \
+    popd
+    # clean up
+    if [[ "${#TEMP_PACKAGES[@]}" -gt 0 ]]; then \
+        apt-get remove -y "${TEMP_PACKAGES[@]}"; \
+    fi && \
+    apt-get autoremove -y && \
+    rm -rf /src/* /tmp/* /var/lib/apt/lists/*
+
+COPY rootfs/ /
+
+# Expose ports
+# EXPOSE 32088/tcp 30105/tcp
+
+# Add healthcheck
+# HEALTHCHECK --start-period=3600s --interval=600s  CMD /healthcheck.sh
