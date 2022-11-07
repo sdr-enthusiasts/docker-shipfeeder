@@ -24,7 +24,7 @@ set -x
 
 git pull -a
 echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > rootfs/.CONTAINER_VERSION
-docker buildx build --compress --push $2 --platform $ARCHS --tag "$IMAGE1" .
+docker buildx build -f Dockerfile.build-aiscatcher --compress --push $2 --platform $ARCHS --tag "$IMAGE1" .
 # [[ $? ]] && docker buildx build --compress --push $2 --platform $ARCHS --tag $IMAGE2 .
 rm -f rootfs/.CONTAINER_VERSION
 echo "Total build time: $(( $(date +%s) - starttime )) seconds"
