@@ -15,6 +15,9 @@ echo "TARGETARCH $TARGETARCH" && \
     KEPT_PACKAGES=() && \
     SX_PACKAGES=() && \
     #
+    KEPT_PACKAGES+=(git) && \
+    KEPT_PACKAGES+=(nano) && \
+    #
     SX_PACKAGES+=(sxfeeder:armhf) && \
     SX_PACKAGES+=(aiscatcher:armhf) && \
     #
@@ -41,6 +44,9 @@ echo "TARGETARCH $TARGETARCH" && \
     apt-get install -q -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
             "${SX_PACKAGES[@]}"; \
     #
+    # Do some other stuff
+    echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
+    echo "alias nano=\"nano -l\"" >> /root/.bashrc && \
     #
     # clean up
     if [[ "${#TEMP_PACKAGES[@]}" -gt 0 ]]; then \
@@ -50,6 +56,16 @@ echo "TARGETARCH $TARGETARCH" && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/*
 
 COPY rootfs/ /
+
+# Add Container Version
+RUN set -x && \
+    pushd /tmp && \
+        git clone --depth=1 https://github.com/sdr-enthusiasts/docker-shipxplorer.git && \
+        cd docker-shipxplorer && \
+        git checkout ##BRANCH##
+        echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > /.CONTAINER_VERSION && \
+    popd && \
+    rm -rf /tmp/*
 
 # Expose ports
 # EXPOSE 32088/tcp 30105/tcp
