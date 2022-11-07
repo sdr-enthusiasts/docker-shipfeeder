@@ -57,7 +57,7 @@ echo "TARGETARCH $TARGETARCH" && \
         cmake .. && \
         make && \
         make install && \
-    popd
+    popd && \
     # clean up
     if [[ "${#TEMP_PACKAGES[@]}" -gt 0 ]]; then \
         apt-get remove -y "${TEMP_PACKAGES[@]}"; \
