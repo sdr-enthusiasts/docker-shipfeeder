@@ -8,7 +8,7 @@ if [[ -n "$VERBOSE_LOGGING" ]]
 then
     [[ $VERBOSE_LOGGING =~ ^[0-5]{1}$ ]] && SHOWLOGS="-o $VERBOSE_LOGGING" || SHOWLOGS=""
 else
-    SHOWLOGS="-v 60"
+    SHOWLOGS="-q 0 -v 60"
 fi
 
 # Interpret additional feed targets, if defined
