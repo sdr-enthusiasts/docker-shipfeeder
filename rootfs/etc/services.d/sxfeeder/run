@@ -2,9 +2,9 @@
 #shellcheck shell=bash
 #shellcheck disable=SC2016,SC2068,SC2086
 
-
+echo "[sxfeeder][$(date +"%Y/%m/%d %H:%M:%S")] Waiting for AIS-catcher to start..."
 # Wait for AIS-catcher to be up and running
-if /usr/bin/AIS-catcher -h > /dev/null 2>&1
+if /usr/local/bin/AIS-catcher -h > /dev/null 2>&1
 then
     while ! pgrep AIS-catcher >/dev/null 2>&1
     do
