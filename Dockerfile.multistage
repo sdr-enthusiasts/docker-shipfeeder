@@ -1,4 +1,4 @@
-FROM ghcr.io/jvde-github/ais-catcher:latest AS build
+FROM ghcr.io/jvde-github/ais-catcher:edge AS build
 
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
