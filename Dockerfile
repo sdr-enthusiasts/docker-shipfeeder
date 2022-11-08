@@ -1,3 +1,5 @@
+FROM ghcr.io/jvde-github/ais-catcher:edge AS build
+
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
 ARG TARGETPLATFORM TARGETOS TARGETARCH
@@ -15,14 +17,21 @@ echo "TARGETARCH $TARGETARCH" && \
     KEPT_PACKAGES=() && \
     SX_PACKAGES=() && \
     #
-    KEPT_PACKAGES+=(git) && \
-    KEPT_PACKAGES+=(nano) && \
-    #
     SX_PACKAGES+=(sxfeeder:armhf) && \
-    SX_PACKAGES+=(aiscatcher:armhf) && \
+    # SX_PACKAGES+=(aiscatcher:armhf) && \
     #
     TEMP_PACKAGES+=(gnupg) && \
     if [ "${TARGETARCH:0:3}" != "arm" ]; then KEPT_PACKAGES+=(qemu-user-static); fi && \
+    #
+    KEPT_PACKAGES+=(librtlsdr0) && \
+    KEPT_PACKAGES+=(libairspy0) && \
+    KEPT_PACKAGES+=(libhackrf0) && \
+    KEPT_PACKAGES+=(libairspyhf1) && \
+    KEPT_PACKAGES+=(libzmq5) && \
+    KEPT_PACKAGES+=(libsoxr0) && \
+    KEPT_PACKAGES+=(libcurl4) && \
+    KEPT_PACKAGES+=(git) && \
+    KEPT_PACKAGES+=(nano) && \
     #
     # install packages
     apt-get update && \
@@ -57,6 +66,9 @@ echo "TARGETARCH $TARGETARCH" && \
 
 COPY rootfs/ /
 
+# add AIS-catcher
+COPY --from=build /usr/local/bin/AIS-catcher /usr/local/bin/AIS-catcher
+
 # Add Container Version
 RUN set -x && \
     pushd /tmp && \
@@ -66,9 +78,3 @@ RUN set -x && \
         echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > /.CONTAINER_VERSION && \
     popd && \
     rm -rf /tmp/*
-
-# Expose ports
-# EXPOSE 32088/tcp 30105/tcp
-
-# Add healthcheck
-# HEALTHCHECK --start-period=3600s --interval=600s  CMD /healthcheck.sh

@@ -23,9 +23,9 @@ starttime="$(date +%s)"
 set -x
 
 git pull -a
-cp -f Dockerfile.multistage /tmp
-sed -i  '' 's/##BRANCH##/'"$BRANCH"'/g' Dockerfile.multistage
-docker buildx build -f Dockerfile.multistage --compress --push $2 --platform $ARCHS --tag "$IMAGE1" .
+cp -f Dockerfile /tmp
+sed -i '' 's/##BRANCH##/'"$BRANCH"'/g' Dockerfile
+docker buildx build --compress --push $2 --platform $ARCHS --tag "$IMAGE1" .
 # [[ $? ]] && docker buildx build --compress --push $2 --platform $ARCHS --tag $IMAGE2 .
-mv -f /tmp/Dockerfile.multistage .
+mv -f /tmp/Dockerfile .
 echo "Total build time: $(( $(date +%s) - starttime )) seconds"
