@@ -81,4 +81,8 @@ RUN set -x && \
     rm -rf /tmp/*
 
 # Add healthcheck
+<<<<<<< HEAD
 HEALTHCHECK --start-period=60s --interval=600s --timeout=60s CMD /healthcheck/healthcheck.sh
+=======
+HEALTHCHECK --start-period=60s --interval=600s --timeout-60s CMD /healthcheck/healthcheck.sh
+>>>>>>> 5f27a2b70cc07e96ab85f0ed7a3273955bd495e2
