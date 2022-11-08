@@ -30,6 +30,7 @@ echo "TARGETARCH $TARGETARCH" && \
     KEPT_PACKAGES+=(libzmq5) && \
     KEPT_PACKAGES+=(libsoxr0) && \
     KEPT_PACKAGES+=(libcurl4) && \
+    KEPT_PACKAGES+=(tcpdump) && \
     KEPT_PACKAGES+=(git) && \
     KEPT_PACKAGES+=(nano) && \
     #
@@ -78,3 +79,6 @@ RUN set -x && \
         echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > /.CONTAINER_VERSION && \
     popd && \
     rm -rf /tmp/*
+
+# Add healthcheck
+HEALTHCHECK --start-period=60s --interval=600s CMD /healthcheck/healthcheck.sh
