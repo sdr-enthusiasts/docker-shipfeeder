@@ -33,6 +33,7 @@ then
         if [[ "$(awk "BEGIN {print int($GAIN * 10);}")" -ge "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" ]]
         then
             RTLSDR_DEVICE_GAIN="$GAIN"
+            echo "[aiscatcher][$(date +"%Y/%m/%d %H:%M:%S")] Gain rounded to ${RTLSDR_DEVICE_GAIN}"
             break
         fi
     done
