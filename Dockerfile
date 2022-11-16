@@ -36,7 +36,7 @@ echo "TARGETARCH $TARGETARCH" && \
     #
     # install packages
     apt-get update && \
-    apt-get install -q -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
+    apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
         "${KEPT_PACKAGES[@]}" \
         "${TEMP_PACKAGES[@]}" \
         && \
@@ -51,7 +51,7 @@ echo "TARGETARCH $TARGETARCH" && \
     fi && \
     #
     apt-get update -q && \
-    apt-get install -q -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
+    apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
             "${SX_PACKAGES[@]}"; \
     #
     # Do some other stuff
