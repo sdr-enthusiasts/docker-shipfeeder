@@ -14,7 +14,8 @@ services:
       - RTLSDR_DEVICE_GAIN=
       - SXFEEDER_EXTRA_OPTIONS=
       - AISCATCHER_EXTRA_OPTIONS=
-#    ports:
+    ports:
+      - 8080:80
     devices:
       - /dev/bus/usb
     tmpfs:
