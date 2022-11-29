@@ -20,6 +20,7 @@ echo "TARGETARCH $TARGETARCH" && \
     #
     SX_PACKAGES+=(sxfeeder:armhf) && \
     AVNAV_PACKAGES+=(avnav) && \
+    AVNAV_PACKAGES+=(avnav-update-plugin) && \
     # SX_PACKAGES+=(aiscatcher:armhf) && \
     #
     TEMP_PACKAGES+=(gnupg) && \
@@ -49,7 +50,7 @@ echo "TARGETARCH $TARGETARCH" && \
     echo 'deb https://apt.rb24.com/ bullseye main' > /etc/apt/sources.list.d/rb24.list && \
     #
     if [ "$TARGETPLATFORM" != "linux/arm/v7" ]; then \
-        dpkg --add-architecture armhf && \
+        dpkg --add-architecture armhf; \
     fi && \
     #
     #
@@ -61,7 +62,9 @@ echo "TARGETARCH $TARGETARCH" && \
     # now add a bunch of files
     apt-get update -q && \
     apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
-            "${SX_PACKAGES[@]}" "${AVNAV_PACKAGES}" && \
+            "${SX_PACKAGES[@]}" \
+            "${AVNAV_PACKAGES[@]}" \
+            && \
     #
     # Do some other stuff
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
@@ -82,9 +85,8 @@ COPY --from=build /usr/local/bin/AIS-catcher /usr/local/bin/AIS-catcher
 # Add Container Version
 RUN set -x && \
     pushd /tmp && \
-        git clone --depth=1 https://github.com/sdr-enthusiasts/docker-shipxplorer.git && \
+        git clone --depth=1 -b ##BRANCH## --single-branch https://github.com/sdr-enthusiasts/docker-shipxplorer.git && \
         cd docker-shipxplorer && \
-        git checkout ##BRANCH## && \
         echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > /.CONTAINER_VERSION && \
     popd && \
     rm -rf /tmp/*
