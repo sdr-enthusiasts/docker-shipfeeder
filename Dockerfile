@@ -16,8 +16,10 @@ echo "TARGETARCH $TARGETARCH" && \
     TEMP_PACKAGES=() && \
     KEPT_PACKAGES=() && \
     SX_PACKAGES=() && \
+    AVNAV_PACKAGES=() &\
     #
     SX_PACKAGES+=(sxfeeder:armhf) && \
+    AVNAV_PACKAGES+=(avnav) && \
     # SX_PACKAGES+=(aiscatcher:armhf) && \
     #
     TEMP_PACKAGES+=(gnupg) && \
@@ -31,6 +33,7 @@ echo "TARGETARCH $TARGETARCH" && \
     KEPT_PACKAGES+=(libsoxr0) && \
     KEPT_PACKAGES+=(libcurl4) && \
     KEPT_PACKAGES+=(tcpdump) && \
+    KEPT_PACKAGES+=(python3-bluez) && \
     KEPT_PACKAGES+=(git) && \
     KEPT_PACKAGES+=(nano) && \
     #
@@ -47,12 +50,18 @@ echo "TARGETARCH $TARGETARCH" && \
     #
     if [ "$TARGETPLATFORM" != "linux/arm/v7" ]; then \
         dpkg --add-architecture armhf && \
-        apt-get update -q; \
     fi && \
     #
+    #
+    # add avnav repository
+    curl -o /tmp/oss.boating.gpg.key https://www.free-x.de/debian/oss.boating.gpg.key && \
+    apt-key add /tmp/oss.boating.gpg.key && \
+    curl -o /etc/apt/sources.list.d/boating.list https://www.free-x.de/debian/boating.list && \
+    #
+    # now add a bunch of files
     apt-get update -q && \
     apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
-            "${SX_PACKAGES[@]}"; \
+            "${SX_PACKAGES[@]}" "${AVNAV_PACKAGES}" && \
     #
     # Do some other stuff
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
