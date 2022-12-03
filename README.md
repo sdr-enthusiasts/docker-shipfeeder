@@ -141,7 +141,14 @@ You can use the `UDP_FEEDS` parameter to feed additional services, as long as th
 ```
      - UDP_FEEDS=5.9.207.224:5321
 ```
-If you signed up and configured a station at their website, please replace the IP:port by the one allocated to your station.
+If you signed up and configured a station at their website, please replace the IP:port by the one allocated to your station. You can add multiple comma-separated UDP feeds here.
+
+If you have a Ham Radio license, you can also feed to `aprs.fi` via HTTP. In this case, configure `AISCATCHER_EXTRA_OPTIONS` like this:
+```
+- AISCATCHER_EXTRA_OPTIONS=-H http://aprs.fi/jsonais/post/abcdefghijklmn ID C9LLSIGN PROTOCOL aprs INTERVAL 30 RESPONSE off
+```
+where you replace `abcdefghijklmn` with the key you get when you sign up at aprs.fi, and `C9LLSIGN` with your Ham Radio callsign.
+
 ## Hardware requirements
 
 AIS data is transmitted in the 160 MHz band, for which you'd need a suitable antenna. Note -- ADSB/UAT antennas will definitely not work!
