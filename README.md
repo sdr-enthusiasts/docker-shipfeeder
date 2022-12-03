@@ -7,6 +7,8 @@ Docker container running [AirNav ShipXplorer](https://www.shipxplorer.com)'s `sx
 `AIS-catcher` pulls AIS information from a RTL-SDR dongle.
 `sxfeeder` sends this data to RadarBox.
 
+You can also use this container to feed other AIS services that take NMEA-formatted AIS data over either UDP or HTTP. See below for details.
+
 ## Prerequisites
 
 We expect you to have the following:
