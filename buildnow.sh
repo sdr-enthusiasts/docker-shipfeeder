@@ -24,7 +24,13 @@ set -x
 
 git pull -a
 cp -f Dockerfile /tmp
-sed -i  '' 's/##BRANCH##/'"$BRANCH"'/g' Dockerfile
+if [[ "$(uname -s)" == "Darwin" ]]
+then
+    sed -i  '' 's/##BRANCH##/'"$BRANCH"'/g' Dockerfile
+else
+    sed -i 's/##BRANCH##/'"$BRANCH"'/g' Dockerfile
+fi
+
 docker buildx build -f Dockerfile --compress --push $2 --platform $ARCHS --tag "$IMAGE1" .
 # [[ $? ]] && docker buildx build --compress --push $2 --platform $ARCHS --tag $IMAGE2 .
 mv -f /tmp/Dockerfile .
