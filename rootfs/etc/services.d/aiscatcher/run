@@ -47,7 +47,7 @@ fi
 # If the number is still larger than the largest allowed number, then default to that one
 [[ "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" -gt "$(awk "BEGIN {print int(${VALID_GAINS[-1]} * 10);}")" ]] && RTLSDR_DEVICE_GAIN="${VALID_GAINS[-1]}"
 
-aiscatcher_command="/usr/local/bin/AIS-catcher -u 127.0.0.1 34994 -u 127.0.0.1 34995 ${FEEDSTRING[*]} $SHOWLOGS -d ${RTLSDR_DEVICE_SERIAL} -gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ON $AISCATCHER_EXTRA_OPTIONS"
+aiscatcher_command="/usr/local/bin/AIS-catcher -N 80 -u 127.0.0.1 34994 -u 127.0.0.1 34995 ${FEEDSTRING[*]} $SHOWLOGS -d ${RTLSDR_DEVICE_SERIAL} -gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ON $AISCATCHER_EXTRA_OPTIONS"
 echo "[aiscatcher][$(date +"%Y/%m/%d %H:%M:%S")] Starting: $aiscatcher_command"
 
 # Test AIS-catcher can run natively (without qemu)
