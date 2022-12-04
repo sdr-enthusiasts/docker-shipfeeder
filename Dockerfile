@@ -4,7 +4,7 @@ RUN set -x && \
     apt-get update -y && \
     apt-get upgrade -y && \
     apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
-        apt-get install git make gcc g++ cmake pkg-config librtlsdr-dev libairspy-dev libhackrf-dev libairspyhf-dev libzmq3-dev libsoxr-dev libcurl4-openssl-dev zlib1g-dev && \
+        git make gcc g++ cmake pkg-config librtlsdr-dev libairspy-dev libhackrf-dev libairspyhf-dev libzmq3-dev libsoxr-dev libcurl4-openssl-dev zlib1g-dev && \
     git clone --depth=1 -b develop --single-branch https://github.com/jvde-github/AIS-catcher.git /root/AIS-catcher && \
     cd /root/AIS-catcher && \
         mkdir build && \
