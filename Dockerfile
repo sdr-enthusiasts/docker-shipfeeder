@@ -1,11 +1,17 @@
 FROM debian:bullseye-slim AS build
 
-RUN apt-get update -y
-RUN apt-get upgrade -y
-RUN apt-get install git make gcc g++ cmake pkg-config -y
-RUN apt-get install librtlsdr-dev libairspy-dev libhackrf-dev libairspyhf-dev libzmq3-dev libsoxr-dev libcurl4-openssl-dev zlib1g-dev -y
-RUN git clone --depth=1 -b develop --single-branch https://github.com/jvde-github/AIS-catcher.git /root/AIS-catcher
-RUN cd /root/AIS-catcher; mkdir build; cd build; cmake ..; make; make install
+RUN set -x && \
+    apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
+        apt-get install git make gcc g++ cmake pkg-config librtlsdr-dev libairspy-dev libhackrf-dev libairspyhf-dev libzmq3-dev libsoxr-dev libcurl4-openssl-dev zlib1g-dev && \
+    git clone --depth=1 -b develop --single-branch https://github.com/jvde-github/AIS-catcher.git /root/AIS-catcher && \
+    cd /root/AIS-catcher && \
+        mkdir build && \
+        cd build && \
+        cmake .. && \
+        make && \
+        make install
 
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
@@ -23,11 +29,8 @@ echo "TARGETARCH $TARGETARCH" && \
     TEMP_PACKAGES=() && \
     KEPT_PACKAGES=() && \
     SX_PACKAGES=() && \
-    AVNAV_PACKAGES=() &\
     #
     SX_PACKAGES+=(sxfeeder:armhf) && \
-    AVNAV_PACKAGES+=(avnav) && \
-    AVNAV_PACKAGES+=(avnav-update-plugin) && \
     # SX_PACKAGES+=(aiscatcher:armhf) && \
     #
     TEMP_PACKAGES+=(gnupg) && \
@@ -70,7 +73,6 @@ echo "TARGETARCH $TARGETARCH" && \
     apt-get update -q && \
     apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
             "${SX_PACKAGES[@]}" \
-            "${AVNAV_PACKAGES[@]}" \
             && \
     #
     # Do some other stuff
@@ -100,4 +102,3 @@ RUN set -x && \
 
 # Add healthcheck
 HEALTHCHECK --start-period=60s --interval=600s --timeout=60s CMD /healthcheck/healthcheck.sh
-
