@@ -1,16 +1,10 @@
 FROM debian:bullseye-slim AS build
 
-RUN apt-get update
+RUN apt-get update -y
 RUN apt-get upgrade -y
-
 RUN apt-get install git make gcc g++ cmake pkg-config -y
-
-RUN set -x && \
-apt-get install librtlsdr-dev libairspy-dev libhackrf-dev libairspyhf-dev libzmq3-dev libsoxr-dev libcurl4-openssl-dev zlib1g-dev -y && \
-git clone --depth=1 -b develop --single-branch https://github.com/jvde-github/AIS-catcher.git
-
-COPY . /root/AIS-catcher
-
+RUN apt-get install librtlsdr-dev libairspy-dev libhackrf-dev libairspyhf-dev libzmq3-dev libsoxr-dev libcurl4-openssl-dev zlib1g-dev -y
+RUN git clone --depth=1 -b develop --single-branch https://github.com/jvde-github/AIS-catcher.git /root/AIS-catcher
 RUN cd /root/AIS-catcher; mkdir build; cd build; cmake ..; make; make install
 
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
