@@ -113,7 +113,8 @@ There are a series of available environment variables:
 | `RTLSDR_DEVICE_GAIN`   | Optional. SDR device gain. If omitted, default value is 33.3 is used |
 | `AISCATCHER_EXTRA_OPTIONS` | Optional. Any additional command line parameters you wish to pass to `AIS-catcher`. Default: empty |
 | `SXFEEDER_EXTRA_OPTIONS` | Optional. Any additional command line parameters you wish to pass to `sxfeeder`. Default: empty |
-
+| `STATION_NAME` | Optional. Station name displayed on stat web page. |
+| `STATION_LINK` | Optional. URL displayed on stat web page. If omitted, it will show your ShipXplorer URL |
 
 ## Logging
 

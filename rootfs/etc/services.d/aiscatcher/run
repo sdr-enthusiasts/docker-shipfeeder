@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bash
 #shellcheck shell=bash
-#shellcheck disable=SC2016,SC2068,SC2076,SC2086
+#shellcheck disable=SC2016,SC2068,SC2076,SC2086,SC2015
 
 
 # check if logging is verbose:
@@ -47,17 +47,31 @@ fi
 # If the number is still larger than the largest allowed number, then default to that one
 [[ "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" -gt "$(awk "BEGIN {print int(${VALID_GAINS[-1]} * 10);}")" ]] && RTLSDR_DEVICE_GAIN="${VALID_GAINS[-1]}"
 
-aiscatcher_command="/usr/local/bin/AIS-catcher -N 80 -u 127.0.0.1 34994 -u 127.0.0.1 34995 ${FEEDSTRING[*]} $SHOWLOGS -d ${RTLSDR_DEVICE_SERIAL} -gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ON $AISCATCHER_EXTRA_OPTIONS"
-echo "[aiscatcher][$(date +"%Y/%m/%d %H:%M:%S")] Starting: $aiscatcher_command"
+aiscatcher_command=()
+aiscatcher_command+=("/usr/local/bin/AIS-catcher")
+aiscatcher_command+=("-N 80")
+[[ -n "$STATION_NAME" ]] && aiscatcher_command+=("STATION $STATION_NAME") || true
+[[ -n "$STATION_LINK" ]] && aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
+aiscatcher_command+=("-u 127.0.0.1 34994")
+aiscatcher_command+=("-u 127.0.0.1 34995")
+aiscatcher_command+=("${FEEDSTRING[*]}")
+aiscatcher_command+=("$SHOWLOGS")
+aiscatcher_command+=("-d ${RTLSDR_DEVICE_SERIAL}")
+aiscatcher_command+=("-gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ON")
+aiscatcher_command+=("$AISCATCHER_EXTRA_OPTIONS")
+
+echo "[aiscatcher][$(date +"%Y/%m/%d %H:%M:%S")] Starting: ${aiscatcher_command[*]}"
 
 # Test AIS-catcher can run natively (without qemu)
 if /usr/local/bin/AIS-catcher -h > /dev/null 2>&1
 then
     # can be run natively
-    $aiscatcher_command 2>&1 | \
+    # shellcheck disable=SC2048
+    ${aiscatcher_command[*]} 2>&1 | \
         stdbuf -oL awk '{print "[aiscatcher][" strftime("%Y/%m/%d %H:%M:%S", systime()) "] " $0}'
 else
     # needs qemu
-    qemu-arm-static $aiscatcher_command 2>&1 | \
+    # shellcheck disable=SC2048
+    qemu-arm-static ${aiscatcher_command[*]} 2>&1 | \
         stdbuf -oL awk '{print "[aiscatcher][" strftime("%Y/%m/%d %H:%M:%S", systime()) "] " $0}'
 fi
