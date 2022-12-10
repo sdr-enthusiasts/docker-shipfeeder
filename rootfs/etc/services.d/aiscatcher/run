@@ -47,11 +47,15 @@ fi
 # If the number is still larger than the largest allowed number, then default to that one
 [[ "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" -gt "$(awk "BEGIN {print int(${VALID_GAINS[-1]} * 10);}")" ]] && RTLSDR_DEVICE_GAIN="${VALID_GAINS[-1]}"
 
+# check if STATION_NAME and STATION_LINK is defined. If it is not, add the ShipXplorer URL
+[[ -z "$STATION_NAME" ]] && STATION_LINK="${SERIAL_NUMBER}" || true
+[[ -z "$STATION_LINK" ]] && STATION_LINK="https://www.shipxplorer.com/stations/${SERIAL_NUMBER}" || true
+
 aiscatcher_command=()
 aiscatcher_command+=("/usr/local/bin/AIS-catcher")
 aiscatcher_command+=("-N 80")
-[[ -n "$STATION_NAME" ]] && aiscatcher_command+=("STATION $STATION_NAME") || true
-[[ -n "$STATION_LINK" ]] && aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
+aiscatcher_command+=("STATION $STATION_NAME") || true
+aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
 aiscatcher_command+=("-u 127.0.0.1 34994")
 aiscatcher_command+=("-u 127.0.0.1 34995")
 aiscatcher_command+=("${FEEDSTRING[*]}")
