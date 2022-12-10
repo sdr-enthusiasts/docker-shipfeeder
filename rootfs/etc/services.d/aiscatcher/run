@@ -48,7 +48,7 @@ fi
 [[ "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" -gt "$(awk "BEGIN {print int(${VALID_GAINS[-1]} * 10);}")" ]] && RTLSDR_DEVICE_GAIN="${VALID_GAINS[-1]}"
 
 # check if STATION_NAME and STATION_LINK is defined. If it is not, add the ShipXplorer URL
-[[ -z "$STATION_NAME" ]] && STATION_LINK="${SERIAL_NUMBER}" || true
+[[ -z "$STATION_NAME" ]] && STATION_NAME="${SERIAL_NUMBER}" || true
 [[ -z "$STATION_LINK" ]] && STATION_LINK="https://www.shipxplorer.com/stations/${SERIAL_NUMBER}" || true
 
 aiscatcher_command=()
