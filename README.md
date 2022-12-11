@@ -115,6 +115,8 @@ There are a series of available environment variables:
 | `SXFEEDER_EXTRA_OPTIONS` | Optional. Any additional command line parameters you wish to pass to `sxfeeder`. Default: empty |
 | `STATION_NAME` | Optional. Station name displayed on stat web page. If omitted, it will should your ShipXplorer Serial Number |
 | `STATION_LINK` | Optional. URL displayed on stat web page. If omitted, it will show your ShipXplorer URL |
+| `SXFEEDER_LAT` | Optional. Used for calculating ship distances on web page |
+| `SXFEEDER_LON` | Optional. Used for calculating ship distances on web page |
 
 ## Logging
 
