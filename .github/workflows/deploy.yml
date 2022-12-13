@@ -26,7 +26,7 @@ on:
 env:
 #  DOCKERHUB_REPO: sdr-enthusiasts
 #  DOCKERHUB_IMAGE: shipxplorer
-  GHCR_IMAGE: shipxplorer
+  GHCR_IMAGE: sdr-enthusiasts/shipxplorer
   GHCR_REGISTRY: ghcr.io
 
 jobs:
