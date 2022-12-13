@@ -14,7 +14,10 @@ services:
       - RTLSDR_DEVICE_GAIN=
       - SXFEEDER_EXTRA_OPTIONS=
       - AISCATCHER_EXTRA_OPTIONS=
-#    ports:
+      - STATION_NAME='Put your station name here'
+      - STATION_URL=https://my-ais-url.com
+    ports:
+      - 8080:80
     devices:
       - /dev/bus/usb
     tmpfs:
