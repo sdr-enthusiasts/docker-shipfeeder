@@ -1,17 +1,4 @@
-FROM debian:bullseye-slim AS build
-
-RUN set -x && \
-    apt-get update -y && \
-    apt-get upgrade -y && \
-    apt-get install -q -o Dpkg::Options::="--force-confnew" -y \
-        git make gcc g++ cmake pkg-config librtlsdr-dev libairspy-dev libhackrf-dev libairspyhf-dev libzmq3-dev libsoxr-dev libcurl4-openssl-dev zlib1g-dev && \
-    git clone --depth=1 -b develop --single-branch https://github.com/jvde-github/AIS-catcher.git /root/AIS-catcher && \
-    cd /root/AIS-catcher && \
-        mkdir build && \
-        cd build && \
-        cmake .. && \
-        make && \
-        make install
+FROM ghcr.io/jvde-github/ais-catcher:edge AS build
 
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
@@ -44,7 +31,6 @@ echo "TARGETARCH $TARGETARCH" && \
     KEPT_PACKAGES+=(libsoxr0) && \
     KEPT_PACKAGES+=(libcurl4) && \
     KEPT_PACKAGES+=(tcpdump) && \
-    KEPT_PACKAGES+=(python3-bluez) && \
     KEPT_PACKAGES+=(git) && \
     KEPT_PACKAGES+=(nano) && \
     #
@@ -60,20 +46,13 @@ echo "TARGETARCH $TARGETARCH" && \
     echo 'deb https://apt.rb24.com/ bullseye main' > /etc/apt/sources.list.d/rb24.list && \
     #
     if [ "$TARGETPLATFORM" != "linux/arm/v7" ]; then \
-        dpkg --add-architecture armhf; \
+        dpkg --add-architecture armhf && \
+        apt-get update -q; \
     fi && \
     #
-    #
-    # add avnav repository
-    curl -o /tmp/oss.boating.gpg.key https://www.free-x.de/debian/oss.boating.gpg.key && \
-    apt-key add /tmp/oss.boating.gpg.key && \
-    curl -o /etc/apt/sources.list.d/boating.list https://www.free-x.de/debian/boating.list && \
-    #
-    # now add a bunch of files
     apt-get update -q && \
     apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
-            "${SX_PACKAGES[@]}" \
-            && \
+            "${SX_PACKAGES[@]}"; \
     #
     # Do some other stuff
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
@@ -94,8 +73,9 @@ COPY --from=build /usr/local/bin/AIS-catcher /usr/local/bin/AIS-catcher
 # Add Container Version
 RUN set -x && \
     pushd /tmp && \
-        git clone --depth=1 -b ##BRANCH## --single-branch https://github.com/sdr-enthusiasts/docker-shipxplorer.git && \
+        git clone --depth=1 https://github.com/sdr-enthusiasts/docker-shipxplorer.git && \
         cd docker-shipxplorer && \
+        git checkout ##BRANCH## && \
         echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > /.CONTAINER_VERSION && \
     popd && \
     rm -rf /tmp/*
