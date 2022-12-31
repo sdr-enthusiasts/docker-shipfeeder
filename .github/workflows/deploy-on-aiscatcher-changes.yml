@@ -40,7 +40,7 @@ jobs:
       -
         name: Check if update available
         id: check
-        uses: lucacome/docker-image-update-checker@v1
+        uses: giggio/docker-image-update-checker@v2
         with:
           base-image: ghcr.io/jvde-github/ais-catcher:edge
           image: ghcr.io/sdr-enthusiasts/shipxplorer
