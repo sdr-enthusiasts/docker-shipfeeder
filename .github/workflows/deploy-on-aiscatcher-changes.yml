@@ -37,13 +37,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      - name: Docker Image Update Checker
-        id: baseupdatecheck
-        uses: lucacome/docker-image-update-checker@v1.1.0
+      -
+        name: Check if update available
+        id: check
+        uses: lucacome/docker-image-update-checker@v1
         with:
-          base-image: library/golang:alpine
-          image: ghcr.io/jvde-github/ais-catcher:edge # update for your image
+          base-image: ghcr.io/jvde-github/ais-catcher:edge
+          image: ghcr.io/sdr-enthusiasts/shipxplorer
 
       # Log into ghcr (so we can push images)
       - name: Login to ghcr.io
