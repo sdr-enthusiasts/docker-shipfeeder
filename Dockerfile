@@ -68,7 +68,7 @@ echo "TARGETARCH $TARGETARCH" && \
 COPY rootfs/ /
 
 # add AIS-catcher
-COPY --from=build /usr/local/bin/AIS-catcher /usr/local/bin/AIS-
+COPY --from=build /usr/local/bin/AIS-catcher /usr/local/bin/AIS-catcher
 
 # Add Container Version
 RUN set -x && \
