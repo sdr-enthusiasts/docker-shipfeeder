@@ -79,6 +79,7 @@ pushd /tmp && \
     cd docker-shipxplorer && \
     echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > "/.CONTAINER_VERSION" && \
 popd && \
+rm -rf /tmp/*
 
 # Add healthcheck
 HEALTHCHECK --start-period=60s --interval=600s --timeout=60s CMD /healthcheck/healthcheck.sh
