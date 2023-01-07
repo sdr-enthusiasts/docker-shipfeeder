@@ -18,3 +18,4 @@
 #---------------------------------------------------------------------------------------------
 
 echo "Starting ShipExplorer version $(cat /.CONTAINER_VERSION)"
+mkdir -p /data
