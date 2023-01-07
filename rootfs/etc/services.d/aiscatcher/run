@@ -69,7 +69,7 @@ fi
 
 aiscatcher_command=()
 aiscatcher_command+=("/usr/local/bin/AIS-catcher")
-aiscatcher_command+=("-N 80")
+aiscatcher_command+=("-N 80 FILE /data/aiscatcher.bin")
 aiscatcher_command+=("STATION $STATION_NAME") || true
 aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
 if [[ -n "$SXFEEDER_LAT" ]] && [[ -n "$SXFEEDER_LON" ]]
