@@ -68,17 +68,17 @@ echo "TARGETARCH $TARGETARCH" && \
 COPY rootfs/ /
 
 # add AIS-catcher
-COPY --from=build /usr/local/bin/AIS-catcher /usr/local/bin/AIS-catcher
+COPY --from=build /usr/local/bin/AIS-catcher /usr/local/bin/AIS-
 
 # Add Container Version
 RUN set -x && \
-    pushd /tmp && \
-        git clone --depth=1 https://github.com/sdr-enthusiasts/docker-shipxplorer.git && \
-        cd docker-shipxplorer && \
-        git checkout ##BRANCH## && \
-        echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > /.CONTAINER_VERSION && \
-    popd && \
-    rm -rf /tmp/*
+pushd /tmp && \
+    branch="##BRANCH##" && \
+    [[ "${branch:0:1}" == "#" ]] && branch="main" || true && \
+    git clone --depth=1 -b $branch https://github.com/sdr-enthusiasts/docker-ShipXplorer.git && \
+    cd docker-shipxplorer && \
+    echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > /.CONTAINER_VERSION && \
+popd && \
 
 # Add healthcheck
 HEALTHCHECK --start-period=60s --interval=600s --timeout=60s CMD /healthcheck/healthcheck.sh
