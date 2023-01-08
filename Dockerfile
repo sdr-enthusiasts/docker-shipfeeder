@@ -4,6 +4,8 @@ FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
 ARG TARGETPLATFORM TARGETOS TARGETARCH
 
+ENV S6_KILL_FINISH_MAXTIME=10000
+
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN set -x && \
