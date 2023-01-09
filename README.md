@@ -112,11 +112,13 @@ There are a series of available environment variables:
 | `RTLSDR_DEVICE_SERIAL` | Required. Serial Number of your RTL-SDR dongle. See instructions above |
 | `UDP_FEEDS`            | Optional. Defines target UDP feeds in addition to ShipExplorer. Format: `UDP_FEEDS=domain1.com:port1,domain2,com:port2,...` |
 | `VERBOSE_LOGGING`      | Optional. If empty, a summary is displayed every 60 seconds. If set to a number (`0`-`5`), it's set to the `AIS-Catcher -o` [log level](https://github.com/jvde-github/AIS-catcher#usage). Any other non-empty string corresponds to `-o 2`. To silence `AIS-Catcher` logs, set this parameter to `0` |
-| `RTLSDR_DEVICE_GAIN`   | Optional. SDR device gain. If omitted, default value is 33.3 is used |
+| `RTLSDR_DEVICE_GAIN`   | Optional. SDR device gain. If omitted, default value is 33.3 is used. Can also be set to `auto` |
 | `AISCATCHER_EXTRA_OPTIONS` | Optional. Any additional command line parameters you wish to pass to `AIS-catcher`. Default: empty |
 | `SXFEEDER_EXTRA_OPTIONS` | Optional. Any additional command line parameters you wish to pass to `sxfeeder`. Default: empty |
 | `STATION_NAME` | Optional. Station name displayed on stat web page. If omitted, it will should your ShipXplorer Serial Number |
 | `STATION_LINK` | Optional. URL displayed on stat web page. If omitted, it will show your ShipXplorer URL |
+| `STATION_HISTORY` | The number of seconds of history that will be shown in plots on the website. Default if omitted: `3600` (1 hour)  |
+| `BACKUP_INTERVAL` | How often the received data will be written to disk, in minutes. In order to make this backup persistent, make sure to map the `/data` directory to a volume. See example in [docker-compose.yml](docker-compose.yml). Default: 2880 minutes (=2 days) |
 | `SXFEEDER_LAT` | Optional. Used for calculating ship distances on web page |
 | `SXFEEDER_LON` | Optional. Used for calculating ship distances on web page |
 

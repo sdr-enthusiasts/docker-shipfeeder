@@ -48,7 +48,7 @@ then
     RTLSDR_DEVICE_GAIN="33.8"
 fi
 # Now make sure that the gain is in the valid gains range, and if it isn't, pick the nearest higher one
-if [[ ! " ${VALID_GAINS[*]} " =~ " ${RTLSDR_DEVICE_GAIN} " ]] && [[ "${RTLSDR_DEVICE_GAIN,,}" != "auto" ]] 
+if [[ ! " ${VALID_GAINS[*]} " =~ " ${RTLSDR_DEVICE_GAIN} " ]] && [[ "${RTLSDR_DEVICE_GAIN,,}" != "auto" ]]
 then
     for GAIN in "${VALID_GAINS[@]}"
     do
@@ -71,6 +71,7 @@ aiscatcher_command=()
 aiscatcher_command+=("/usr/local/bin/AIS-catcher")
 aiscatcher_command+=("-N 80 FILE /data/aiscatcher.bin")
 [[ -n "${BACKUP_INTERVAL}" ]] && aiscatcher_command+=("BACKUP ${BACKUP_INTERVAL}") || true
+[[ -n "${STATION_HISTORY}" ]] && aiscatcher_command+=("HISTORY ${STATION_HISTORY}") || true
 aiscatcher_command+=("STATION $STATION_NAME") || true
 aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
 if [[ -n "$SXFEEDER_LAT" ]] && [[ -n "$SXFEEDER_LON" ]]

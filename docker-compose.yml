@@ -16,6 +16,8 @@ services:
       - AISCATCHER_EXTRA_OPTIONS=
       - STATION_NAME='Put your station name here'
       - STATION_URL=https://my-ais-url.com
+      - BACKUP_INTERVAL=10
+      - HISTORY=86400
     ports:
       - 8080:80
     devices:
