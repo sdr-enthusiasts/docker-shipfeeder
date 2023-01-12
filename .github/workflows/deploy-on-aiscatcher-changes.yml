@@ -1,6 +1,5 @@
 ---
 name: Deploy on aiscatcher changes
-
 on:
   schedule:
       - cron: "*/30 * * * *"
