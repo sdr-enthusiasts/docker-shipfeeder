@@ -17,7 +17,7 @@ services:
       - STATION_NAME='Put your station name here'
       - STATION_URL=https://my-ais-url.com
       - BACKUP_INTERVAL=10
-      - HISTORY=86400
+      - STATION_HISTORY=3600
     ports:
       - 8080:80
     devices:
