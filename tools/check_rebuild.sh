@@ -1,0 +1,39 @@
+#!/bin/bash
+
+#---------------------------------------------------------------------------------------------
+# Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with this program.
+# If not, see <https://www.gnu.org/licenses/>.
+#---------------------------------------------------------------------------------------------
+
+TOKEN="$(curl "https://ghcr.io/token?scope=repository:$1:pull" | awk -F'"' '$0=$4')"
+manifest="$(curl -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$1/manifests/$2")"
+SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
+SHAs_remote="${SHAs_remote//$'\n'/}"
+touch "/aiscatcher.sha"
+read -r SHAs_local < "/aiscatcher.sha"
+# now compare:
+if [[ "$SHAs_local" != "$SHAs_remote" ]]; then
+    # we need to rebuild
+    echo "$SHAs_remote" > /aiscatcher.sha
+    git config --local user.name actions-user
+    git config --local user.email "actions@github.com"
+    git add /aiscatcher.sha
+    git commit -am "GH Action SHA updated $(date)"
+    git push -f origin main
+    echo "Success - container needs rebuilding"
+    exit 0
+else
+    echo "Remote container has not changed, exiting."
+    exit 1
+fi
