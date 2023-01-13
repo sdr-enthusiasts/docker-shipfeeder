@@ -16,19 +16,21 @@
 # If not, see <https://www.gnu.org/licenses/>.
 #---------------------------------------------------------------------------------------------
 
+SHA_FILE="aiscatcher.sha"
+
 TOKEN="$(curl "https://ghcr.io/token?scope=repository:$1:pull" | awk -F'"' '$0=$4')"
 manifest="$(curl -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$1/manifests/$2")"
 SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
 SHAs_remote="${SHAs_remote//$'\n'/}"
-touch "/aiscatcher.sha"
-read -r SHAs_local < "/aiscatcher.sha"
+touch "$SHA_FILE"
+read -r SHAs_local < "$SHA_FILE"
 # now compare:
 if [[ "$SHAs_local" != "$SHAs_remote" ]]; then
     # we need to rebuild
     echo "$SHAs_remote" > /aiscatcher.sha
     git config --local user.name actions-user
     git config --local user.email "actions@github.com"
-    git add /aiscatcher.sha
+    git add "$SHA_FILE"
     git commit -am "GH Action SHA updated $(date)"
     git push -f origin main
     echo "Success - container needs rebuilding"
