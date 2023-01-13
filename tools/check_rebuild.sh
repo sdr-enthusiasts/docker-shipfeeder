@@ -22,12 +22,14 @@ TOKEN="$(curl "https://ghcr.io/token?scope=repository:$1:pull" | awk -F'"' '$0=$
 manifest="$(curl -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$1/manifests/$2")"
 SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
 SHAs_remote="${SHAs_remote//$'\n'/}"
+
+
 touch "$SHA_FILE"
 read -r SHAs_local < "$SHA_FILE"
 # now compare:
 if [[ "$SHAs_local" != "$SHAs_remote" ]]; then
     # we need to rebuild
-    echo "$SHAs_remote" > /aiscatcher.sha
+    echo "$SHAs_remote" > "$SHA_FILE"
     git config --local user.name actions-user
     git config --local user.email "actions@github.com"
     git add "$SHA_FILE"
