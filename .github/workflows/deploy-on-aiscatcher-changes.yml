@@ -25,11 +25,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - name: check container SHAs
-          env:
-              CHECK_CONTAINER: ${{ env.CHECK_CONTAINER }}
-              CHECK_TAG: ${{ env.CHECK_TAG }}
-          run: sh /tools/check_rebuild.sh
+        env:
+          CHECK_CONTAINER: ${{ env.CHECK_CONTAINER }}
+          CHECK_TAG: ${{ env.CHECK_TAG }}
+        run: sh /tools/check_rebuild.sh
+
   call-workflow-2-in-local-repo:
     needs: check_upstream_image
     uses: ./.github/workflows/deploy.yml
