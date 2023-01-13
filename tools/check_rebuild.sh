@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck shell=bash disable=SC2015
 
 #---------------------------------------------------------------------------------------------
 # Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
@@ -18,6 +19,9 @@
 
 SHA_FILE="aiscatcher.sha"
 
+[ -z "$CHECK_CONTAINER" ] && CHECK_CONTAINER="$1" || true
+[ -z "$CHECK_TAG" ] && CHECK_TAG="$2" || true
+
 TOKEN="$(curl "https://ghcr.io/token?scope=repository:$1:pull" | awk -F'"' '$0=$4')"
 manifest="$(curl -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$1/manifests/$2")"
 SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
@@ -27,7 +31,7 @@ SHAs_remote="${SHAs_remote//$'\n'/}"
 touch "$SHA_FILE"
 read -r SHAs_local < "$SHA_FILE"
 # now compare:
-if [[ "$SHAs_local" != "$SHAs_remote" ]]; then
+if [ "$SHAs_local" != "$SHAs_remote" ]; then
     # we need to rebuild
     echo "$SHAs_remote" > "$SHA_FILE"
     git config --local user.name actions-user
