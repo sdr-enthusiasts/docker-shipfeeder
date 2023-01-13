@@ -25,13 +25,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Read package.json
-          id: aiscatcher-sha
-          uses: juliangruber/read-file-action@v1
-          with:
-              path: ./aiscatcher.sha
       - name: check container SHAs
-          run:
+          run: |
               TOKEN="$(curl "https://ghcr.io/token?scope=repository:${CHECK_CONTAINER}:pull" | awk -F'"' '$0=$4')"
               manifest="$(curl -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/${CHECK_CONTAINER}/manifests/${CHECK_TAG}")"
               SHAs_remote="$(echo $manifest|jq '.manifests[].digest')"
