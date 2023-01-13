@@ -26,7 +26,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: check container SHAs
-          run: |
+          run:
               TOKEN="$(curl "https://ghcr.io/token?scope=repository:${CHECK_CONTAINER}:pull" | awk -F'"' '$0=$4')"
               manifest="$(curl -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/${CHECK_CONTAINER}/manifests/${CHECK_TAG}")"
               SHAs_remote="$(echo $manifest|jq '.manifests[].digest')"
@@ -35,17 +35,17 @@ jobs:
               read -r SHAs_local < "./aiscatcher.sha"
               # now compare:
               if [[ "$SHAs_local" != "$SHAs_remote" ]]; then
-                # we need to rebuild
-                echo "$SHAs" > ./aiscatcher.sha
-                git config --local user.name actions-user
-                git config --local user.email "actions@github.com"
-                git add ./aiscatcher.sha
-                git commit -am "GH Action SHA updated $(date)"
-                git push -f origin main
-                echo "Success"
+              # we need to rebuild
+              echo "$SHAs" > ./aiscatcher.sha
+              git config --local user.name actions-user
+              git config --local user.email "actions@github.com"
+              git add ./aiscatcher.sha
+              git commit -am "GH Action SHA updated $(date)"
+              git push -f origin main
+              echo "Success"
               else
-                echo "Remote container has not changed, exiting."
-                exit 1
+              echo "Remote container has not changed, exiting."
+              exit 1
               fi
 
   call-workflow-2-in-local-repo:
