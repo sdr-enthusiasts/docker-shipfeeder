@@ -30,7 +30,7 @@ jobs:
         env:
           CHECK_CONTAINER: ${{ env.CHECK_CONTAINER }}
           CHECK_TAG: ${{ env.CHECK_TAG }}
-        run: sh ${GITHUB_WORKSPACE}/tools/check_rebuild.sh
+        run: bash ./tools/check_rebuild.sh
 
   call-workflow-2-in-local-repo:
     needs: check_upstream_image
