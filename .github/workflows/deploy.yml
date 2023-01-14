@@ -19,6 +19,7 @@ on:
       - '.gitattributes'
       - '.gitignore'
       - '.dockerignore'
+  workflow_call:
 
 # Set workflow-wide environment variables
 #  - REPO: repo name on dockerhub
