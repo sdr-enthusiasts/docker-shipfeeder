@@ -22,8 +22,8 @@ SHA_FILE="aiscatcher.sha"
 [ -z "$CHECK_CONTAINER" ] && CHECK_CONTAINER="$1" || true
 [ -z "$CHECK_TAG" ] && CHECK_TAG="$2" || true
 
-TOKEN="$(curl "https://ghcr.io/token?scope=repository:$1:pull" | awk -F'"' '$0=$4')"
-manifest="$(curl -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$1/manifests/$2")"
+TOKEN="$(curl -sSL "https://ghcr.io/token?scope=repository:$1:pull" | awk -F'"' '$0=$4')"
+manifest="$(curl -sSL -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$1/manifests/$2")"
 SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
 SHAs_remote="${SHAs_remote//$'\n'/}"
 
@@ -42,6 +42,6 @@ if [ "$SHAs_local" != "$SHAs_remote" ]; then
     echo "Success - container needs rebuilding"
     exit 0
 else
-    echo "Remote container has not changed, exiting."
+    echo "Remote container has not changed, no need to run deploy. Exiting."
     exit 1
 fi
