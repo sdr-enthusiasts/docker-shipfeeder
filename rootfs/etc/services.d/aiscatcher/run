@@ -70,6 +70,8 @@ fi
 aiscatcher_command=()
 aiscatcher_command+=("/usr/local/bin/AIS-catcher")
 aiscatcher_command+=("-N 80 REUSE_PORT on FILE /data/aiscatcher.bin")
+[[ -n "${PLUGINS_FILE}" ]] && aiscatcher_command+=("PLUGIN /data/${PLUGINS_FILE}") || true
+[[ -n "${STYLES_FILE}" ]] && aiscatcher_command+=("STYLE /data/${STYLES_FILE}") || true
 [[ -n "${BACKUP_INTERVAL}" ]] && aiscatcher_command+=("BACKUP ${BACKUP_INTERVAL}") || true
 [[ -n "${STATION_HISTORY}" ]] && aiscatcher_command+=("HISTORY ${STATION_HISTORY}") || true
 aiscatcher_command+=("STATION $STATION_NAME") || true
