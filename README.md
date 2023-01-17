@@ -115,10 +115,12 @@ There are a series of available environment variables:
 | `RTLSDR_DEVICE_GAIN`   | Optional. SDR device gain. If omitted, default value is 33.3 is used. Can also be set to `auto` |
 | `AISCATCHER_EXTRA_OPTIONS` | Optional. Any additional command line parameters you wish to pass to `AIS-catcher`. Default: empty |
 | `SXFEEDER_EXTRA_OPTIONS` | Optional. Any additional command line parameters you wish to pass to `sxfeeder`. Default: empty |
+| `PLUGINS_FILE` | Optional. Load a file with custom javascript to override parts of the WebUI or add functionality. Map the container `/data` to any volume, place your file inside the volume and put the file name here (for example `plugins.js`) |
+| `STYLES_FILE` | Optional. Load a file with custom css to override parts of the WebUI or add functionality. Map the container `/data` to any volume, place your file inside the volume and put the file name here (for example `styles.css`) |
 | `STATION_NAME` | Optional. Station name displayed on stat web page. If omitted, it will should your ShipXplorer Serial Number |
 | `STATION_LINK` | Optional. URL displayed on stat web page. If omitted, it will show your ShipXplorer URL |
-| `STATION_HISTORY` | The number of seconds of history that will be shown in plots on the website. Default if omitted: `3600` (1 hour)  |
-| `BACKUP_INTERVAL` | How often the received data will be written to disk, in minutes. In order to make this backup persistent, make sure to map the `/data` directory to a volume. See example in [docker-compose.yml](docker-compose.yml). Default: 2880 minutes (=2 days) |
+| `STATION_HISTORY` | Optional. The number of seconds of history that will be shown in plots on the website. Default if omitted: `3600` (1 hour)  |
+| `BACKUP_INTERVAL` | Optional. How often the received data will be written to disk, in minutes. In order to make this backup persistent, make sure to map the `/data` directory to a volume. See example in [docker-compose.yml](docker-compose.yml). Default: 2880 minutes (=2 days) |
 | `SXFEEDER_LAT` | Optional. Used for calculating ship distances on web page |
 | `SXFEEDER_LON` | Optional. Used for calculating ship distances on web page |
 
