@@ -22,8 +22,8 @@ SHA_FILE="aiscatcher.sha"
 [ -z "$CHECK_CONTAINER" ] && CHECK_CONTAINER="$1" || true
 [ -z "$CHECK_TAG" ] && CHECK_TAG="$2" || true
 
-TOKEN="$(curl -sSL "https://ghcr.io/token?scope=repository:$1:pull" | awk -F'"' '$0=$4')"
-manifest="$(curl -sSL -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$1/manifests/$2")"
+TOKEN="$(curl -sSL "https://ghcr.io/token?scope=repository:$CHECK_CONTAINER:pull" | awk -F'"' '$0=$4')"
+manifest="$(curl -sSL -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$CHECK_CONTAINER/manifests/$CHECK_TAG")"
 SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
 SHAs_remote="${SHAs_remote//$'\n'/}"
 
