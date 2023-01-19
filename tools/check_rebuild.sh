@@ -27,8 +27,8 @@ manifest="$(curl -sSL -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$C
 SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
 SHAs_remote="${SHAs_remote//$'\n'/}"
 
-echo "TOKEN=$TOKEN"
-echo "manifest=$manifest"
+#echo "TOKEN=$TOKEN"
+#echo "manifest=$manifest"
 
 touch "$SHA_FILE"
 read -r SHAs_local < "$SHA_FILE"
