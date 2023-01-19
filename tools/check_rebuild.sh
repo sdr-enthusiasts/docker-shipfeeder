@@ -27,7 +27,7 @@ manifest="$(curl -sSL -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$C
 SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
 SHAs_remote="${SHAs_remote//$'\n'/}"
 
-if grep "error" <<<" $TOKEN $manifest" >/dev/null 2>&1
+if grep "error" <<< "$TOKEN $manifest" >/dev/null 2>&1
 then
     echo "Error retrieving Token or Manifest."
     echo "TOKEN=$TOKEN"
