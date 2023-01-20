@@ -3,7 +3,7 @@ name: Deploy on aiscatcher changes
 on:
   schedule:
       - cron: "0,15,30,45 * * * *"
-  workflow_dispatch
+  workflow_dispatch:
 
 # Set workflow-wide environment variables
 #  - REPO: repo name on dockerhub
