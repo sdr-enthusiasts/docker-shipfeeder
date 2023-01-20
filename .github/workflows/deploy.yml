@@ -20,6 +20,8 @@ on:
       - '.gitignore'
       - '.dockerignore'
   workflow_call:
+  repository_dispatch:
+    types: trigger_build
 
 # Set workflow-wide environment variables
 #  - REPO: repo name on dockerhub
