@@ -23,7 +23,7 @@ SHA_FILE="aiscatcher.sha"
 [ -z "$CHECK_TAG" ] && CHECK_TAG="$2" || true
 
 TOKEN="$(curl -sSL "https://ghcr.io/token?scope=repository:$CHECK_CONTAINER:pull" | awk -F'"' '$0=$4')"
-manifest="$(curl -sSL -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$CHECK_CONTAINER/manifests/$CHECK_TAG")"
+manifest="$(curl -sSL -H "Accept: application/vnd.oci.image.index.v1+json" -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$CHECK_CONTAINER/manifests/$CHECK_TAG")"
 SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
 SHAs_remote="${SHAs_remote//$'\n'/}"
 
