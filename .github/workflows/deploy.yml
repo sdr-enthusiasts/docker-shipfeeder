@@ -21,7 +21,7 @@ on:
       - '.dockerignore'
   workflow_call:
   repository_dispatch:
-    types: trigger_build
+    types: build_on_aiscatcher_update
 
 # Set workflow-wide environment variables
 #  - REPO: repo name on dockerhub
