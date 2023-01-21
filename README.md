@@ -158,6 +158,12 @@ If you have a Ham Radio license, you can also feed to `aprs.fi` via HTTP. In thi
 ```
 where you replace `abcdefghijklmn` with the key you get when you sign up at aprs.fi, and `C9LLSIGN` with your Ham Radio callsign.
 
+## AIS-Catcher Web Plugin Support and AIS-Catcher Persistency
+
+We recommend mapping a volume (as shown in the sample `docker-compose.yml` file in this repo) to the `/data` directory. This will ensure that AIS-Catcher data will persist across restarts and container recreation.
+
+Web Plugins for AIS-Catcher can be placed in the `/data/plugins` directory.
+
 ## Hardware requirements
 
 AIS data is transmitted in the 160 MHz band, for which you'd need a suitable antenna. Note -- ADSB/UAT antennas will definitely not work!
