@@ -49,7 +49,9 @@ jobs:
             #echo "TOKEN=$TOKEN"
             #echo "manifest=$manifest"
 
-            touch "$SHA_FILE"
+            if [ ! -f "$SHA_FILE" ]; then
+                touch "$SHA_FILE"
+            fi
             read -r SHAs_local < "$SHA_FILE"
             # now compare:
             if [ "$SHAs_local" != "$SHAs_remote" ]; then
