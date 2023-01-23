@@ -5,12 +5,11 @@ on:
       - cron: "0,15,30,45 * * * *"
   workflow_dispatch:
 
-# Set workflow-wide environment variables
-#  - REPO: repo name on dockerhub
-#  - IMAGE: image name on dockerhub
 env:
-#  DOCKERHUB_REPO: sdr-enthusiasts
-#  DOCKERHUB_IMAGE: shipxplorer
+  # GHCR_IMAGE: <USER>/<REPO> for the local imagesdr-enthusiasts/shipxplorer
+  # GHCR_REGISTRY: Container registry URL, e.g.: ghcr.io . Leave empty for dockerhub
+  # CHECK_CONTAINER: GHRC.IO container to be checked for updates <USER>/<IMAGE>
+  # CHECK_TAG: tag of the CHECK_CONTAINER to be checked. For example: latest
   GHCR_IMAGE: sdr-enthusiasts/shipxplorer
   GHCR_REGISTRY: ghcr.io
   CHECK_CONTAINER: jvde-github/ais-catcher
@@ -31,8 +30,43 @@ jobs:
         env:
           CHECK_CONTAINER: ${{ env.CHECK_CONTAINER }}
           CHECK_TAG: ${{ env.CHECK_TAG }}
-        run: bash ./tools/check_rebuild.sh
+        run: |
+            SHA_FILE="aiscatcher.sha"
 
-  call-workflow-2-in-local-repo:
+            TOKEN="$(curl -sSL "https://ghcr.io/token?scope=repository:$CHECK_CONTAINER:pull" | awk -F'"' '$0=$4')"
+            manifest="$(curl -sSL -H "Accept: application/vnd.oci.image.index.v1+json" -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$CHECK_CONTAINER/manifests/$CHECK_TAG")"
+            SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
+            SHAs_remote="${SHAs_remote//$'\n'/}"
+
+            if grep "error" <<< "$TOKEN $manifest" >/dev/null 2>&1
+            then
+                echo "Error retrieving Token or Manifest."
+                echo "TOKEN=$TOKEN"
+                echo "MANIFEST=$manifest"
+                exit 2
+            fi
+
+            #echo "TOKEN=$TOKEN"
+            #echo "manifest=$manifest"
+
+            touch "$SHA_FILE"
+            read -r SHAs_local < "$SHA_FILE"
+            # now compare:
+            if [ "$SHAs_local" != "$SHAs_remote" ]; then
+                # we need to rebuild
+                echo "$SHAs_remote" > "$SHA_FILE"
+                git config --local user.name actions-user
+                git config --local user.email "actions@github.com"
+                git add "$SHA_FILE"
+                git commit -am "GH Action SHA updated $(date)"
+                git push -f origin main
+                echo "Success - container needs rebuilding"
+            else
+                echo "Remote container has not changed, no need to run deploy. Exiting."
+                exit 1
+            fi
+
+  call-workflow-in-local-repo:
+  # Make sure to include "workflow_call:" under "on:" in the workflow to be called
     needs: check_upstream_image
     uses: ./.github/workflows/deploy.yml
