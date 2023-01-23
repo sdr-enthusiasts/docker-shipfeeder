@@ -69,6 +69,10 @@ jobs:
             fi
 
   call-workflow-in-local-repo:
-  # Make sure to include "workflow_call:" under "on:" in the workflow to be called
+  # Make sure this in the downstream build action:
+  # on:
+  #   workflow_call:
+  #   repository_dispatch:
+  #     types: build_on_aiscatcher_update
     needs: check_upstream_image
     uses: ./.github/workflows/deploy.yml
