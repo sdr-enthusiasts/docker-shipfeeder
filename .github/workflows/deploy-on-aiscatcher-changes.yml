@@ -32,7 +32,6 @@ jobs:
           CHECK_TAG: ${{ env.CHECK_TAG }}
         run: |
             SHA_FILE="aiscatcher.sha"
-
             TOKEN="$(curl -sSL "https://ghcr.io/token?scope=repository:$CHECK_CONTAINER:pull" | awk -F'"' '$0=$4')"
             manifest="$(curl -sSL -H "Accept: application/vnd.oci.image.index.v1+json" -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$CHECK_CONTAINER/manifests/$CHECK_TAG")"
             SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
@@ -45,10 +44,6 @@ jobs:
                 echo "MANIFEST=$manifest"
                 exit 2
             fi
-
-            #echo "TOKEN=$TOKEN"
-            #echo "manifest=$manifest"
-
             if [ ! -f "$SHA_FILE" ]; then
                 touch "$SHA_FILE"
             fi
