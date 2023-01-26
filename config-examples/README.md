@@ -51,7 +51,7 @@ Make the changes based on the description below, and once you are done, you can 
 | `SX_RTLSDR_DEVICE_SERIAL` | The serial string of your AIS RTL-SDR dongle |
 | `SX_RTLSDR_GAIN` | The gain of your RTL-SDR dongle. If you don't know what to put, we recommend leaving it set to `auto` |
 | `SX_UDP_FEEDS` | If you want to feed any other services using UDP, you can enter them with this parameter. The format is `ip_or_hostname:port` and they are comma separated. See the example in the file. |
-| `SX_EXTRA_OPTIONS` | Here you can put additional parameters as described for (Ais-Catcher)[https://github.com/jvde-github/AIS-catcher#usage]. These are like a command-line: just put spaces between sets of parameter. Examples: |
+| `SX_EXTRA_OPTIONS` | Here you can put additional parameters as described for [Ais-Catcher](https://github.com/jvde-github/AIS-catcher#usage). These are like a command-line: just put spaces between sets of parameter. Examples: |
 | | `-p -2` sets the PPM correction to `-2` |
 | | `-a 192K` sets the tuner bandwidth to 192 kHz (recommended!) |
 | | `-H http://aprs.fi/jsonais/post/zxxxxxxV ID AB1CE PROTOCOL aprs INTERVAL 30 RESPONSE off` uploads data to `aprs.fi` using HTTP
