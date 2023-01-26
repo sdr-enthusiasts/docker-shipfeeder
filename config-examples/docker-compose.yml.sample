@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  shipxplorer:
+    image: ghcr.io/sdr-enthusiasts/shipxplorer
+    container_name: shipxplorer
+    hostname: shipxplorer
+    restart: unless-stopped
+    environment:
+      - STATION_NAME=${SX_STATION_NAME}
+      - SXFEEDER_LAT=${FEEDER_LAT}
+      - SXFEEDER_LON=${FEEDER_LONG}
+      - AISCATCHER_EXTRA_OPTIONS=${SX_EXTRA_OPTIONS}
+      - RTLSDR_DEVICE_GAIN=${SX_RTLSDR_GAIN}
+      - SERIAL_NUMBER=${SX_SERIAL_NUMBER}
+      - RTLSDR_DEVICE_SERIAL=${SX_RTLSDR_DEVICE_SERIAL}
+      - UDP_FEEDS=${SX_UDP_FEEDS}
+      - SHARING_KEY=${SX_SHARING_KEY}
+    ports:
+      - 90:80
+    devices:
+      - /dev/bus/usb
+    tmpfs:
+      - /tmp
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/opt/ais/shipxplorer/data:/data"
+      - /opt/ais/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo
+    labels:
+      - com.centurylinklabs.watchtower.scope=ais
+
+  ais-screenshot:
+    image: ghcr.io/sdr-enthusiasts/screenshot:aiscatcher
+    tty: true
+    container_name: ais-screenshot
+    hostname: ais-screenshot
+    restart: always
+    shm_size: 1gb
+    environment:
+      - LOAD_SLEEP_TIME=15
+      - BASE_URL=http://shipxplorer
+      - MAXTIME=60
+      - MAP_ARGS=map=OpenStreetMap
+    ports:
+      - 5043:5042
+    labels:
+      - com.centurylinklabs.watchtower.scope=ais
+
+  vesselalert:
+    image: ghcr.io/sdr-enthusiasts/vesselalert
+    container_name: vesselalert
+    hostname: vesselalert
+    restart: always
+    environment:
+      - AIS_URL=https://shipxplorer
+      - MASTODON_SERVER=${VA_MASTODON_SERVER}
+      - MASTODON_ACCESS_TOKEN=${VA_MASTODON_ACCESS_TOKEN}
+      - MASTODON_SKIP_FILTER=${VA_MASTODON_SKIP_FILTER}
+      - NOTIFICATION_MIN_DIST=8
+      - MASTODON_CUSTOM_FIELD=${VA_MASTODON_CUSTOM_FIELD}
+      - MASTODON_LINK_SHIPXPLORER=on
+      - MASTODON_LINK_MARINETRAFFIC=on
+      - MASTODON_LINK_VESSELFINDER=on
+      - MASTODON_ONLY_NEW_ON_STARTUP=on
+      - MASTODON_THROTTLE=on
+      - NOTIFICATION_MAPURL=on
+      - DISCORD_NAME=${VA_DISCORD_NAME}
+      - DISCORD_AVATAR_URL=${VA_DISCORD_AVATAR_URL}
+      - DISCORD_WEBHOOKS=${VA_DISCORD_WEBHOOKS}
+      - SCREENSHOT_URL=http://ais-screenshot:5042
+    tmpfs:
+      - /tmp
+    volumes:
+      - /opt/ais/vesselalert/data:/data
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
+    labels:
+      - com.centurylinklabs.watchtower.scope=ais
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower-ais
+    environment:
+      - TZ=Europe/London
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_ROLLING_RESTART=true
+    hostname: watchtower-ais
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 --scope ais
+    labels:
+      - com.centurylinklabs.watchtower.scope=ais
