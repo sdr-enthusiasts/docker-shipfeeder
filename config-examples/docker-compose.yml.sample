@@ -88,6 +88,6 @@ services:
     hostname: watchtower-ais
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 300 --scope ais
+    command: --interval 1800 --scope ais
     labels:
       - com.centurylinklabs.watchtower.scope=ais

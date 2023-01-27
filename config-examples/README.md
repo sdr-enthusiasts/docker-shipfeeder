@@ -41,7 +41,6 @@ nano /opt/ais/.env
 ```
 Make the changes based on the description below, and once you are done, you can Save & Exit with CTRL-x
 
-|---------------|---------------|
 | Parameter     | Description   |
 |---------------|---------------|
 | `FEEDER_LAT` | The latitude (xx.xxxxx) of your station |
@@ -65,6 +64,28 @@ et cetera |
 | `VA_DISCORD_AVATAR_URL` | Link to a URL that contains your avatar / picture |
 | `VA_DISCORD_WEBHOOKS` | Webhook(s) for Discord notifications. If you have multiple channels your want to notify to, you can comma-separate them. We prefilled this field with one for our special [`#Vessel-Alerts` Discord Channel](https://discord.gg/UMgZMc2AGp) |
 | `VA_SCREENSHOT_URL` | http://ais-screenshot:5042 |
+
+## Starting your AIS Feeder
+
+Do this:
+```bash
+cd /opt/ais
+docker-compose pull
+docker-compose up -d
+```
+The system checks every 30 minutes if there's a new version of any of the container. However, you can also manually check if there are updates by repeating the commands above.
+
+## See ships and station data on your webpage!
+
+You can browse to `http://my_ip:90` (replace `my_ip` with the IP address of your machine) to see the AIS-Catcher web interface.
+
+## Troubleshooting
+
+If things aren't running the way they should be, your first course of action is to check the container logs. They often give hints on what when wrong and how to fix it.
+- If the web page doesn't work, or no data is sent to ShipXplorer, check the `shipxplorer` logs: `docker logs shipxplorer`
+- If no notifications are sent, check the `VesselAlert` logs: `docker logs vesselalert`
+- If the notification don't include a map, or the map screenshot is not good, check the `ais-screenshot` logs: `docker logs ais-screenshot`
+Note -- you can "follow" the logs live by adding `-f` to the command: `docker logs -f shipxplorer`
 
 
 ## Getting Help
