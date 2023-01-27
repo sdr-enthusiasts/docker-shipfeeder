@@ -20,12 +20,17 @@ Before you go on, you should:
 - Get one or more Discord Webhooks. If you want to send notification to our special [`#Vessel-Alerts` Discord Channel](https://discord.gg/UMgZMc2AGp), you can keep the Webhook in the `.env` sample file!
 - Last, if your machine is NOT a Raspberry Pi, you should follow [this "work-around for CPU Serial Number"](https://github.com/sdr-enthusiasts/docker-shipxplorer#workaround-for-cpu-serial-only-needed-with-non-raspberry-pi-systems) before doing anything else.
 
+## Installing `docker` on your machine
+Follow the instructions here: https://github.com/sdr-enthusiasts/docker-install
+
 ## Downloading the sample configuration
 
-The provided [sample `docker-compose.yml`](docker-compose.yml.sample) file can be used as-is, unedited. If you use your machine for multiple purposes, we recommend putting your AIS containers in a separate stack. This is so it's easier to maintain -- strictly speaking, you *can* put all containers in a single stack.
+The provided [sample `docker-compose.yml`](docker-compose.yml.sample) and [sample `environment variables`](.env.sample) files can be used as-is, unedited (after renaming them of course). If you use your machine for multiple purposes, we recommend putting your AIS containers in a separate stack from other containers. This is purely for ease of maintenance -- strictly speaking, you *can* put all containers in a single stack.
 
 Here's what you do:
-You log into your machine with the AIS dongle, and type or copy/paste this:
+
+## Prep and download the sample configuration files
+Log into your machine with the AIS dongle, and type or copy/paste this:
 ```bash
 sudo mkdir /opt/ais
 sudo chmod a+rwx /opt/ais
@@ -53,8 +58,8 @@ Make the changes based on the description below, and once you are done, you can 
 | `SX_EXTRA_OPTIONS` | Here you can put additional parameters as described for [Ais-Catcher](https://github.com/jvde-github/AIS-catcher#usage). These are like a command-line: just put spaces between sets of parameter. Examples: |
 | | `-p -2` sets the PPM correction to `-2` |
 | | `-a 192K` sets the tuner bandwidth to 192 kHz (recommended!) |
-| | `-H http://aprs.fi/jsonais/post/zxxxxxxV ID AB1CE PROTOCOL aprs INTERVAL 30 RESPONSE off` uploads data to `aprs.fi` using HTTP
-et cetera |
+| | `-H http://aprs.fi/jsonais/post/zxxxxxxV ID AB1CE PROTOCOL aprs INTERVAL 30 RESPONSE off` uploads data to `aprs.fi` using HTTP |
+| | et cetera |
 | `SX_STATION_NAME` | Your station name. The text needs to be "web save": instead of spaces, please put `&nbsp;` between the words |
 | `VA_MASTODON_SERVER` | The Mastodon server your account is on. For example `airwaves.social` |
 | `VA_MASTODON_ACCESS_TOKEN` | The Mastodon Access Token you got when you created an app |
@@ -87,6 +92,15 @@ If things aren't running the way they should be, your first course of action is 
 - If the notification don't include a map, or the map screenshot is not good, check the `ais-screenshot` logs: `docker logs ais-screenshot`
 Note -- you can "follow" the logs live by adding `-f` to the command: `docker logs -f shipxplorer`
 
+## Advanced configuration
+
+There are a few additional things you can configure by editing `docker-compose.yml`. Those shouldn't need changing under normal circumstances, but here they are in case you feel lucky:
+- Changing the web page port: in the `shipxplorer` section, change the port definition from `- 90:80` to `- xxxx:80`, where `xxxx` is your desired web port number
+- Changing the check interval for new software versions: in the `watchtower` section, change the command line from `command: --interval 1800 --scope ais` to `command: --interval xxxx --scope ais`, where `xxxx` is the check interval in seconds
+- If the screenshots don't quite render correctly, you may want to increase the render time in the `screenshot-ais` section: change `- LOAD_SLEEP_TIME=15` to ``- LOAD_SLEEP_TIME=30` or so (time in seconds for the container to wait for the web page to render before a screenshot is taken)
+- Similarly, you can change the map type for the screenshot in the `screenshot-ais` section: change `OpenStreetMap` in `- MAP_ARGS=map=OpenStreetMap` to any of `Positron`, `Dark%20Matter`, `Voyager`, or `Satellite`.
+
+After making any of these changes, you should restart the containers with `docker-compose up -d --force-recreate`
 
 ## Getting Help
 
