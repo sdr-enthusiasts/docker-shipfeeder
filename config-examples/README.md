@@ -1,4 +1,4 @@
-# Configuration Exanmples for ShipXplorer
+# Configuration Examples for ShipXplorer
 
 [![Discord](https://img.shields.io/discord/734090820684349521)](https://discord.gg/sTf9uYF)
 
