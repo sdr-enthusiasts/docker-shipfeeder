@@ -36,6 +36,7 @@ echo "TARGETARCH $TARGETARCH" && \
     KEPT_PACKAGES+=(tcpdump) && \
     KEPT_PACKAGES+=(git) && \
     KEPT_PACKAGES+=(nano) && \
+    KEPT_PACKAGES+=(libpqxx-dev) && \
     #
     # install packages
     apt-get update && \
