@@ -1,0 +1,33 @@
+#!/usr/bin/with-contenv bash
+#shellcheck shell=bash
+#shellcheck disable=SC2016,SC2068,SC2086
+
+#---------------------------------------------------------------------------------------------
+# Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with this program.
+# If not, see <https://www.gnu.org/licenses/>.
+#---------------------------------------------------------------------------------------------
+
+sxfeeder_command="/usr/bin/sxfeeder"
+echo "[sxfeeder][$(date +"%Y/%m/%d %H:%M:%S")] Starting: $sxfeeder_command"
+# Test sxfeeder can run natively (without qemu)
+if /usr/bin/sxfeeder --help > /dev/null 2>&1
+then
+    # can be run natively
+    $sxfeeder_command 2>&1 | \
+        stdbuf -oL awk '{print "[sxfeeder][" strftime("%Y/%m/%d %H:%M:%S", systime()) "] " $0}'
+else
+    # needs qemu
+    qemu-arm-static $sxfeeder_command 2>&1 | \
+        stdbuf -oL awk '{print "[sxfeeder][" strftime("%Y/%m/%d %H:%M:%S", systime()) "] " $0}'
+fi
