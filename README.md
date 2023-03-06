@@ -32,12 +32,13 @@ In theory, it should work, but I don't have the time nor inclination to test it.
 
 First-time users should obtain a ShipXplorer sharing key.
 
-In order to obtain a ShipXplorer sharing key, on the first run of the container, it will generate a sharing key and print this to the container log.
+In order to obtain a ShipXplorer sharing key, on the first run of the container, it will generate a sharing key and print this to the container log. If you can't find it, you can also copy and paste this command:
 
-```shell
+```bash
 timeout 180s docker run \
     --rm \
     -it \
+    --entrypoint /usr/bin/get-creds \
     ghcr.io/sdr-enthusiasts/shipxplorer:latest
 ```
 
