@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bash
+#!/bin/bash
 #shellcheck shell=bash
 #shellcheck disable=SC2016,SC2068,SC2086
 
