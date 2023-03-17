@@ -27,4 +27,5 @@ services:
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "/etc/timezone:/etc/timezone:ro"
+      - "/opt/ais/shipxplorer/data:/data"
       # - /opt/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo # only for x86 systems - see README.md
