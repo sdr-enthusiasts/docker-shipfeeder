@@ -20,7 +20,7 @@
 # Check if about.md has been updated by comparing its MD5 hash every 30 seconds; restart 
 # the aiscatcher service
 
-APPNAME="$0"
+APPNAME="check-about-updates"
 
 filename="/data/about.md"
 
