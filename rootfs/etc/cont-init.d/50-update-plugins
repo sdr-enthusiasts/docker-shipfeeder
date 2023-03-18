@@ -41,7 +41,7 @@ pushd AIS-catcher >/dev/null 2>&1
   if [[  "${remote_last_commit}" == "${last_commit}" ]]
   then
     echo "[$(date)][${APPNAME}] Plugins haven't changed on remote repository - no need to update"
-    popd
+    popd  >/dev/null 2>&1
     rm -rf /tmp/AIS-catcher
     exit 0
   fi
