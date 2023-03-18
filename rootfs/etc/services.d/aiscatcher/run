@@ -94,16 +94,6 @@ aiscommand="$(echo ${aiscatcher_command[@]} | xargs)"
 
 echo "[aiscatcher][$(date +"%Y/%m/%d %H:%M:%S")] Starting: ${aiscommand}"
 
-# Test AIS-catcher can run natively (without qemu)
-if /usr/local/bin/AIS-catcher -h > /dev/null 2>&1
-then
-    # can be run natively
-    # shellcheck disable=SC2048
-    ${aiscommand} 2>&1 | \
+# shellcheck disable=SC2048
+${aiscommand} 2>&1 | \
         stdbuf -oL awk '{print "[aiscatcher][" strftime("%Y/%m/%d %H:%M:%S", systime()) "] " $0}'
-else
-    # needs qemu
-    # shellcheck disable=SC2048
-    qemu-arm-static ${aiscommand} 2>&1 | \
-        stdbuf -oL awk '{print "[aiscatcher][" strftime("%Y/%m/%d %H:%M:%S", systime()) "] " $0}'
-fi
