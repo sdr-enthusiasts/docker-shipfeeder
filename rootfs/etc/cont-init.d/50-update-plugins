@@ -34,7 +34,7 @@ then
   exit 0
 fi
 
-pushd AIS-catcher
+pushd AIS-catcher >/dev/null 2>&1
   touch /data/plugins/.last_commit
   read -r last_commit < "/data/plugins/.last_commit"
   remote_last_commit="$(git log --pretty=format:"%h")"
@@ -46,7 +46,8 @@ pushd AIS-catcher
     exit 0
   fi
   echo  "${remote_last_commit}" > "/data/plugins/.last_commit"
-popd
+popd >/dev/null 2>&1
+
 echo -n "[$(date)][${APPNAME}] Plugins need updating... "
 
 if [[ -n "${last_commit}" ]]
