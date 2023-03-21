@@ -70,12 +70,11 @@ fi
 aiscatcher_command=()
 aiscatcher_command+=("/usr/local/bin/AIS-catcher")
 aiscatcher_command+=("-N 80 REUSE_PORT on FILE /data/aiscatcher.bin")
-# [[ -n "${PLUGINS_FILE}" ]] && aiscatcher_command+=("PLUGIN /data/${PLUGINS_FILE}") || true
-# [[ -n "${STYLES_FILE}" ]] && aiscatcher_command+=("STYLE /data/${STYLES_FILE}") || true
 [[ -d "/data/plugins" ]] && aiscatcher_command+=("PLUGIN_DIR /data/plugins") || true
 [[ -f "/data/about.md" ]] && aiscatcher_command+=("ABOUT /data/about.md") || true
 [[ -n "${BACKUP_INTERVAL}" ]] && aiscatcher_command+=("BACKUP ${BACKUP_INTERVAL}") || true
 [[ -n "${STATION_HISTORY}" ]] && aiscatcher_command+=("HISTORY ${STATION_HISTORY}") || true
+[[ -n "${SITESHOW}" ]] && aiscatcher_command+=("SHARE_LOC on") || true
 aiscatcher_command+=("STATION $STATION_NAME") || true
 aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
 if [[ -n "$SXFEEDER_LAT" ]] && [[ -n "$SXFEEDER_LON" ]]

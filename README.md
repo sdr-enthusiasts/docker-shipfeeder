@@ -153,6 +153,7 @@ There are a series of available environment variables:
 | `STATION_LINK` | Optional. URL displayed on stat web page. If omitted, it will show your ShipXplorer URL |
 | `STATION_HISTORY` | Optional. The number of seconds of history that will be shown in plots on the website. Default if omitted: `3600` (1 hour)  |
 | `BACKUP_INTERVAL` | Optional. How often the received data will be written to disk, in minutes. In order to make this backup persistent, make sure to map the `/data` directory to a volume. See example in [docker-compose.yml](docker-compose.yml). Default: 2880 minutes (=2 days) |
+| `SITESHOW` | Optional. If set to anything non-empty, it will show the station location as a dot on the map |
 | `SXFEEDER_LAT` | Optional. Used for calculating ship distances on web page |
 | `SXFEEDER_LON` | Optional. Used for calculating ship distances on web page |
 
