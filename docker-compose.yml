@@ -6,18 +6,21 @@ services:
     hostname: shipxplorer
     restart: always
     environment:
-      - SHARING_KEY=
-      - SERIAL_NUMBER=
-      - RTLSDR_DEVICE_SERIAL=device_serial
+      - SHARING_KEY=${SX_SHARING_KEY}
+      - SERIAL_NUMBER=${SX_SERIAL_NUMBER}
+      - RTLSDR_DEVICE_SERIAL=${AIS_device_serial}
       - VERBOSE_LOGS=true
-      - UDP_FEEDS=
-      - RTLSDR_DEVICE_GAIN=
-      - SXFEEDER_EXTRA_OPTIONS=
-      - AISCATCHER_EXTRA_OPTIONS=
+      - UDP_FEEDS=${SX_UDP_FEEDS}
+      - RTLSDR_DEVICE_GAIN=${AIS_DEVICE_GAIN}
+      - SXFEEDER_EXTRA_OPTIONS=${SXFEEDER_EXTRA_OPTIONS}
+      - AISCATCHER_EXTRA_OPTIONS=${AIS_EXTRA_OPTIONS}
       - STATION_NAME='Put your station name here'
       - STATION_URL=https://my-ais-url.com
       - BACKUP_INTERVAL=10
       - STATION_HISTORY=3600
+      - SX_FEEDER_LAT=42.12345
+      - SX_FEEDER_LON=-71.12345
+      - SITESHOW=on
     ports:
       - 8080:80
     devices:
