@@ -69,7 +69,8 @@ fi
 
 aiscatcher_command=()
 aiscatcher_command+=("/usr/local/bin/AIS-catcher")
-aiscatcher_command+=("-N 80 REUSE_PORT on ZLIB off FILE /data/aiscatcher.bin")
+aiscatcher_command+=("-N 80 REUSE_PORT on FILE /data/aiscatcher.bin")
+[[ -n "${DISABLE_SHIPSJSON_COMPRESS}" ]] && aiscatcher_command+=("ZLIB off") || true
 [[ -d "/data/plugins" ]] && aiscatcher_command+=("PLUGIN_DIR /data/plugins") || true
 [[ -f "/data/about.md" ]] && aiscatcher_command+=("ABOUT /data/about.md") || true
 [[ -n "${BACKUP_INTERVAL}" ]] && aiscatcher_command+=("BACKUP ${BACKUP_INTERVAL}") || true
