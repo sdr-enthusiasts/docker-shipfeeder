@@ -92,6 +92,7 @@ services:
       - BACKUP_INTERVAL=5
       - SXFEEDER_LON=${FEEDER_LONG}
       - SXFEEDER_LAT=${FEEDER_LAT}
+      - PROMETHEUS_ENABLE=true
     ports:
       - 90:80
     devices:
@@ -156,6 +157,7 @@ There are a series of available environment variables:
 | `SITESHOW` | Optional. If set to anything non-empty, it will show the station location as a dot on the map |
 | `SXFEEDER_LAT` | Optional. Used for calculating ship distances on web page |
 | `SXFEEDER_LON` | Optional. Used for calculating ship distances on web page |
+| `PROMETHEUS_ENABLE` | Optional. Enables Prometheus data at `/metrics` on the webserver. Empty (disabled) by default |
 
 ## Feeding Other Service
 
