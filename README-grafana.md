@@ -159,3 +159,49 @@ At this point you should see a very nice dashboard, you can find it under `Gener
 <img src="https://user-images.githubusercontent.com/15090643/228942953-ed8b64aa-3a38-4c6f-bd42-e929b72399b2.png">
 <img src="https://user-images.githubusercontent.com/15090643/228943041-7e135856-543a-416a-9331-50853d2e0929.png">
 <img src="https://user-images.githubusercontent.com/15090643/228943083-c017c5a0-f5aa-4d03-b241-8e58f2c8a5f6.png">
+
+## Embedding your Grafana Dashboard to your AIS-Catcher About page
+
+This description presumes that you already do the following:
+- have a working Grafana setup as per the instructions above
+- have configured an About page as per the instructions [here](https://github.com/sdr-enthusiasts/docker-shipxplorer/blob/main/README.md#adding-an-about-page-to-the-ais-catcher-website)
+- If your AIS-Catcher/ShipXplorer website is exposed outside your intranet, you should also have an externally accessible link to your Grafana instance.
+
+### 1 - Create a new Organization in Grafana and import your Data Source and Dashboard
+
+This is not 100% mandatory, but since "anonymous" access enables seeing all Dashboards of an Organization, it's recommendable to isolate your AIS-Catcher dashboard in a separate Organization.
+
+1. Log in to Grafana with an Admin account
+2. Go to `Server Admin` (Shield icon) -> `Organizations`
+3. Click `+ New org` and create a new Organization. You can call it whatever you want; for simplicity, we've called it "`public`". Click on it to select it.
+4. Now you have to import your Prometheus Data Source and Grafana Dashboard again. Follow the instructions above; make sure it says "`Organization: public`" at the top of the page. If you have made adjustments to your Grafana Dashboard in your other organization, you can go there, export the JSON "for external use", and then copy this JSON code into a new Dashboard in the `public` organization.
+
+You should now be able to see your Grafana AIS-Catcher Dashboard in the `public` organization.
+
+### 2 - Enable your Grafana Config for showing Dashboards without logging in
+
+This enables Grafana to show and embed dashboards without logging in, limited to a __single organization__. 
+
+Add the following parameters to the `environment:` section of your Grafana Service definition in `docker-compose.yml`. If you have named your Organization something else than `public`, you'll have to adjust that below:
+
+```yaml
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_NAME=public
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+```
+
+Then restart the Grafana container with `docker restart grafana`.
+
+Once you have done this, you need to do a Hard Reload of the Grafana Dashboard in your Web Browser. If you use Chrome, this would be CTRL-SHIFT-R (Windows) or CMD-SHIFT-R (Mac).
+
+### 3 - Get your Grafana Dashboard Link and add it to `about.md`
+
+1. In your Grafana Dashboard page (`public` organization), click the "Share Dashboard or Panel" button next to the title of the Dashboard
+2. In the Link tab of the pop-up box, make sure that you **deselect** `Lock time range` and optionally **select** `Shorten URL`. If you usually render a Dark Mode Dashboard, you may want to select "Light Mode" because this fits better with the About page. Then copy the resulting URL
+3. Edit `about.md` in the `/data` directory that previously created using the [instructions](https://github.com/sdr-enthusiasts/docker-shipxplorer/blob/main/README.md#adding-an-about-page-to-the-ais-catcher-website). Wherever you want the Dashboard to appear, add the following Markdown/HTML code block:
+
+```html
+<iframe src="http://copied/link/from/grafana" width="100%" height="1300" frameborder="0"></iframe>
+```
+Of course, replace `http://copied/link/from/grafana` by the Dashboard link you copied.
