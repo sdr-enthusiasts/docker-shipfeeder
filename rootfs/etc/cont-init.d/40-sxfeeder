@@ -19,6 +19,32 @@
 
 # Check to make sure the correct command line arguments have been set
 
+
+if [[ -z "${SHARING_KEY}" ]] && [[ -z "${AISCATCHER_EXTRA_OPTIONS}" ]] && [[ -z "${UDP_FEEDS}" ]]
+then
+  echo "WARNING: Container is configured for Local Use Only. At least one of SHARING_KEY, AISCATCHER_EXTRA_OPTIONS, or UDP_FEEDS must be defined for this container to feed a service."
+  exit 0
+fi
+
+if [[ -z "${SHARING_KEY}" ]]
+then
+  echo "WARNING: SHARING_KEY is not set. Feeding to ShipXplorer is disabled."
+  echo "         If you are attempting to generate a new ShipXplorer sharing key and serial, you can do so by giving this command:"
+  echo "         docker exec -it shipxplorer /usr/bin/getcreds"
+  exit 0
+fi
+
+if [[ -z "${SERIAL_NUMBER}" ]]
+then
+  echo "ERROR: ShipXplorer SHARING_KEY is defined but SERIAL_NUMBER is not set. We need both to feed ShipXplorer. If you want to disable feeding ShipXplorer, make sure that SHARING_KEY is empty as well."
+  exit 1
+fi
+
+if [[ -z "${RTLSDR_DEVICE_SERIAL}" ]]
+then
+  echo "WARNING: RTLSDR_DEVICE_SERIAL is not set. The container will run in network-only mode."
+fi
+
 # Generate /etc/sxfeeder.ini based on environment variables
 echo """
 [client]
@@ -32,31 +58,8 @@ log_file=/var/log/sxfeeder.log
 udp_listen_port=34995
 """ > /etc/sxfeeder.ini
 
-if [ -z "${SHARING_KEY}" ] || [ -z "${SERIAL_NUMBER}" ]
-then
-  echo ""
-  echo "WARNING: SHARING_KEY or SERIAL_NUMBER environment variable was not set!"
-  echo "Please make sure you note down the keys generated and update your docker-compose.yml with these values."
-  echo "Set environment var SHARING_KEY to the new key displayed below - this is the long hex number"
-  echo "Set environment var SERIAL_NUMBER to the Serial Number displayed below - this is the SXTRPIxxxxxx string"
-  echo "They must be set for this container to run."
-  echo "Please set it and restart the container."
-  echo ""
-  timeout 10 /usr/bin/sxfeeder 2>&1 | grep "Your new key is"
-  sleep infinity
-else
-  sed -i 's/#SHARINGKEY/key='"$SHARING_KEY"'/g' /etc/sxfeeder.ini
-  sed -i 's/#SERIALNUMBER/sn='"$SERIAL_NUMBER"'/g' /etc/sxfeeder.ini
-fi
-
-if [ -z "${RTLSDR_DEVICE_SERIAL}" ]
-then
-    echo ""
-    echo "ERROR: RTLSDR_DEVICE_SERIAL variable was not set!"
-    echo "It must be set for this container to run."
-    echo "Please set it and restart the container."
-    sleep infinity
-fi
+sed -i 's/#SHARINGKEY/key='"$SHARING_KEY"'/g' /etc/sxfeeder.ini
+sed -i 's/#SERIALNUMBER/sn='"$SERIAL_NUMBER"'/g' /etc/sxfeeder.ini
 
 # In case sxfeeder cannot be run, let's make sure that qemu exists:
 if ! /usr/bin/sxfeeder --help >/dev/null 2>&1 && ! which qemu-arm-static >/dev/null 2>&1
