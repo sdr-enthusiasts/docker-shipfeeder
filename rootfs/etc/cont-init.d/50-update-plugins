@@ -21,7 +21,7 @@
 
 APPNAME="$0"
 
-if [[ "${UPDATE_PLUGINS}" != true ]]
+if [[ -z "${UPDATE_PLUGINS}" ]]
 then
   echo "[$(date)][${APPNAME}] UPDATE_PLUGINS is not set to true; skipping plugin updates"
   exit 0
