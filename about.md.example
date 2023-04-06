@@ -39,6 +39,10 @@ The software for this station is automatically updated when changes to the *edge
 
 ![architecture diagram](https://kx1t.com/kx1t-architecture.png)
 
+## Grafana Dashboard
+
+<iframe src="https://kx1t.com/gfna/goto/aIkXB4L4k?orgId=2" width="100%" height="1300" frameborder="0"></iframe>
+
 ## So You Want To Create Your Own About Page In AIS-catcher
 
 It's easy to do, but the how-to slightly differs depending on how you are deploying AIS-Catcher.
@@ -54,10 +58,6 @@ Then you save this file as follows:
 Note - if you make changes to the `about.md` file, you should restart AIS-Catcher for it to detect these changes, except when you use the `ghcr.io/sdr-enthusiasts/docker-shipxplorer` container. The latter auto-detects and auto-deploys changes to `about.md`.
 
 If you need some inspiration, the `about.md` file used to generate this About screen can be found [here](https://github.com/sdr-enthusiasts/docker-shipxplorer/blob/main/about.md.example).
-
-## Grafana Dashboard
-
-<iframe src="https://kx1t.com/gfna/goto/aIkXB4L4k?orgId=2" width="100%" height="1300" frameborder="0"></iframe>
 
 ## Use and License
 
