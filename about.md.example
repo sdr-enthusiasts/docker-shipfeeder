@@ -53,7 +53,7 @@ Then you save this file as follows:
 
 Note - if you make changes to the `about.md` file, you should restart AIS-Catcher for it to detect these changes, except when you use the `ghcr.io/sdr-enthusiasts/docker-shipxplorer` container. The latter auto-detects and auto-deploys changes to `about.md`.
 
-If you need some inspiration, the `about.md` file used to generate this About screen can be found [here](https://github.com/sdr-enthusiasts/docker-shipxplorer/about.md.example).
+If you need some inspiration, the `about.md` file used to generate this About screen can be found [here](https://github.com/sdr-enthusiasts/docker-shipxplorer/blob/main/about.md.example).
 
 ## Grafana Dashboard
 
