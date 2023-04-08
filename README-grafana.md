@@ -129,8 +129,8 @@ docker restart prometheus
 
 You should be able to point your web browser at:
 
-* `http://docker.host.ip.addr:9090/` to access the `prometheus` console.
-* `http://docker.host.ip.addr:3000/` to access the `grafana` console, use admin/admin as initial credentials, you should be prompted to change the password on first login.
+- `http://docker.host.ip.addr:9090/` to access the `prometheus` console.
+- `http://docker.host.ip.addr:3000/` to access the `grafana` console, use admin/admin as initial credentials, you should be prompted to change the password on first login.
 
 Remember to change `docker.host.ip.addr` to the IP address of the machine where Prometheus and Grafana are located.
 
@@ -156,13 +156,14 @@ Clicking `Save & Test` should return a green message indicating success. The das
 4. Click `Import` on the subsequent dialogue box
 
 At this point you should see a very nice dashboard, you can find it under `General` in the `Dashboards` section.
-<img src="https://user-images.githubusercontent.com/15090643/228942953-ed8b64aa-3a38-4c6f-bd42-e929b72399b2.png">
-<img src="https://user-images.githubusercontent.com/15090643/228943041-7e135856-543a-416a-9331-50853d2e0929.png">
-<img src="https://user-images.githubusercontent.com/15090643/228943083-c017c5a0-f5aa-4d03-b241-8e58f2c8a5f6.png">
+![image1](https://user-images.githubusercontent.com/15090643/228942953-ed8b64aa-3a38-4c6f-bd42-e929b72399b2.png)
+![image1](https://user-images.githubusercontent.com/15090643/228943041-7e135856-543a-416a-9331-50853d2e0929.png)
+![image1](https://user-images.githubusercontent.com/15090643/228943083-c017c5a0-f5aa-4d03-b241-8e58f2c8a5f6.png)
 
 ## Embedding your Grafana Dashboard to your AIS-Catcher About page
 
 This description presumes that you already do the following:
+
 - have a working Grafana setup as per the instructions above
 - have configured an About page as per the instructions [here](https://github.com/sdr-enthusiasts/docker-shipxplorer/blob/main/README.md#adding-an-about-page-to-the-ais-catcher-website)
 - If your AIS-Catcher/ShipXplorer website is exposed outside your intranet, you should also have an externally accessible link to your Grafana instance.
@@ -180,7 +181,7 @@ You should now be able to see your Grafana AIS-Catcher Dashboard in the `public`
 
 ### 2 - Enable your Grafana Config for showing Dashboards without logging in
 
-This enables Grafana to show and embed dashboards without logging in, limited to a __single organization__. 
+This enables Grafana to show and embed dashboards without logging in, limited to a **single organization**.
 
 Add the following parameters to the `environment:` section of your Grafana Service definition in `docker-compose.yml`. If you have named your Organization something else than `public`, you'll have to adjust that below:
 
@@ -204,4 +205,5 @@ Once you have done this, you need to do a Hard Reload of the Grafana Dashboard i
 ```html
 <iframe src="http://copied/link/from/grafana" width="100%" height="1300" frameborder="0"></iframe>
 ```
+
 Of course, replace `http://copied/link/from/grafana` by the Dashboard link you copied.
