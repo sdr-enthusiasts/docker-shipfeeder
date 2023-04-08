@@ -1,5 +1,7 @@
 #!/usr/bin/with-contenv bash
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC1091
+
+source /scripts/common
 
 #---------------------------------------------------------------------------------------------
 # Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
