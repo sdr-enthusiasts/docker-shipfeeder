@@ -78,8 +78,8 @@ chk_enabled "${DISABLE_SHIPSJSON_COMPRESS}" && aiscatcher_command+=("ZLIB off") 
 [[ -n "${STATION_HISTORY}" ]] && aiscatcher_command+=("HISTORY ${STATION_HISTORY}") || true
 chk_enabled "${PROMETHEUS_ENABLE}" && aiscatcher_command+=("PROME on") || true
 chk_enabled "${SITESHOW}" && [[ -n "${SXFEEDER_LAT}" ]] && [[ -n "${SXFEEDER_LON}" ]] && aiscatcher_command+=("SHARE_LOC on") || true
-aiscatcher_command+=("STATION $STATION_NAME") || true
-aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
+[[ -n "${STATION_NAME}" ]] &&  aiscatcher_command+=("STATION $STATION_NAME") || true
+[[ -n "${STATION_LINK}" ]] &&  aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
 if [[ -n "$SXFEEDER_LAT" ]] && [[ -n "$SXFEEDER_LON" ]]
 then
     aiscatcher_command+=("LAT $SXFEEDER_LAT LON $SXFEEDER_LON")
