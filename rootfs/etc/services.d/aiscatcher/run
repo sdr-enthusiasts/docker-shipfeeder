@@ -65,8 +65,8 @@ fi
 [[ "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" -gt "$(awk "BEGIN {print int(${VALID_GAINS[-1]} * 10);}")" ]] && RTLSDR_DEVICE_GAIN="${VALID_GAINS[-1]}"
 
 # check if STATION_NAME and STATION_LINK is defined. If it is not, add the ShipXplorer URL
-[[ -z "$STATION_NAME" ]] && STATION_NAME="${SERIAL_NUMBER}" || true
-[[ -z "$STATION_LINK" ]] && STATION_LINK="https://www.shipxplorer.com/stations/${SERIAL_NUMBER}" || true
+[[ -z "$STATION_NAME" ]] && [[ -n "$SERIAL_NUMBER" ]] && STATION_NAME="${SERIAL_NUMBER}" || true
+[[ -z "$STATION_LINK" ]] && [[ -n "$SERIAL_NUMBER" ]] && STATION_LINK="https://www.shipxplorer.com/stations/${SERIAL_NUMBER}" || true
 
 aiscatcher_command=()
 aiscatcher_command+=("/usr/local/bin/AIS-catcher")
@@ -78,8 +78,8 @@ chk_enabled "${DISABLE_SHIPSJSON_COMPRESS}" && aiscatcher_command+=("ZLIB off") 
 [[ -n "${STATION_HISTORY}" ]] && aiscatcher_command+=("HISTORY ${STATION_HISTORY}") || true
 chk_enabled "${PROMETHEUS_ENABLE}" && aiscatcher_command+=("PROME on") || true
 chk_enabled "${SITESHOW}" && [[ -n "${SXFEEDER_LAT}" ]] && [[ -n "${SXFEEDER_LON}" ]] && aiscatcher_command+=("SHARE_LOC on") || true
-[[ -n "${STATION_NAME}" ]] &&  aiscatcher_command+=("STATION $STATION_NAME") || true
-[[ -n "${STATION_LINK}" ]] &&  aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
+[[ -n "${STATION_NAME}" ]] && aiscatcher_command+=("STATION $STATION_NAME") || true
+[[ -n "${STATION_LINK}" ]] && aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
 if [[ -n "$SXFEEDER_LAT" ]] && [[ -n "$SXFEEDER_LON" ]]
 then
     aiscatcher_command+=("LAT $SXFEEDER_LAT LON $SXFEEDER_LON")
