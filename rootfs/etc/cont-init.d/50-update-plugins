@@ -36,6 +36,8 @@ then
   exit 0
 fi
 
+mkdir -p /data
+
 pushd AIS-catcher >/dev/null 2>&1
   touch /data/plugins/.last_commit
   read -r last_commit < "/data/plugins/.last_commit"
