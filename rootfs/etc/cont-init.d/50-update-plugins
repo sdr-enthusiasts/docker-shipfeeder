@@ -40,7 +40,7 @@ mkdir -p /data/plugins
 
 pushd AIS-catcher >/dev/null 2>&1
   touch /data/plugins/.last_commit
-  read -r last_commit < "/data/plugins/.last_commit"
+  read -r last_commit < "/data/plugins/.last_commit" || true
   remote_last_commit="$(git log --pretty=format:"%h")"
   if [[  "${remote_last_commit}" == "${last_commit}" ]]
   then
