@@ -70,19 +70,23 @@ fi
 
 aiscatcher_command=()
 aiscatcher_command+=("/usr/local/bin/AIS-catcher")
-aiscatcher_command+=("-N 80 REUSE_PORT on FILE /data/aiscatcher.bin")
-chk_enabled "${DISABLE_SHIPSJSON_COMPRESS}" && aiscatcher_command+=("ZLIB off") || true
-[[ -d "/data/plugins" ]] && aiscatcher_command+=("PLUGIN_DIR /data/plugins") || true
-[[ -f "/data/about.md" ]] && aiscatcher_command+=("ABOUT /data/about.md") || true
-[[ -n "${BACKUP_INTERVAL}" ]] && aiscatcher_command+=("BACKUP ${BACKUP_INTERVAL}") || true
-[[ -n "${STATION_HISTORY}" ]] && aiscatcher_command+=("HISTORY ${STATION_HISTORY}") || true
-chk_enabled "${PROMETHEUS_ENABLE}" && aiscatcher_command+=("PROME on") || true
-chk_enabled "${SITESHOW}" && [[ -n "${SXFEEDER_LAT}" ]] && [[ -n "${SXFEEDER_LON}" ]] && aiscatcher_command+=("SHARE_LOC on") || true
-[[ -n "${STATION_NAME}" ]] && aiscatcher_command+=("STATION $STATION_NAME") || true
-[[ -n "${STATION_LINK}" ]] && aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
-if [[ -n "$SXFEEDER_LAT" ]] && [[ -n "$SXFEEDER_LON" ]]
-then
-    aiscatcher_command+=("LAT $SXFEEDER_LAT LON $SXFEEDER_LON")
+# set the web site parameters:
+if ! chk_enabled "${DISABLE_WEBSITE}"; then
+    aiscatcher_command+=("-N 80 REUSE_PORT on FILE /data/aiscatcher.bin")
+    chk_enabled "${DISABLE_SHIPSJSON_COMPRESS}" && aiscatcher_command+=("ZLIB off") || true
+    [[ -d "/data/plugins" ]] && aiscatcher_command+=("PLUGIN_DIR /data/plugins") || true
+    [[ -f "/data/about.md" ]] && aiscatcher_command+=("ABOUT /data/about.md") || true
+    [[ -n "${BACKUP_INTERVAL}" ]] && aiscatcher_command+=("BACKUP ${BACKUP_INTERVAL}") || true
+    [[ -n "${STATION_HISTORY}" ]] && aiscatcher_command+=("HISTORY ${STATION_HISTORY}") || true
+    chk_enabled "${PROMETHEUS_ENABLE}" && aiscatcher_command+=("PROME on") || true
+    [[ -n "${STATION_NAME}" ]] && aiscatcher_command+=("STATION $STATION_NAME") || true
+    [[ -n "${STATION_LINK}" ]] && aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
+    if [[ -n "$SXFEEDER_LAT" ]] && [[ -n "$SXFEEDER_LON" ]]
+    then
+        aiscatcher_command+=("LAT $SXFEEDER_LAT LON $SXFEEDER_LON")
+        chk_enabled "${SITESHOW}" && aiscatcher_command+=("SHARE_LOC on") || true
+    fi
+    chk_enabled "${DISABLE_SHOWLASTMSG}" && true || aiscatcher_command+=("MESSAGE ON")
 fi
 aiscatcher_command+=("-u 127.0.0.1 34994")
 aiscatcher_command+=("-u 127.0.0.1 34995")

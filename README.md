@@ -158,6 +158,8 @@ There are a series of available environment variables:
 | `SXFEEDER_LAT` | Optional. Used for calculating ship distances on web page |
 | `SXFEEDER_LON` | Optional. Used for calculating ship distances on web page |
 | `PROMETHEUS_ENABLE` | Optional. Enables Prometheus data at `/metrics` on the webserver. Empty (disabled) by default |
+| `DISABLE_SHOWLASTMSG` | Optional. If enabled, the last NMEA0182 message option won't be shown on the website. Default empty (disabled) (i.e., last message option is available on website) |
+| `DISABLE_WEBSITE` | Optional. If enabled, the AIS-Catcher website will not be available. Default empty (disabled) (i.e., the website is available) |
 
 ## Feeding Other Service
 

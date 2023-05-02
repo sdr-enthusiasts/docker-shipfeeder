@@ -45,5 +45,4 @@ do
         pkill AIS-catcher >/dev/null 2>&1
         m1="$m2"
     fi
-
 done
