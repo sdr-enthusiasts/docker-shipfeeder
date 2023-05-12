@@ -74,4 +74,7 @@ fi
 
 rm -rf /tmp/AIS-catcher
 
+# remove any backups older than BACKUP_RETENTION_TIME (or 30 days if undefined)
+find /data/plugins -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-30}" -exec rm {} \;
+
 echo "[$(date)][${APPNAME}] done!"
