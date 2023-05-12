@@ -2,6 +2,8 @@
 # shellcheck shell=bash disable=SC1091,SC2016,SC2068,SC2076,SC2086,SC2015
 
 source /scripts/common
+APPNAME="aiscatcher"
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 
 #---------------------------------------------------------------------------------------------
 # Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
@@ -56,7 +58,7 @@ then
         if [[ "$(awk "BEGIN {print int($GAIN * 10);}")" -ge "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" ]]
         then
             RTLSDR_DEVICE_GAIN="$GAIN"
-            echo "[aiscatcher][$(date +"%Y/%m/%d %H:%M:%S")] Gain rounded to ${RTLSDR_DEVICE_GAIN}"
+            "${s6wrap[@]}" --args echo "Gain rounded to ${RTLSDR_DEVICE_GAIN}"
             break
         fi
     done
@@ -98,8 +100,7 @@ aiscatcher_command+=("$AISCATCHER_EXTRA_OPTIONS")
 
 aiscommand="$(echo ${aiscatcher_command[@]} | xargs)"
 
-echo "[aiscatcher][$(date +"%Y/%m/%d %H:%M:%S")] Starting: ${aiscommand}"
+"${s6wrap[@]}" --args echo "Starting: ${aiscommand}"
 
 # shellcheck disable=SC2048
-${aiscommand} 2>&1 | \
-        stdbuf -oL awk '{print "[aiscatcher][" strftime("%Y/%m/%d %H:%M:%S", systime()) "] " $0}'
+exec "${s6wrap[@]}" --args ${aiscommand}

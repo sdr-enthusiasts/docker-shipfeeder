@@ -22,21 +22,25 @@ source /scripts/common
 # Update JavaScript plugins
 
 APPNAME="$0"
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 
 if ! chk_enabled "${UPDATE_PLUGINS}"
 then
-  echo "[$(date)][${APPNAME}] UPDATE_PLUGINS is not set to true; skipping plugin updates"
+  "${s6wrap[@]}" --args echo "UPDATE_PLUGINS is not set to true; skipping plugin updates"
   exit 0
 fi
 
 cd /tmp
 if ! git clone --depth=1 https://github.com/jvde-github/AIS-catcher >/dev/null 2>&1
 then
-  echo "[$(date)][${APPNAME}] Couldn't clone AIS-catcher github - abandoning effort to update plugins"
+  "${s6wrap[@]}" --args echo "Couldn't clone AIS-catcher github - abandoning effort to update plugins"
   exit 0
 fi
 
 mkdir -p /data/plugins
+
+# remove any backups older than BACKUP_RETENTION_TIME (or 30 days if undefined)
+find /data/plugins -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-30}" -exec rm {} \;
 
 pushd AIS-catcher >/dev/null 2>&1
   touch /data/plugins/.last_commit
@@ -44,7 +48,7 @@ pushd AIS-catcher >/dev/null 2>&1
   remote_last_commit="$(git log --pretty=format:"%h")"
   if [[  "${remote_last_commit}" == "${last_commit}" ]]
   then
-    echo "[$(date)][${APPNAME}] Plugins haven't changed on remote repository - no need to update"
+    "${s6wrap[@]}" --args echo "Plugins haven't changed on remote repository - no need to update"
     popd  >/dev/null 2>&1
     rm -rf /tmp/AIS-catcher
     exit 0
@@ -52,7 +56,7 @@ pushd AIS-catcher >/dev/null 2>&1
   echo  "${remote_last_commit}" > "/data/plugins/.last_commit"
 popd >/dev/null 2>&1
 
-echo -n "[$(date)][${APPNAME}] Plugins need updating... "
+"${s6wrap[@]}" --args echo "Plugins need updating... "
 
 if [[ -n "${last_commit}" ]]
 then
@@ -74,7 +78,4 @@ fi
 
 rm -rf /tmp/AIS-catcher
 
-# remove any backups older than BACKUP_RETENTION_TIME (or 30 days if undefined)
-find /data/plugins -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-30}" -exec rm {} \;
-
-echo "[$(date)][${APPNAME}] done!"
+"${s6wrap[@]}" --args echo "done!"

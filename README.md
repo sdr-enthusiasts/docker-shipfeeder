@@ -2,6 +2,27 @@
 
 [![Discord](https://img.shields.io/discord/734090820684349521)](https://discord.gg/sTf9uYF)
 
+- [sdr-enthusiasts/docker-shipxplorer](#sdr-enthusiastsdocker-shipxplorer)
+  - [Prerequisites](#prerequisites)
+  - [Multi Architecture Support](#multi-architecture-support)
+  - [Obtaining a ShipXplorer Sharing Key](#obtaining-a-shipxplorer-sharing-key)
+  - [Up-and-Running with Docker Compose](#up-and-running-with-docker-compose)
+  - [Claiming Your ShipXplorer Receiver](#claiming-your-shipxplorer-receiver)
+  - [Runtime Environment Variables](#runtime-environment-variables)
+  - [Feeding Other Service](#feeding-other-service)
+    - [Feeding Services Using UDP](#feeding-services-using-udp)
+    - [Feeding Service Using HTTP](#feeding-service-using-http)
+      - [Feeding `aprs.fi`](#feeding-aprsfi)
+      - [Feeding `airframes.io`](#feeding-airframesio)
+  - [Adding an `About` Page to the AIS-Catcher Website](#adding-an-about-page-to-the-ais-catcher-website)
+  - [Logging](#logging)
+  - [Workaround for CPU Serial (only needed with non-Raspberry Pi systems)](#workaround-for-cpu-serial-only-needed-with-non-raspberry-pi-systems)
+  - [Feeding other services](#feeding-other-services)
+  - [AIS-Catcher Web Plugin Support and AIS-Catcher Persistency](#ais-catcher-web-plugin-support-and-ais-catcher-persistency)
+  - [Additional Statistics Dashboard with Prometheus and Grafana](#additional-statistics-dashboard-with-prometheus-and-grafana)
+  - [Hardware requirements](#hardware-requirements)
+  - [Getting Help](#getting-help)
+
 Docker container running [AirNav ShipXplorer](https://www.shipxplorer.com)'s `sxfeeder` and `AIS-catcher`. Builds and runs on `arm64`, `armv7/armhf`, and `amd64/x86`.
 
 `AIS-catcher` pulls AIS information from a RTL-SDR dongle.
@@ -13,18 +34,18 @@ You can also use this container to feed other AIS services that take NMEA-format
 
 We expect you to have the following:
 
-* a piece of hardware that runs Linux. The prebuilt containers support `armhf`, `arm64`, and `amd64`. Systems with those architectures include Raspberry Pi 3B+, 4, and Linux PCs with Ubuntu.
-* a dedicated RTL-SDR dongle that can receive at 160 MHz, with an appropriate antenna
-* Docker must be installed on your system. If you don't know how to do that, please read [here](https://github.com/sdr-enthusiasts/docker-install).
-* Some basic knowledge on how to use Linux and how to configure docker containers with `docker-compose`.
+- a piece of hardware that runs Linux. The prebuilt containers support `armhf`, `arm64`, and `amd64`. Systems with those architectures include Raspberry Pi 3B+, 4, and Linux PCs with Ubuntu.
+- a dedicated RTL-SDR dongle that can receive at 160 MHz, with an appropriate antenna
+- Docker must be installed on your system. If you don't know how to do that, please read [here](https://github.com/sdr-enthusiasts/docker-install).
+- Some basic knowledge on how to use Linux and how to configure docker containers with `docker-compose`.
 
 ## Multi Architecture Support
 
 Currently, this image should pull and run on the following architectures:
 
-* `arm32v7`, `armv7l`, `armhf`: ARMv7 32-bit (Odroid HC1/HC2/XU4, RPi 2/3/4 32-bit)
-* `arm64`, `aarch64`: ARMv8 64-bit (RPi 4 64-bit OSes)
-* `amd64`, `x86_64`: X86 64-bit Linux (Linux PC)
+- `arm32v7`, `armv7l`, `armhf`: ARMv7 32-bit (Odroid HC1/HC2/XU4, RPi 2/3/4 32-bit)
+- `arm64`, `aarch64`: ARMv8 64-bit (RPi 4 64-bit OSes)
+- `amd64`, `x86_64`: X86 64-bit Linux (Linux PC)
 
 Other architectures (Windows, Mac) are not currently supported, but feel free to see if the container builds and runs for these.
 In theory, it should work, but I don't have the time nor inclination to test it.
@@ -64,7 +85,7 @@ Take a note of the Sharing Key (`f1...57` - yours will be a different number) an
 
 If you're not a first time user and are migrating from another installation, you can retrieve your sharing key by doing this:
 
-* SSH onto your existing receiver and run the command `cat /etc/sxfeeder.ini`
+- SSH onto your existing receiver and run the command `cat /etc/sxfeeder.ini`
 The `key` and `sn` lines show your current credentials
 
 ## Up-and-Running with Docker Compose
@@ -182,7 +203,7 @@ To initiate feeding, add the following to the `AISCATCHER_EXTRA_OPTIONS` paramet
 AISCATCHER_EXTRA_OPTIONS=-H http://aprs.fi/jsonais/post/aBcDeFgHiJkL ID MY0CALL PROTOCOL aprs INTERVAL 30 RESPONSE off
 ```
 
-### Feeding `airframes.io`
+#### Feeding `airframes.io`
 
 Since feeding `airframes.io` is still in a private alpha phase, you need to contact them to obtain a URL and be granted access to their private ZeroTier network. Once you have this all squared, you should add the following to the `AISCATCHER_EXTRA_OPTIONS` parameter:
 
@@ -203,7 +224,7 @@ You can format the text in this file using [Markdown](https://www.markdownguide.
 
 ## Logging
 
-* All processes are logged to the container's stdout, and can be viewed with `docker logs [-f] container`.
+- All processes are logged to the container's stdout, and can be viewed with `docker logs [-f] container`.
 
 ## Workaround for CPU Serial (only needed with non-Raspberry Pi systems)
 
@@ -219,8 +240,8 @@ echo -e "serial\t\t: $(hexdump -n 8 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr '[:
 
 You can now map this file into your container:
 
-* If using docker run, simply add `-v /opt/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo` to your command.
-* If using docker-compose, add the following to the `volumes:` section of your shipxplorer container definition:
+- If using docker run, simply add `-v /opt/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo` to your command.
+- If using docker-compose, add the following to the `volumes:` section of your shipxplorer container definition:
 
 ```yaml
   - /opt/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo

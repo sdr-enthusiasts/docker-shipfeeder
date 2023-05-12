@@ -2,6 +2,8 @@
 #shellcheck shell=bash disable=SC1091,SC2164
 
 source /scripts/common
+APPNAME="check-about-updates"
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 
 #---------------------------------------------------------------------------------------------
 # Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
@@ -22,8 +24,6 @@ source /scripts/common
 # Check if about.md has been updated by comparing its MD5 hash every 30 seconds; restart 
 # the aiscatcher service
 
-APPNAME="check-about-updates"
-
 filename="/data/about.md"
 
 # determine the initial MD5 of about.md, or set it to "none" if the file doesn't exist:
@@ -41,7 +41,7 @@ do
     # that about.md has changed:
     if [[ "$m1" != "$m2" ]]
     then
-        echo "[$(date)][${APPNAME}] about.md has changed, restarting AIS-Catcher to ensure about file is re-read..."
+        "${s6wrap[@]}" --args echo "about.md has changed, restarting AIS-Catcher to ensure about file is re-read..."
         pkill AIS-catcher >/dev/null 2>&1
         m1="$m2"
     fi

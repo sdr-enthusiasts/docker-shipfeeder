@@ -3,6 +3,8 @@
 #shellcheck disable=SC2016,SC2068,SC2086,SC1091
 
 source /scripts/common
+APPNAME="sxfeeder"
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 
 #---------------------------------------------------------------------------------------------
 # Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
@@ -22,12 +24,11 @@ source /scripts/common
 
 if [[ -z "${SHARING_KEY}" ]]
 then
-  echo "[sxfeeder][$(date +"%Y/%m/%d %H:%M:%S")] ShipXplorer sharing disabled."
+  "${s6wrap[@]}" --args echo "ShipXplorer sharing disabled."
   sleep infinity
-  exit 0
 fi
 
-echo "[sxfeeder][$(date +"%Y/%m/%d %H:%M:%S")] Waiting for AIS-catcher to start..."
+"${s6wrap[@]}" --args echo "Waiting for AIS-catcher to start..."
 # Wait for AIS-catcher to be up and running
 if /usr/local/bin/AIS-catcher -h > /dev/null 2>&1
 then
@@ -46,15 +47,13 @@ fi
 sleep 5
 
 sxfeeder_command="/usr/bin/sxfeeder $SXFEEDER_EXTRA_OPTIONS"
-echo "[sxfeeder][$(date +"%Y/%m/%d %H:%M:%S")] Starting: $sxfeeder_command"
+"${s6wrap[@]}" --args echo "Starting: $sxfeeder_command"
 # Test sxfeeder can run natively (without qemu)
 if /usr/bin/sxfeeder --help > /dev/null 2>&1
 then
     # can be run natively
-    $sxfeeder_command 2>&1 | \
-        stdbuf -oL awk '{print "[sxfeeder][" strftime("%Y/%m/%d %H:%M:%S", systime()) "] " $0}'
+    exec "${s6wrap[@]}" --args $sxfeeder_command
 else
     # needs qemu
-    qemu-arm-static $sxfeeder_command 2>&1 | \
-        stdbuf -oL awk '{print "[sxfeeder][" strftime("%Y/%m/%d %H:%M:%S", systime()) "] " $0}'
+    exec "${s6wrap[@]}" --args qemu-arm-static $sxfeeder_command
 fi

@@ -21,8 +21,6 @@ source /scripts/common
 
 # Back up the aiscatcher.bin file
 
-APPNAME="$0"
-
 # Copy plugin file if it's newer but leave a backup in place
 if [[ -f /data/aiscatcher.bin ]]; then
   cp --backup=numbered -u /data/aiscatcher.bin /data/aiscatcher.bin.bkup
@@ -30,4 +28,3 @@ fi
 
 # remove any backups older than BACKUP_RETENTION_TIME (or 30 days if undefined)
 find /data -maxdepth 1 -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-30}" -exec rm {} \;
-
