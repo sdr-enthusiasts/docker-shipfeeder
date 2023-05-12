@@ -94,8 +94,8 @@ aiscatcher_command+=("-u 127.0.0.1 34994")
 aiscatcher_command+=("-u 127.0.0.1 34995")
 aiscatcher_command+=("${FEEDSTRING[*]}")
 aiscatcher_command+=("$SHOWLOGS")
-aiscatcher_command+=("-d ${RTLSDR_DEVICE_SERIAL}")
-aiscatcher_command+=("-gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ON")
+[[ -n "${RTLSDR_DEVICE_SERIAL}" ]] && aiscatcher_command+=("-d ${RTLSDR_DEVICE_SERIAL}") || true
+[[ -n "${RTLSDR_DEVICE_SERIAL}" ]] && aiscatcher_command+=("-gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ON")
 aiscatcher_command+=("$AISCATCHER_EXTRA_OPTIONS")
 
 aiscommand="$(echo ${aiscatcher_command[@]} | xargs)"
