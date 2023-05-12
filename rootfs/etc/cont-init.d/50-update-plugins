@@ -21,7 +21,7 @@ source /scripts/common
 
 # Update JavaScript plugins
 
-APPNAME="$0"
+APPNAME="50-plugin-updates"
 s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 
 if ! chk_enabled "${UPDATE_PLUGINS}"
