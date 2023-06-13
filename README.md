@@ -20,6 +20,7 @@
   - [Feeding other services](#feeding-other-services)
   - [AIS-Catcher Web Plugin Support and AIS-Catcher Persistency](#ais-catcher-web-plugin-support-and-ais-catcher-persistency)
   - [Additional Statistics Dashboard with Prometheus and Grafana](#additional-statistics-dashboard-with-prometheus-and-grafana)
+  - [Aggregating multiple instances of the container](#aggregating-multiple-instances-of-the-container)
   - [Hardware requirements](#hardware-requirements)
   - [Getting Help](#getting-help)
 
@@ -275,6 +276,50 @@ Web Plugins for AIS-Catcher can be placed in the `/data/plugins` directory.
 ## Additional Statistics Dashboard with Prometheus and Grafana
 
 See [this readme](README-grafana.md) for information on how to set up and configure a Grafana stats dashboard for use with ShipXplorer.
+
+## Aggregating multiple instances of the container
+
+Sometimes it's convenient to aggregate the data of multiple instances of the container into a single one, and then feed the AIS aggregators from this "central" instance. An example of this is when you have a SDR receiving from channels AB in one instance, and a SDR receiving from channels CD in a separate instance. In this case, you'd want to send the data from channels CD to the instance that (also) receives channels AB, and then use the Channel AB instance to disperse the data to the various services.
+
+In this case, do the following. We are assuming that the hostname/container name for the instance receiving channels AB is `shipxplorer_ab` and the hostname/container name for the instance receiving channels CD is `shipxplorer_cd`. Your names may vary.
+
+Situation 1: both instances are in the same container stack, on the same machine:
+
+- In the section of the `docker-compose.yml` file for `shipxplorer_ab`, make sure to add the following to the `UDP_FEEDS` parameter:
+
+```yaml
+    - UDP_FEEDS=.....;shipxplorer_cd:9988
+```
+
+- In the section of the `docker-compose.yml` file for `shipxplorer_cd`, make sure to add the following to the `UDP_FEEDS` parameter. Make sure that the name after `-x` matches your container name:
+
+```yaml
+    - AISCATCHER_EXTRA_OPTIONS=...... -x shipxplorer_cd 9988 -c AB CD
+```
+
+Situation 2: both instances are on different machines or in different stacks on the same machine:
+
+- In the section of the `docker-compose.yml` file for `shipxplorer_ab`, make sure to add the following to the `UDP_FEEDS` parameter. Make sure that you replace `target_machine` with the IP or hostname of the target machine:
+
+```yaml
+    - UDP_FEEDS=.....;target_machine:9988
+```
+
+- In the section of the `docker-compose.yml` file for `shipxplorer_cd`, make sure to add the following to the `UDP_FEEDS` parameter. Make sure that the name after `-x` matches your container name. (DO NOT USE `localhost` or `127.0.0.1` - that won't work):
+
+```yaml
+    - AISCATCHER_EXTRA_OPTIONS=...... -x shipxplorer_cd 9988 -c AB CD
+```
+
+- In addition, to the same section of the `docker-compose.yml` file for `shipxplorer_cd`, make sure to forward the UPD port to the container:
+
+```yaml
+    ports:
+      [...]
+      - 9988:9988/udp
+```
+
+Once you have done this, and after you recreate the containers, the `shipxplorer_cd` instance will now forward its data to `shipxplorer_ab`, and `shipxplorer_ab` will aggregate this data, display it on the AIS-Catcher map and tables, and forward it to any service you may have configured for it.
 
 ## Hardware requirements
 

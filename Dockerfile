@@ -50,8 +50,7 @@ echo "TARGETARCH $TARGETARCH" && \
     echo 'deb https://apt.rb24.com/ bullseye main' > /etc/apt/sources.list.d/rb24.list && \
     #
     if [ "$TARGETPLATFORM" != "linux/arm/v7" ]; then \
-        dpkg --add-architecture armhf && \
-        apt-get update -q; \
+        dpkg --add-architecture armhf; \
     fi && \
     #
     apt-get update -q && \
