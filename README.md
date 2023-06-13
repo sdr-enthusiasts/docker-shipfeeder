@@ -289,7 +289,7 @@ Situation 1: both instances are in the same container stack, on the same machine
 - In the section of the `docker-compose.yml` file for `shipxplorer_ab`, make sure to add the following to the `UDP_FEEDS` parameter:
 
 ```yaml
-    - UDP_FEEDS=.....;shipxplorer_cd:9988
+    - UDP_FEEDS=.....;shipxplorer_cd:9988 JSON on
 ```
 
 - In the section of the `docker-compose.yml` file for `shipxplorer_cd`, make sure to add the following to the `UDP_FEEDS` parameter. Make sure that the name after `-x` matches your container name:
