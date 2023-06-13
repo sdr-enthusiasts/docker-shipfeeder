@@ -183,6 +183,7 @@ There are a series of available environment variables:
 | `PROMETHEUS_ENABLE` | Optional. Enables Prometheus data at `/metrics` on the webserver. Empty (disabled) by default |
 | `DISABLE_SHOWLASTMSG` | Optional. If enabled, the last NMEA0182 message option won't be shown on the website. Default empty (disabled) (i.e., last message option is available on website) |
 | `DISABLE_WEBSITE` | Optional. If enabled, the AIS-Catcher website will not be available. Default empty (disabled) (i.e., the website is available) |
+| `PLUGIN_UPDATE_INTERVAL` | Optional. Set this to the interval (for example, `30` (secs) or `5m` or `6h` or `3d`) to check the AIS-Catcher github repository for updates to the JavaScript web plugins. Set to `0` or `off` to disable checking. Default value: `6h` |
 
 ## Feeding Other Service
 

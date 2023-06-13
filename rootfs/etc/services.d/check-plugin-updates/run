@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bash
-# shellcheck shell=bash disable=SC1091,SC2164
+#shellcheck shell=bash disable=SC1091,SC2164
 
 source /scripts/common
 
@@ -19,14 +19,14 @@ source /scripts/common
 # If not, see <https://www.gnu.org/licenses/>.
 #---------------------------------------------------------------------------------------------
 
-# Update JavaScript plugins on container start
+# Check for JavaScript plugins updates regularly
 
-export APPNAME="50-plugin-updates"
+export APPNAME="check-plugin-updates"
 
 #shellcheck disable=SC2076
 if chk_disabled "${PLUGIN_UPDATE_INTERVAL,,}"; then
-    s6wrap --quiet --timestamps --prepend="${APPNAME}" --args echo "Plugins Updating is disabled"
-    exit 0
+    exec sleep infinity
 fi
 
+sleep "${PLUGIN_UPDATE_INTERVAL:-6h}" & wait $!
 exec /scripts/update-plugins
