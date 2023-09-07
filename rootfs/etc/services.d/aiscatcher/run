@@ -88,7 +88,8 @@ if ! chk_enabled "${DISABLE_WEBSITE}"; then
         aiscatcher_command+=("LAT $SXFEEDER_LAT LON $SXFEEDER_LON")
         chk_enabled "${SITESHOW}" && aiscatcher_command+=("SHARE_LOC on") || true
     fi
-    chk_enabled "${DISABLE_SHOWLASTMSG}" && true || aiscatcher_command+=("MESSAGE ON")
+    chk_enabled "${DISABLE_SHOWLASTMSG}" && true || aiscatcher_command+=("MESSAGE on")
+    chk_enabled "${REALTIME}" && aiscatcher_command+=("REALTIME on") || true
 fi
 aiscatcher_command+=("-u 127.0.0.1 34994")
 aiscatcher_command+=("-u 127.0.0.1 34995")
