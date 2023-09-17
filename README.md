@@ -146,6 +146,8 @@ SX_STATION_NAME=My_station_name_single_string_no_spaces_but_html_char_encoding_i
 Replace the `SHARING_KEY`, `SERIAL_NUMBER`, and `RTLSDR_DEVICE_SERIAL` with the appropriate values.
 You can use `rtl_test` to see which devices and device serials are connected to your machine, or `rtl_eeprom` to rename the device's serial number.
 
+In `SX_EXTRA_OPTIONS`, the `-p` directive indicates the PPM value of your SDR. Adapt it to your needs. 
+
 ## Claiming Your ShipXplorer Receiver
 
 Once your container is up and running, you should claim your receiver.
