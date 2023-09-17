@@ -100,7 +100,7 @@ services:
     image: ghcr.io/sdr-enthusiasts/shipxplorer
     container_name: shipxplorer
     hostname: shipxplorer
-    restart: unless-stopped
+    restart: always
     environment:
       - VERBOSE_LOGGING=
       - SHARING_KEY=${SX_SHARING_KEY}
