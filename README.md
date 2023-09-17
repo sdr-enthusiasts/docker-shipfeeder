@@ -139,7 +139,7 @@ SX_SERIAL_NUMBER=SXTRPI000xxx
 SX_RTLSDR_DEVICE_SERIAL=sdr_serial_number_here
 SX_RTLSDR_GAIN=auto
 SX_UDP_FEEDS=ip1:port1,ip2:port2:JSON on,ip3:port3
-SX_EXTRA_OPTIONS=-p -2 -a 192K
+SX_EXTRA_OPTIONS=-p 0 -a 192K -m 4 -go AFC_WIDE on
 SX_STATION_NAME=My_station_name_single_string_no_spaces_but_html_char_encoding_is_ok_for_example&nbsp;This&nbsp;is&nbsp;Boston&nbsp;Calling
 ```
 
