@@ -32,7 +32,7 @@ echo "TARGETARCH $TARGETARCH" && \
     KEPT_PACKAGES+=(libairspyhf1) && \
     KEPT_PACKAGES+=(libzmq5) && \
     KEPT_PACKAGES+=(libsoxr0) && \
-    KEPT_PACKAGES+=(libcurl4) && \
+    # KEPT_PACKAGES+=(libcurl4) && \
     KEPT_PACKAGES+=(libssl3) && \
     KEPT_PACKAGES+=(tcpdump) && \
     KEPT_PACKAGES+=(git) && \
