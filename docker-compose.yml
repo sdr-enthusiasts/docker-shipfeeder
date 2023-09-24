@@ -23,12 +23,13 @@ services:
       - SITESHOW=on
     ports:
       - 8080:80
-    devices:
-      - /dev/bus/usb
+    device_cgroup_rules:
+      - 'c 189:* rwm'
     tmpfs:
       - /tmp
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "/etc/timezone:/etc/timezone:ro"
       - "/opt/ais/shipxplorer/data:/data"
+      - "/dev:/dev:ro"
       # - /opt/shipxplorer/cpuinfo/cpuinfo:/proc/cpuinfo # only for x86 systems - see README.md
