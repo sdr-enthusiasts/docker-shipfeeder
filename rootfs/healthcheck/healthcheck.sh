@@ -1,4 +1,5 @@
 #!/command/with-contenv bash
+# shellcheck shell=bash 
 
 #---------------------------------------------------------------------------------------------
 # Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
