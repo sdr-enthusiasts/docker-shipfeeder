@@ -38,6 +38,7 @@ echo "TARGETARCH $TARGETARCH" && \
     KEPT_PACKAGES+=(git) && \
     KEPT_PACKAGES+=(nano) && \
     KEPT_PACKAGES+=(libpqxx-dev) && \
+    KEPT_PACKAGES+=(lsb-release) && \
     #
     # install packages
     apt-get update && \
