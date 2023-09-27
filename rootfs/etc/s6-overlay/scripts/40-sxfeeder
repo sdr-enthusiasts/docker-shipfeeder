@@ -1,0 +1,83 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash disable=SC1091
+
+source /scripts/common
+
+#---------------------------------------------------------------------------------------------
+# Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with this program.
+# If not, see <https://www.gnu.org/licenses/>.
+#---------------------------------------------------------------------------------------------
+
+# Check to make sure the correct command line arguments have been set
+
+APPNAME="10-container-init"
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
+
+if [[ -z "${SHARING_KEY}" ]] && [[ -z "${AISCATCHER_EXTRA_OPTIONS}" ]] && [[ -z "${UDP_FEEDS}" ]]
+then
+  "${s6wrap[@]}" --args echo "WARNING: Container is configured for Local Use Only. At least one of SHARING_KEY, AISCATCHER_EXTRA_OPTIONS, or UDP_FEEDS must be defined for this container to feed a service."
+  exit 0
+fi
+
+if [[ -z "${SHARING_KEY}" ]]
+then
+  "${s6wrap[@]}" --args echo "WARNING: SHARING_KEY is not set. Feeding to ShipXplorer is disabled."
+  "${s6wrap[@]}" --args echo "         If you are attempting to generate a new ShipXplorer sharing key and serial, you can do so by giving this command:"
+  "${s6wrap[@]}" --args echo "         docker exec -it shipxplorer /usr/bin/getcreds"
+  exit 0
+fi
+
+if [[ -z "${SERIAL_NUMBER}" ]]
+then
+  "${s6wrap[@]}" --args echo "ERROR: ShipXplorer SHARING_KEY is defined but SERIAL_NUMBER is not set. We need both to feed ShipXplorer. If you want to disable feeding ShipXplorer, make sure that SHARING_KEY is empty as well."
+  exit 1
+fi
+
+if [[ -z "${RTLSDR_DEVICE_SERIAL}" ]]
+then
+  "${s6wrap[@]}" --args echo "WARNING: RTLSDR_DEVICE_SERIAL is not set. The container will run in network-only mode."
+fi
+
+# Generate /etc/sxfeeder.ini based on environment variables
+echo """
+[client]
+pid=/var/run/sxfeeder/sxfeeder.pid
+disable_log=false
+log_file=/var/log/sxfeeder.log
+#SHARINGKEY
+#SERIALNUMBER
+
+[network]
+udp_listen_port=34995
+""" > /etc/sxfeeder.ini
+
+sed -i 's/#SHARINGKEY/key='"$SHARING_KEY"'/g' /etc/sxfeeder.ini
+sed -i 's/#SERIALNUMBER/sn='"$SERIAL_NUMBER"'/g' /etc/sxfeeder.ini
+
+# In case sxfeeder cannot be run, let's make sure that qemu exists:
+if ! /usr/bin/sxfeeder --help >/dev/null 2>&1 && ! which qemu-arm-static >/dev/null 2>&1
+then
+    "${s6wrap[@]}" --args echo "ERROR: sxfeeder cannot be run natively, and QEMU is not available. You cannot use this container"
+    "${s6wrap[@]}" --args echo "       on this system / architecture. Feel free to file an issue at https://github.com/sdr-enthusiasts/docker-shipxplorer/issues"
+    "${s6wrap[@]}" --args echo "Container halted."
+    sleep infinity
+fi
+
+# Create log dirs
+mkdir -p /var/run/sxfeeder
+chmod a+rwx /var/run/sxfeeder
+touch /var/log/rbfeeder.log
+chmod a+rwx /var/log/rbfeeder.log
+truncate --size=0 /var/log/rbfeeder.log
+chmod a+rw /etc/sxfeeder.ini

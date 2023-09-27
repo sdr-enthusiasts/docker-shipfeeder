@@ -1,0 +1,59 @@
+#!/command/with-contenv bash
+#shellcheck shell=bash
+#shellcheck disable=SC2016,SC2068,SC2086,SC1091
+
+source /scripts/common
+APPNAME="sxfeeder"
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
+
+#---------------------------------------------------------------------------------------------
+# Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with this program.
+# If not, see <https://www.gnu.org/licenses/>.
+#---------------------------------------------------------------------------------------------
+
+if [[ -z "${SHARING_KEY}" ]]
+then
+  "${s6wrap[@]}" --args echo "ShipXplorer sharing disabled."
+  sleep infinity
+fi
+
+"${s6wrap[@]}" --args echo "Waiting for AIS-catcher to start..."
+# Wait for AIS-catcher to be up and running
+if /usr/local/bin/AIS-catcher -h > /dev/null 2>&1
+then
+    while ! pgrep AIS-catcher >/dev/null 2>&1
+    do
+        sleep 1
+    done
+else
+    while ! pgrep qemu-arm-static >/dev/null 2>&1
+    do
+        sleep 1
+    done
+fi
+
+# Give AIS-catcher a bit of time to establish the connection to the SDR:
+sleep 5
+
+sxfeeder_command="/usr/bin/sxfeeder $SXFEEDER_EXTRA_OPTIONS"
+"${s6wrap[@]}" --args echo "Starting: $sxfeeder_command"
+# Test sxfeeder can run natively (without qemu)
+if /usr/bin/sxfeeder --help > /dev/null 2>&1
+then
+    # can be run natively
+    exec "${s6wrap[@]}" --args $sxfeeder_command
+else
+    # needs qemu
+    exec "${s6wrap[@]}" --args qemu-arm-static $sxfeeder_command
+fi

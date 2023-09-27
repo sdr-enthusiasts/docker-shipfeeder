@@ -1,0 +1,48 @@
+#!/command/with-contenv bash
+#shellcheck shell=bash disable=SC1091,SC2164
+
+source /scripts/common
+APPNAME="check-about-updates"
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
+
+#---------------------------------------------------------------------------------------------
+# Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with this program.
+# If not, see <https://www.gnu.org/licenses/>.
+#---------------------------------------------------------------------------------------------
+
+# Check if about.md has been updated by comparing its MD5 hash every 30 seconds; restart 
+# the aiscatcher service
+
+filename="/data/about.md"
+
+# determine the initial MD5 of about.md, or set it to "none" if the file doesn't exist:
+m1=$(md5sum "$filename" 2>/dev/null) || m1="none"
+
+while true
+do
+    # md5sum is computationally expensive, so check only once every 30 seconds
+    sleep 30
+
+    # determine the current MD5 of about.md, or set it to "none" if the file doesn't exist:
+    m2=$(md5sum "$filename" 2>/dev/null) || m2="none"
+
+    # restart AIS-catcher if the newly calculated MD5 is different from the old MD5, indicating
+    # that about.md has changed:
+    if [[ "$m1" != "$m2" ]]
+    then
+        "${s6wrap[@]}" --args echo "about.md has changed, restarting AIS-Catcher to ensure about file is re-read..."
+        pkill AIS-catcher >/dev/null 2>&1
+        m1="$m2"
+    fi
+done

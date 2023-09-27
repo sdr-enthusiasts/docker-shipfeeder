@@ -1,5 +1,7 @@
 #!/command/with-contenv bash
-#shellcheck shell=bash
+#shellcheck shell=bash disable=SC1091,SC2164
+
+source /scripts/common
 
 #---------------------------------------------------------------------------------------------
 # Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
@@ -17,8 +19,14 @@
 # If not, see <https://www.gnu.org/licenses/>.
 #---------------------------------------------------------------------------------------------
 
-echo "[sxfeeder][$(date +"%Y/%m/%d %H:%M:%S")] Terminating AIS-Catcher..."
+# Check for JavaScript plugins updates regularly
 
-pkill -f -SIGTERM /usr/local/bin/AIS-catcher
-sleep 5
-exit 0
+export APPNAME="check-plugin-updates"
+
+#shellcheck disable=SC2076
+if chk_disabled "${PLUGIN_UPDATE_INTERVAL,,}"; then
+    exec sleep infinity
+fi
+
+sleep "${PLUGIN_UPDATE_INTERVAL:-6h}" & wait $!
+exec /scripts/update-plugins
