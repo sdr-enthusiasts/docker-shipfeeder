@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM ghcr.io/jvde-github/ais-catcher:edge AS build
 
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
