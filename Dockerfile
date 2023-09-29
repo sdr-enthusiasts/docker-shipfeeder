@@ -88,4 +88,4 @@ popd && \
 rm -rf /tmp/*
 
 # Add healthcheck
-HEALTHCHECK --start-period=61s --start-interval=60s --interval=600s --timeout=200s CMD /healthcheck/healthcheck.sh
+HEALTHCHECK --start-period=60s --interval=120s --timeout=100s CMD /healthcheck/healthcheck.sh
