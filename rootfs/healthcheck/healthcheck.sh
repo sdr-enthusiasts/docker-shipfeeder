@@ -26,10 +26,10 @@ CHECK_INTERVAL=60
 PACKETCOUNT="$(grep captured <<< "$(timeout --preserve-status $CHECK_INTERVAL tcpdump -p -i lo udp port 34995 2>/dev/stdout 1>/dev/null)"| awk '{print $1}')"
 if [[ -z "$PACKETCOUNT" ]] || [[ "$PACKETCOUNT" -lt 1 ]]
 then
-    echo "No data received from SDR for $CHECK_INTERVAL or more seconds. UNHEALTHY"
+    echo "$(date): No data received from SDR for $CHECK_INTERVAL or more seconds. UNHEALTHY"
     EXITCODE=1
 else
-    echo "$PACKETCOUNT packets received from SDR during the last $CHECK_INTERVAL seconds. HEALTHY"
+    echo "$(date): $PACKETCOUNT packets received from SDR during the last $CHECK_INTERVAL seconds. HEALTHY"
     EXITCODE=0
 fi
 
