@@ -19,7 +19,7 @@
 
 set -e
 
-CHECK_INTERVAL=180
+CHECK_INTERVAL=60
 
 # use TCPDUMP to monitor UDP packets sent internally to port 34995. If none are sent, things are unhealthy.
 
