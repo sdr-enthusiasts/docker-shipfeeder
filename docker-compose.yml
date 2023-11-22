@@ -18,8 +18,8 @@ services:
       - STATION_URL=https://my-ais-url.com
       - BACKUP_INTERVAL=10
       - STATION_HISTORY=3600
-      - SX_FEEDER_LAT=42.12345
-      - SX_FEEDER_LON=-71.12345
+      - SXFEEDER_LAT=42.12345
+      - SXFEEDER_LON=-71.12345
       - SITESHOW=on
     ports:
       - 8080:80
