@@ -64,7 +64,7 @@ then
   for file in /tmp/AIS-catcher/plugins/*
   do
     file="${file##*/}"
-    if [[  -f /data/plugins/${file} ]] && ! diff "${file}" "/data/plugins/${file}" >/dev/null 2>&1
+    if [[  f /data/plugins/${file} ]] && ! diff "${file}" "/data/plugins/${file}" >/dev/null 2>&1
     then
       # Copy plugin file if it's newer but leave a backup in place
       cp --backup=numbered -u "/tmp/AIS-catcher/plugins/${file}" "/data/plugins/${file}"
@@ -74,6 +74,17 @@ then
 else
   # This is the first time - let's add all plugins from the repo but don't overwrite any existing files
   cp -n /tmp/AIS-catcher/plugins/* /data/plugins/ >/dev/null 2>&1
+fi
+
+# update or create the refreshrate.pjs plugin if needed
+if [[ -n "${REFRESHRATE}" ]]; then
+  if [[ -f /data/plugins/refreshrate.pjs ]]; then
+    sed -i "s/^\s*#*\s*refreshIntervalMs.*\$/refreshIntervalMs = $REFRESHRATE/Ig" /data/plugins/refreshrate.pjs
+  else
+    echo "refreshIntervalMs = $REFRESHRATE/Ig" > /data/plugins/refreshrate.pjs
+  fi
+else
+  rm -f /data/plugins/refreshrate.pjs
 fi
 
 # remove any plugin backups older than BACKUP_RETENTION_TIME (or 30 days if undefined)
