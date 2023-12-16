@@ -24,12 +24,26 @@ source /scripts/common
 # remove any aiscatcher.bin backups older than BACKUP_RETENTION_TIME (or 30 days if undefined)
 find /data -maxdepth 1 -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-30}" -exec rm {} \;
 
-APPNAME="${APPNAME:-plugin-updates}"
-s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
+#APPNAME="${APPNAME:-plugin-updates}"
+s6wrap=(s6wrap --quiet --timestamps --prepend="$(basename "$0")")
+
+function update_refreshrate () {
+  # update or create the refreshrate.pjs plugin if needed
+  if [[ -n "${REFRESHRATE}" ]]; then
+    if [[ -f /data/plugins/refreshrate.pjs ]]; then
+      sed -i "s/^\s*#*\s*refreshIntervalMs.*\$/refreshIntervalMs = $REFRESHRATE/Ig" /data/plugins/refreshrate.pjs
+    else
+      echo "refreshIntervalMs = $REFRESHRATE/Ig" > /data/plugins/refreshrate.pjs
+    fi
+  else
+    rm -f /data/plugins/refreshrate.pjs
+  fi
+}
 
 if ! chk_enabled "${UPDATE_PLUGINS}"
 then
   "${s6wrap[@]}" --args echo "UPDATE_PLUGINS is not set to true; skipping plugin updates"
+  update_refreshrate
   exit 0
 fi
 
@@ -77,19 +91,16 @@ else
 fi
 
 # update or create the refreshrate.pjs plugin if needed
-if [[ -n "${REFRESHRATE}" ]]; then
-  if [[ -f /data/plugins/refreshrate.pjs ]]; then
-    sed -i "s/^\s*#*\s*refreshIntervalMs.*\$/refreshIntervalMs = $REFRESHRATE/Ig" /data/plugins/refreshrate.pjs
-  else
-    echo "refreshIntervalMs = $REFRESHRATE/Ig" > /data/plugins/refreshrate.pjs
-  fi
-else
-  rm -f /data/plugins/refreshrate.pjs
-fi
+update_refreshrate
 
 # remove any plugin backups older than BACKUP_RETENTION_TIME (or 30 days if undefined)
 find /data/plugins -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-30}" -exec rm {} \;
 
 rm -rf /tmp/AIS-catcher
 
-"${s6wrap[@]}" --args echo "done!"
+if [[ -z "$1" ]]; then
+  "${s6wrap[@]}" --args echo "done - restarting AIS-catcher make changes take effect"
+  pkill AIS-catcher >/dev/null 2>&1 || true
+else 
+  "${s6wrap[@]}" --args echo "done"
+fi
