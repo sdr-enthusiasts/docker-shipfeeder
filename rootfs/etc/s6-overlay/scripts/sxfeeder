@@ -22,23 +22,19 @@ s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 # If not, see <https://www.gnu.org/licenses/>.
 #---------------------------------------------------------------------------------------------
 
-if [[ -z "${SHARING_KEY}" ]]
-then
+if [[ -z "${SHARING_KEY}" ]]; then
   "${s6wrap[@]}" --args echo "ShipXplorer sharing disabled."
   sleep infinity
 fi
 
 "${s6wrap[@]}" --args echo "Waiting for AIS-catcher to start..."
 # Wait for AIS-catcher to be up and running
-if /usr/local/bin/AIS-catcher -h > /dev/null 2>&1
-then
-    while ! pgrep AIS-catcher >/dev/null 2>&1
-    do
+if /usr/local/bin/AIS-catcher -h > /dev/null 2>&1; then
+    while ! pgrep AIS-catcher >/dev/null 2>&1; do
         sleep 1
     done
 else
-    while ! pgrep qemu-arm-static >/dev/null 2>&1
-    do
+    while ! pgrep qemu-arm-static >/dev/null 2>&1; do
         sleep 1
     done
 fi
@@ -49,11 +45,15 @@ sleep 5
 sxfeeder_command="/usr/bin/sxfeeder $SXFEEDER_EXTRA_OPTIONS"
 "${s6wrap[@]}" --args echo "Starting: $sxfeeder_command"
 # Test sxfeeder can run natively (without qemu)
-if /usr/bin/sxfeeder --help > /dev/null 2>&1
-then
+if /usr/bin/sxfeeder --help > /dev/null 2>&1; then
     # can be run natively
     exec "${s6wrap[@]}" --args $sxfeeder_command
-else
-    # needs qemu
+elif which qemu-arm-static >/dev/null 2>&1
+    # run using qemu
     exec "${s6wrap[@]}" --args qemu-arm-static $sxfeeder_command
+else
+    "${s6wrap[@]}" --args echo "FATAL: sxfeeder cannot be run natively, and QEMU is not available. You cannot use this container"
+    "${s6wrap[@]}" --args echo "FATAL: on this system / architecture. Feel free to file an issue at https://github.com/sdr-enthusiasts/docker-shipxplorer/issues"
+    "${s6wrap[@]}" --args echo "FATAL: Cannot initiate feeder to ShipXplorer."
+    sleep infinity
 fi
