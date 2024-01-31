@@ -65,15 +65,6 @@ udp_listen_port=34995
 sed -i 's/#SHARINGKEY/key='"$SHARING_KEY"'/g' /etc/sxfeeder.ini
 sed -i 's/#SERIALNUMBER/sn='"$SERIAL_NUMBER"'/g' /etc/sxfeeder.ini
 
-# In case sxfeeder cannot be run, let's make sure that qemu exists:
-if ! /usr/bin/sxfeeder --help >/dev/null 2>&1 && ! which qemu-arm-static >/dev/null 2>&1
-then
-    "${s6wrap[@]}" --args echo "ERROR: sxfeeder cannot be run natively, and QEMU is not available. You cannot use this container"
-    "${s6wrap[@]}" --args echo "       on this system / architecture. Feel free to file an issue at https://github.com/sdr-enthusiasts/docker-shipxplorer/issues"
-    "${s6wrap[@]}" --args echo "Container halted."
-    sleep infinity
-fi
-
 # Create log dirs
 mkdir -p /var/run/sxfeeder
 chmod a+rwx /var/run/sxfeeder
