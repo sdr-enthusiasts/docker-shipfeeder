@@ -56,8 +56,8 @@ echo "TARGETARCH $TARGETARCH" && \
         dpkg --add-architecture armhf; \
     fi && \
     #
-    apt-get update -q && \
-    apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
+    apt-get update -q --allow-insecure-repositories && \
+    apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests --allow-unauthenticated \
             "${SX_PACKAGES[@]}"; \
     #
     # Do some other stuff
