@@ -48,7 +48,7 @@ sxfeeder_command="/usr/bin/sxfeeder $SXFEEDER_EXTRA_OPTIONS"
 if /usr/bin/sxfeeder --help > /dev/null 2>&1; then
     # can be run natively
     exec "${s6wrap[@]}" --args $sxfeeder_command
-elif which qemu-arm-static >/dev/null 2>&1
+elif which qemu-arm-static >/dev/null 2>&1; then
     # run using qemu
     exec "${s6wrap[@]}" --args qemu-arm-static $sxfeeder_command
 else
