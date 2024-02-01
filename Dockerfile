@@ -56,9 +56,14 @@ echo "TARGETARCH $TARGETARCH" && \
         dpkg --add-architecture armhf; \
     fi && \
     #
-    apt-get update -q --allow-insecure-repositories && \
-    apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests --allow-unauthenticated \
-            "${SX_PACKAGES[@]}"; \
+    # The lines below would allow the apt.rb24.com repo to be access insecurely. We were using this because their key had expired
+    # However, as of 1-feb-2024, the repo was updated to contain again a valid key so this is no longer needed. Leaving it in as an archifact for future reference.
+    # apt-get update -q --allow-insecure-repositories && \
+    # apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests --allow-unauthenticated \
+    #         "${SX_PACKAGES[@]}"; \
+    apt-get update -q && \
+    apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
+            "${SX_PACKAGES[@]}" && \
     #
     # Do some other stuff
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
