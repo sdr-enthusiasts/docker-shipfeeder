@@ -91,6 +91,7 @@ if ! chk_enabled "${DISABLE_WEBSITE}"; then
     chk_enabled "${DISABLE_SHOWLASTMSG}" && true || aiscatcher_command+=("MESSAGE on")
     chk_enabled "${REALTIME}" && aiscatcher_command+=("REALTIME on") || true
 fi
+chk_enabled "$AISCATCHER_SHAREDATA" && aiscatcher_command+=("-X") || true
 aiscatcher_command+=("-u 127.0.0.1 34994")
 aiscatcher_command+=("-u 127.0.0.1 34995")
 aiscatcher_command+=("${FEEDSTRING[*]}")
