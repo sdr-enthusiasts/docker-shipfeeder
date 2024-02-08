@@ -20,6 +20,7 @@ services:
       - STATION_HISTORY=3600
       - SXFEEDER_LAT=42.12345
       - SXFEEDER_LON=-71.12345
+      - AISCATCHER_SHAREDATA=true
       - SITESHOW=on
     ports:
       - 8080:80
