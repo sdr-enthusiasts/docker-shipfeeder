@@ -10,6 +10,7 @@
   - [Claiming Your ShipXplorer Receiver](#claiming-your-shipxplorer-receiver)
   - [Runtime Environment Variables](#runtime-environment-variables)
   - [Feeding Other Service](#feeding-other-service)
+    - [Exchanging data with `aiscatcher.org`](#exchanging-data-with-aiscatcherorg)
     - [Feeding Services Using UDP](#feeding-services-using-udp)
     - [Feeding Service Using HTTP](#feeding-service-using-http)
       - [Feeding `aprs.fi`](#feeding-aprsfi)
@@ -115,6 +116,7 @@ services:
       - SXFEEDER_LON=${FEEDER_LONG}
       - SXFEEDER_LAT=${FEEDER_LAT}
       - PROMETHEUS_ENABLE=true
+      - AISCATCHER_SHAREDATA=true
     ports:
       - 90:80
     devices:
@@ -187,8 +189,18 @@ There are a series of available environment variables:
 | `DISABLE_WEBSITE` | Optional. If enabled, the AIS-Catcher website will not be available. Default empty (disabled) (i.e., the website is available) |
 | `PLUGIN_UPDATE_INTERVAL` | Optional. Set this to the interval (for example, `30` (secs) or `5m` or `6h` or `3d`) to check the AIS-Catcher github repository for updates to the JavaScript web plugins. Set to `0` or `off` to disable checking. Default value: `6h` |
 | `REFRESHRATE` | Refresh rate of the vessel data on the web page, in msec. Larger numbers reduce web page traffic, which can become an issue if there are a large number of vessels. Default value: `2500` (msec) |
+| `AISCATCHER_SHAREDATA` | Optional but recommended. If enabled, share your NMEA AIS data with aiscatcher.org and receive other ship data in return | 
 
 ## Feeding Other Service
+
+### Exchanging data with `aiscatcher.org`
+
+[aiscatcher.org](https://aiscatcher.org) is an exchange of AIS NMEA data. If you share your data with this server, you automatically receive data about other ships in return. We recommend to switch this on for an optimal viewing experience.
+You can enable it by simply adding this to the environment section of your `shipxplorer` service section in `docker-compose.yml`:
+
+```yaml
+- AISCATCHER_SHAREDATA=true
+```
 
 ### Feeding Services Using UDP
 
