@@ -180,16 +180,16 @@ There are a series of available environment variables:
 | `STATION_LINK` | Optional. URL displayed on stat web page. If omitted, it will show your ShipXplorer URL |
 | `STATION_HISTORY` | Optional. The number of seconds of history that will be shown in plots on the website. Default if omitted: `3600` (1 hour)  |
 | `BACKUP_INTERVAL` | Optional. How often a file with data statistics (`aiscatcher.bin`) will be written to disk, in minutes. In order to make this backup persistent, make sure to map the `/data` directory to a volume. See example in [docker-compose.yml](docker-compose.yml). Default: 2880 minutes (=2 days) |
-| `BACKUP_RETENTION_TIME` | Time (in days) to keep backups of `aiscatcher.bin` and plugins. Note - this only affects the backups of these files and not the active `aiscatcher.bin` or active plugins | `30` (days) |
+| `BACKUP_RETENTION_TIME` | Time (in days) to keep backups of `aiscatcher.bin` and plugins. Note - this only affects the backups of these files and not the active `aiscatcher.bin` or active plugins. Default value is `30` (days) |
 | `SITESHOW` | Optional. If set to anything non-empty, it will show the station location as a dot on the map |
 | `SXFEEDER_LAT` | Optional. Used for calculating ship distances on web page |
 | `SXFEEDER_LON` | Optional. Used for calculating ship distances on web page |
 | `PROMETHEUS_ENABLE` | Optional. Enables Prometheus data at `/metrics` on the webserver. Empty (disabled) by default |
-| `DISABLE_SHOWLASTMSG` | Optional. If enabled, the last NMEA0182 message option won't be shown on the website. Default empty (disabled) (i.e., last message option is available on website) |
-| `DISABLE_WEBSITE` | Optional. If enabled, the AIS-Catcher website will not be available. Default empty (disabled) (i.e., the website is available) |
+| `DISABLE_SHOWLASTMSG` | Optional. If set to `true`, the last NMEA0182 message option won't be shown on the website. Default empty (`false`, i.e., last message option is available on website) |
+| `DISABLE_WEBSITE` | Optional. If set to `true`, the AIS-Catcher website will not be available. Default empty (`false`, i.e., the website is available) |
 | `PLUGIN_UPDATE_INTERVAL` | Optional. Set this to the interval (for example, `30` (secs) or `5m` or `6h` or `3d`) to check the AIS-Catcher github repository for updates to the JavaScript web plugins. Set to `0` or `off` to disable checking. Default value: `6h` |
 | `REFRESHRATE` | Refresh rate of the vessel data on the web page, in msec. Larger numbers reduce web page traffic, which can become an issue if there are a large number of vessels. Default value: `2500` (msec) |
-| `AISCATCHER_SHAREDATA` | Optional but recommended. If enabled, share your NMEA AIS data with aiscatcher.org and receive other ship data in return | 
+| `AISCATCHER_SHAREDATA` | Optional but highly recommended. If set to `true`, share your NMEA AIS data with aiscatcher.org and receive other ship data in return. Only raw NMEA data is shared, no personal information is transmitted. See [here](https://github.com/jvde-github/AIS-catcher#update-join-our-mission-to-enhance-ais-catcher) for more information | 
 
 ## Feeding Other Service
 
