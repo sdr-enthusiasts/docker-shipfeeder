@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM ghcr.io/jvde-github/ais-catcher:edge AS build
 
-FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
+FROM ghcr.io/sdr-enthusiasts/docker-baseimage:rtlsdr
 
 ARG TARGETPLATFORM TARGETOS TARGETARCH
 
@@ -27,7 +27,7 @@ echo "TARGETARCH $TARGETARCH" && \
     TEMP_PACKAGES+=(gnupg) && \
     if [ "${TARGETARCH:0:3}" != "arm" ]; then KEPT_PACKAGES+=(qemu-user-static); fi && \
     #
-    KEPT_PACKAGES+=(librtlsdr0) && \
+    #KEPT_PACKAGES+=(librtlsdr0) && \
     KEPT_PACKAGES+=(libairspy0) && \
     KEPT_PACKAGES+=(libhackrf0) && \
     KEPT_PACKAGES+=(libairspyhf1) && \
