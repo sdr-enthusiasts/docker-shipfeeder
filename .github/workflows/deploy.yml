@@ -30,6 +30,7 @@ env:
 #  DOCKERHUB_REPO: sdr-enthusiasts
 #  DOCKERHUB_IMAGE: shipxplorer
   GHCR_IMAGE: sdr-enthusiasts/shipxplorer
+  GHCR_IMAGE2: sdr-enthusiasts/docker-shipfeeder
   GHCR_REGISTRY: ghcr.io
 
 jobs:
@@ -97,8 +98,8 @@ jobs:
         with:
           driver-opts: image=moby/buildkit:v0.10.6
 
-      # Build "latest"
-      - name: Build & Push - latest
+      # Build "latest" for org and new package
+      - name: Build & Push - latest - org package
         uses: docker/build-push-action@v3
         with:
           context: .
@@ -107,4 +108,15 @@ jobs:
           platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: true
           tags: ghcr.io/${{ env.GHCR_IMAGE }}:latest
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Build & Push - latest - new package
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          no-cache: true
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
+          push: true
+          tags: ghcr.io/${{ env.GHCR_IMAGE2 }}:latest
           labels: ${{ steps.meta.outputs.labels }}

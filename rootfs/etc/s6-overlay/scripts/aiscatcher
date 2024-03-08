@@ -91,13 +91,134 @@ if ! chk_enabled "${DISABLE_WEBSITE}"; then
     chk_enabled "${DISABLE_SHOWLASTMSG}" && true || aiscatcher_command+=("MESSAGE on")
     chk_enabled "${REALTIME}" && aiscatcher_command+=("REALTIME on") || true
 fi
-chk_enabled "$AISCATCHER_SHAREDATA" && aiscatcher_command+=("-X") || true
+
+# Add a number of well-known feeders: 
+# ADSBNetwork / RadarVirtuel:
+if [[ -n "${RADARVIRTUEL_FEEDER_KEY:+$RADARVIRTUEL_STATION_ID}" ]]; then
+    aiscatcher_command+=("-H https://ais.adsbnetwork.com/ingester/insert/$RADARVIRTUEL_FEEDER_KEY ID $RADARVIRTUEL_STATION_ID INTERVAL 15 RESPONSE off")
+fi
+
+# AirFrames:
+if [[ -n "$AIRFRAMES_STATION_ID" ]]; then
+    aiscatcher_command+=("-H http://feed.airframes.io:5599 ID $AIRFRAMES_STATION_ID INTERVAL 30 RESPONSE off")
+fi
+
+# AIS-Catcher:
+if chk_enabled "$AISCATCHER_SHAREDATA" && [[ -z "$AISCATCHER_FEEDER_KEY" ]]; then
+    aiscatcher_command+=("-X")
+    AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-X\s+[0-9]*\s*//g'<<< "$AISCATCHER_EXTRA_OPTIONS")" # Remove any -X from param to avoid duplication
+elif [[ -n "$AISCATCHER_FEEDER_KEY" ]]; then
+    aiscatcher_command+=("-X $AISCATCHER_FEEDER_KEY")
+    AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-X\s+[0-9]*\s*//g'<<< "$AISCATCHER_EXTRA_OPTIONS")" # Remove any -X from param to avoid duplication
+fi
+
+# AISHub:
+if [[ -n "$AISHUB_UDP_PORT" ]]; then
+    if ! grep -q ":" $AISHUB_UDP_PORT; then AISHUB_UDP_PORT="data.aishub.net:$AISHUB_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${AISHUB_UDP_PORT%%:*} ${AISHUB_UDP_PORT##*:}")
+fi
+
+# aprs.fi:
+if [[ -n "${APRSFI_FEEDER_KEY:+$APRSFI_STATION_ID}" ]]; then
+    aiscatcher_command+=("-H http://aprs.fi/jsonais/post/$APRSFI_FEEDER_KEY ID $APRSFI_STATION_ID PROTOCOL aprs INTERVAL 30 RESPONSE off")
+fi
+
+# BoatBeacon:
+if chk_enabled "$BOATBEACON_SHAREDATA"; then
+    aiscatcher_command+=("-u boatbeaconapp.com 5322")
+elif [[ -n "$BOATBEACON_UDP_PORT" ]]; then
+    if ! grep -q ":" $BOATBEACON_UDP_PORT; then BOATBEACON_UDP_PORT="boatbeaconapp.com:$BOATBEACON_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${BOATBEACON_UDP_PORT%%:*} ${BOATBEACON_UDP_PORT##*:}")
+fi
+
+# HPRadar:
+if [[ -n "$HPRADAR_UDP_PORT" ]]; then
+    if ! grep -q ":" $HPRADAR_UDP_PORT; then HPRADAR_UDP_PORT="aisfeed.hpradar.com:$HPRADAR_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${HPRADAR_UDP_PORT%%:*} ${HPRADAR_UDP_PORT##*:} JSON on")
+fi
+
+# MarineTraffic:
+if [[ -n "$MARINETRAFFIC_UDP_PORT" ]]; then
+    if ! grep -q ":" $MARINETRAFFIC_UDP_PORT; then MARINETRAFFIC_UDP_PORT="5.9.207.224:$MARINETRAFFIC_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${MARINETRAFFIC_UDP_PORT%%:*} ${MARINETRAFFIC_UDP_PORT##*:}")
+fi
+
+# MyShipTracker:
+if [[ -n "$MYSHIPTRACKER_UDP_PORT" ]]; then
+    if ! grep -q ":" $MYSHIPTRACKER_UDP_PORT; then MYSHIPTRACKER_UDP_PORT="178.162.215.175:$MYSHIPTRACKER_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${MYSHIPTRACKER_UDP_PORT%%:*} ${MYSHIPTRACKER_UDP_PORT##*:}")
+fi
+
+# ShippingExplorer:
+if [[ -n "$SHIPPINGEXPLORER_UDP_PORT" ]]; then
+    if ! grep -q ":" $SHIPPINGEXPLORER_UDP_PORT; then SHIPPINGEXPLORER_UDP_PORT="144.76.54.111:$SHIPPINGEXPLORER_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${SHIPPINGEXPLORER_UDP_PORT%%:*} ${SHIPPINGEXPLORER_UDP_PORT##*:}")
+fi
+
+# ShipFinder:
+if chk_enabled "$SHIPFINDER_SHAREDATA"; then
+    aiscatcher_command+=("-u ais.shipfinder.co.uk 4001")
+elif [[ -n "$SHIPFINDER_UDP_PORT" ]]; then
+    if ! grep -q ":" $SHIPFINDER_UDP_PORT; then SHIPFINDER_UDP_PORT="ais.shipfinder.co.uk:$SHIPFINDER_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${SHIPFINDER_UDP_PORT%%:*} ${SHIPFINDER_UDP_PORT##*:}")
+fi
+
+# VesselFinder:
+if [[ -n "$VESSELFINDER_UDP_PORT" ]]; then
+    if ! grep -q ":" $VESSELFINDER_UDP_PORT; then VESSELFINDER_UDP_PORT="ais.vesselfinder.com:$VESSELFINDER_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${VESSELFINDER_UDP_PORT%%:*} ${VESSELFINDER_UDP_PORT##*:}")
+fi
+
+# VesselTracker:
+if [[ -n "$VESSELTRACKER_UDP_PORT" ]]; then
+    if ! grep -q ":" $VESSELFINDER_UDP_PORT; then VESSELTRACKER_UDP_PORT="83.220.137.136:$VESSELTRACKER_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${VESSELTRACKER_UDP_PORT%%:*} ${VESSELTRACKER_UDP_PORT##*:}")
+fi
+
 aiscatcher_command+=("-u 127.0.0.1 34994")
 aiscatcher_command+=("-u 127.0.0.1 34995")
 aiscatcher_command+=("${FEEDSTRING[*]}")
 aiscatcher_command+=("$SHOWLOGS")
-[[ -n "${RTLSDR_DEVICE_SERIAL}" ]] && aiscatcher_command+=("-d ${RTLSDR_DEVICE_SERIAL}") || true
-[[ -n "${RTLSDR_DEVICE_SERIAL}" ]] && aiscatcher_command+=("-gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ON")
+if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then 
+    AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"; aiscatcher_command+=("-c ${AISCATCHER_CHANNELS:-AB}")
+    #AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-c\s+[a-dA-D ]+//g' <<< "$AISCATCHER_EXTRA_OPTIONS")"   # remove any -c items from param to avoid duplication
+    aiscatcher_command+=("-d ${RTLSDR_DEVICE_SERIAL}")
+    aiscatcher_command+=("-gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ON")
+    if [[ -n "${RTLSDR_DEVICE_PPM}" ]]; then
+        aiscatcher_command+=("-p ${RTLSDR_DEVICE_PPM}")
+        #AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-p\s+[0-9]+\s*//g'<<< "$AISCATCHER_EXTRA_OPTIONS")"   # remove any -p items from param to avoid duplication
+    fi
+    if [[ -n "${RTLSDR_DEVICE_BANDWIDTH}" ]]; then
+        aiscatcher_command+=("-a ${RTLSDR_DEVICE_BANDWIDTH}")
+        #AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-a\s+[0-9]+[A-Za-z]{1}\s*//g'<<< "$AISCATCHER_EXTRA_OPTIONS")"   # remove any -a items from param to avoid duplication
+    elif ! grep -qoE '\-a\s+[0-9]+[A-Za-z]{1}' <<< "$AISCATCHER_EXTRA_OPTIONS"; then
+        aiscatcher_command+=("-a 192K")
+    fi
+    if [[ -n "${AISCATCHER_DECODER_MODEL}" ]]; then
+        aiscatcher_command+=("-m ${AISCATCHER_DECODER_MODEL}")
+    fi
+    if [[ -n "$AISCATCHER_DECODER_AFC_WIDE$AISCATCHER_DECODER_FP_DS$AISCATCHER_DECODER_PS_EMA$AISCATCHER_DECODER_SOXR$AISCATCHER_DECODER_SRC$AISCATCHER_DECODER_DROOP" ]]; then
+        aiscatcher_command+=("-go")
+        if chk_enabled "$AISCATCHER_DECODER_AFC_WIDE" || \
+           { [[ -z "$AISCATCHER_DECODER_AFC_WIDE" ]] && ! grep -qi 'AFC_WIDE' <<< "$AISCATCHER_EXTRA_OPTIONS"; }; then
+                aiscatcher_command+=("AFC_WIDE on")
+        fi
+        chk_disabled "$AISCATCHER_DECODER_AFC_WIDE" && aiscatcher_command+=("AFC_WIDE off") || true
+        chk_enabled "$AISCATCHER_DECODER_FP_DS" && aiscatcher_command+=("FP_DS on") || true
+        chk_disabled "$AISCATCHER_DECODER_FP_DS" && aiscatcher_command+=("FP_DS off") || true
+        chk_enabled "$AISCATCHER_DECODER_PS_EMA" && aiscatcher_command+=("PS_EMA on") || true
+        chk_disabled "$AISCATCHER_DECODER_PS_EMA" && aiscatcher_command+=("PS_EMA off") || true
+        chk_enabled "$AISCATCHER_DECODER_SOXR" && aiscatcher_command+=("SOXR on") || true
+        chk_disabled "$AISCATCHER_DECODER_SOXR" && aiscatcher_command+=("SOXR off") || true
+        chk_enabled "$AISCATCHER_DECODER_SRC" && aiscatcher_command+=("SRC on") || true
+        chk_disabled "$AISCATCHER_DECODER_SRC" && aiscatcher_command+=("SRC off") || true
+        chk_enabled "$AISCATCHER_DECODER_DROOP" && aiscatcher_command+=("DROOP on") || true
+        chk_disabled "$AISCATCHER_DECODER_DROOP" && aiscatcher_command+=("DROOP off") || true
+    elif [[ -z "$AISCATCHER_DECODER_AFC_WIDE" ]] && ! grep -qi 'AFC_WIDE' <<< "$AISCATCHER_EXTRA_OPTIONS"; then
+        aiscatcher_command+=("-go AFC_WIDE on")
+    fi
+fi
+
 aiscatcher_command+=("$AISCATCHER_EXTRA_OPTIONS")
 
 aiscommand="$(echo ${aiscatcher_command[@]} | xargs)"
