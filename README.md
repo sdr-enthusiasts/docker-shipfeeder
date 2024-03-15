@@ -119,7 +119,7 @@ services:
 
 Example accompanying `.env` file:
 
-```text
+```ini
 # ShipFeeder receiver and webpage related parameters:
 FEEDER_LAT=xx.xxxxxx
 FEEDER_LONG=yy.yyyyyy
