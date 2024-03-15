@@ -203,7 +203,7 @@ If the `AISCATCHER_CHANNELS` and `AISCATCHER_DECODER_XXXX` parameters listed abo
 
 ### Easy sharing with other services
 
-This table shows which parameters to set and how to obtain credentials for a number of well-known AIS aggregators. A (partial) list of these aggregators can be found [here](https://docs.google.com/spreadsheets/d/1W9uuuS2tGHcNENm7Ze3M1UPl2u8tMZv2N_bID6x060Y/edit?usp=sharing)
+This table shows which parameters to set and how to obtain credentials for a number of well-known AIS aggregators. A (partial) list of these aggregators and instructions on how to get a key or port for them can be found [here](https://docs.google.com/spreadsheets/d/1W9uuuS2tGHcNENm7Ze3M1UPl2u8tMZv2N_bID6x060Y/edit?usp=sharing)
 
  | Name | Parameter | Default IP/DNS/URL | Feeding protocol:<br>UDP/TCP/HTTP/Other | How to register for a key or ID |
  | ---- | --------- | ------------------ | --------------------------------------- | ------------------------------- |
