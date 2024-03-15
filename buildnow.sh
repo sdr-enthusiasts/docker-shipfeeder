@@ -7,11 +7,10 @@
 [[ "$ARCHS" == "" ]] && ARCHS="linux/armhf,linux/arm64,linux/amd64"
 
 BASETARGET1=ghcr.io/sdr-enthusiasts
-BASETARGET2=kx1t
+BASETARGET2=ghcr.io/sdr-enthusiasts
 
-IMAGE1="$BASETARGET1/$(pwd | sed -n 's|.*/docker-\(.*\)|\1|p'):$TAG"
-IMAGE2="$BASETARGET2/$(pwd | sed -n 's|.*/docker-\(.*\)|\1|p'):$TAG"
-
+IMAGE1="$BASETARGET1/shipxplorer:$TAG"
+IMAGE2="$BASETARGET2/docker-shipfeeder:$TAG"
 
 echo "press enter to start building $IMAGE1 and $IMAGE2 from $BRANCH"
 
@@ -32,6 +31,6 @@ else
 fi
 
 docker buildx build -f Dockerfile --compress --push $2 --platform $ARCHS --tag "$IMAGE1" .
-# [[ $? ]] && docker buildx build --compress --push $2 --platform $ARCHS --tag $IMAGE2 .
+[[ $? ]] && docker buildx build --compress --push $2 --platform $ARCHS --tag $IMAGE2 .
 mv -f /tmp/Dockerfile .
 echo "Total build time: $(( $(date +%s) - starttime )) seconds"
