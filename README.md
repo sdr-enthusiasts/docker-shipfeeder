@@ -72,7 +72,8 @@ In theory, it should work, but I don't have the time nor inclination to test it.
 
 You can find these as files here: [`docker-compose.yml` example](https://github.com/sdr-enthusiasts/docker-shipfeeder/blob/main/config-examples/docker-compose.yml.sample); [`.env` example](https://github.com/sdr-enthusiasts/docker-shipfeeder/blob/main/config-examples/.env.sample)
 
-Example `docker-compose.yml` extract.
+Example `docker-compose.yml` extract - <details>
+  <summary>&lt;&dash;&dash; Click the arrow to see the <code>docker-compose.yml</code> text</summary>.
 
 ```yaml
 version: '3.8'
@@ -169,10 +170,10 @@ VESSELFINDER_UDP_PORT=xxxx
 VESSELTRACKER_UDP_PORT=xxxx
 ```
 
-Replace the `SHARING_KEY`, `SERIAL_NUMBER`, and `RTLSDR_DEVICE_SERIAL` with the appropriate values.
+Replace these parameters with the appropriate values.
 You can use `rtl_test` to see which devices and device serials are connected to your machine, or `rtl_eeprom` to rename the device's serial number.
 
-In `SX_EXTRA_OPTIONS`, the `-p` directive indicates the PPM value of your SDR. Adapt it to your needs.
+</details>
 
 ## Runtime Environment Variables
 
@@ -446,7 +447,7 @@ I also have a [Discord channel](https://discord.gg/sTf9uYF), feel free to [join]
 This effort wouldn't exist without much help and advice of the following individuals:
 
 - [JvdE-Github](https://github.com/jvde-github/ais-catcher), who created the excellent `ais-catcher` package which forms the basis of this container
-- [Wiedehopf]((https://github.com/wiedehopf) without whose advice we'd all still live in the stone age
+- [Wiedehopf](https://github.com/wiedehopf) without whose advice we'd all still live in the stone age
 - [John Norrbin](https://github.com/Johnex) for his ideas, testing, feature requests, more testing, nagging, pushing, prodding, and overall efforts to make this a high quality container and for the USB "hotplug" configuration
 - The community at the [SDR-Enthusiasts Discord Server](https://discord.gg/sTf9uYF) for helping out, testing, asking questions, and generally driving to make this a better productn
 - [Pete](https://pliw.co.uk/ais) who provided access and major help testing new features
