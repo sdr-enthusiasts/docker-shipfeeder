@@ -128,6 +128,7 @@ In `SX_EXTRA_OPTIONS`, the `-p` directive indicates the PPM value of your SDR. A
 | `AISCATCHER_DECODER_SOXR` | `-go SOXR` flag for `ais-catcher` | Empty |
 | `AISCATCHER_DECODER_SRC` | `-go SRC` flag for `ais-catcher` | Empty |
 | `AISCATCHER_DECODER_DROOP` | `-go DROOP` flag for `ais-catcher` | Empty |
+| `AISCATCHER_UDP_INPUTS` | List of comma-separated `hostname:port[:CHANNELS]` combinations of external NMEA AIS data UDP sources. You can use this to feed data between `ais-catcher` or `docker-shipfeeder` instances. The `:CHANNELS` part is optional; channels `AB` will be used if omitted. Examples</br>`AISCATCHER_UDP_INPUTS=remotehost-1:9999:AB CD,remotehost-2:9988,remotehost-3:8899:CD` | Empty |
 | `AISCATCHER_EXTRA_OPTIONS` | Any additional command line parameters you wish to pass to `AIS-catcher` | Empty |
 | `VERBOSE_LOGGING` | If set to a number (`0`-`5`), it's set to the `AIS-Catcher -o` [log level](https://github.com/jvde-github/AIS-catcher#usage). Any other non-empty string corresponds to `-o 2`. To silence `AIS-Catcher` logs, set this parameter to `0` | `2` (a summary is displayed every 60 seconds) |
 
@@ -146,8 +147,8 @@ If the `AISCATCHER_CHANNELS` and `AISCATCHER_DECODER_XXXX` parameters listed abo
 | `BACKUP_INTERVAL` | How often a file with data statistics (`aiscatcher.bin`) will be written to disk, in minutes. In order to make this backup persistent, make sure to map the `/data` directory to a volume. See example in [docker-compose.yml](docker-compose.yml). | `2880` (=2 days) |
 | `BACKUP_RETENTION_TIME` | Time (in days) to keep backups of `aiscatcher.bin` and plugins. Note - this only affects the backups of these files and not the active `aiscatcher.bin` or active plugins. | `30` (days) |
 | `SITESHOW` | If set to anything non-empty, it will show the station location as a dot on the map | Empty |
-| `SXFEEDER_LAT` or `FEEDER_LAT` | Used for calculating ship distances on web page | Empty |
-| `SXFEEDER_LON` or `FEEDER_LONG` | Used for calculating ship distances on web page | Empty |
+| `FEEDER_LAT` or `SXFEEDER_LAT` (legacy) | Used for calculating ship distances on web page | Empty |
+| `FEEDER_LONG` or `SXFEEDER_LON` (legacy) | Used for calculating ship distances on web page | Empty |
 | `DISABLE_SHOWLASTMSG` | If set to `true`, the last NMEA0182 message option won't be shown on the website. | Empty, i.e., last message option is available on website |
 | `PLUGIN_UPDATE_INTERVAL` | Optional. Set this to the interval (for example, `30` (secs) or `5m` or `6h` or `3d`) to check the AIS-Catcher github repository for updates to the JavaScript web plugins. Set to `0` or `off` to disable checking. | `6h` |
 | `REFRESHRATE` | Refresh rate of the vessel data on the web page, in msec. Larger numbers reduce web page traffic, which can become an issue if there are a large number of vessels | `2500` (msec) |
@@ -338,22 +339,20 @@ If you want `shipfeeder` to use 2 SDRs to listen to AIS Channels AB and CD at th
 
 ## Aggregating multiple instances of the container
 
-Sometimes it's convenient to aggregate the data of multiple instances of the container into a single one, and then feed the AIS aggregators from this "central" instance. An example of this is when you have a SDR receiving from channels AB in one instance, and a SDR receiving from channels CD in a separate instance on another machine. (If you have both SDRs on the same machine, you can use a single container instance for both of them as described above). In our case, you'd want to send the data from channels CD to the instance that (also) receives channels AB, and then use the Channel AB instance to disperse the data to the various services.
+Sometimes it's convenient to aggregate the data of multiple instances of the container into a single one, and then feed the AIS aggregators from this "central" instance. An example of this is when you have a SDR receiving from channels AB in one instance, and a SDR receiving from channels CD in a separate instance on another machine. (If you have both SDRs on the same machine, you can use a single container instance for both of them as described above). In our case, you'd want to send the data from channels CD to the instance that receives channels AB, and then use that machine to disperse the data to the various services, show its webpage, etc.
 
 Do the following. We are assuming that the hostname/container name for the instance receiving channels AB is `shipfeeder_ab` and the hostname/container name for the instance receiving channels CD is `shipfeeder_cd`. Your names may vary.
 
-Situation 1: both instances are in the same container stack, on the same machine:
-
-- In the section of the `docker-compose.yml` file for `shipfeeder_ab`, make sure to add the following to the `UDP_FEEDS` parameter. Make sure that you replace `target_machine` with the IP or hostname of the target machine:
+- In the section of the `docker-compose.yml` file for `shipfeeder_cd`, make sure to add the following to the `UDP_FEEDS` parameter. Make sure that you replace `target_machine` with the IP or hostname of the machine where `shipfeeder_ab` runs:
 
 ```yaml
     - UDP_FEEDS=.....;target_machine:9988
 ```
 
-- In the section of the `docker-compose.yml` file for `shipfeeder_cd`, make sure to add the following to the `UDP_FEEDS` parameter. Make sure that the name after `-x` matches your container name. (DO NOT USE `localhost` or `127.0.0.1` - that won't work):
+- In the section of the `docker-compose.yml` file for `shipfeeder_ab`, make sure to add the following to the `AISCATCHER_UDP_INPUTS` parameter. (DO NOT USE `localhost` or `127.0.0.1` - that won't work):
 
 ```yaml
-    - AISCATCHER_EXTRA_OPTIONS=...... -x shipfeeder_cd 9988 -c AB CD
+    - AISCATCHER_UDP_INPUTS=shipfeeder_cd:9988:AB CD
 ```
 
 - In addition, to the same section of the `docker-compose.yml` file for `shipfeeder_cd`, make sure to forward the UPD port to the container:

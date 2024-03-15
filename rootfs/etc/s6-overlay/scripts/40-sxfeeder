@@ -24,17 +24,11 @@ source /scripts/common
 APPNAME="10-container-init"
 s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 
-if [[ -z "${SHARING_KEY}" ]] && [[ -z "${AISCATCHER_EXTRA_OPTIONS}" ]] && [[ -z "${UDP_FEEDS}" ]]
-then
-  "${s6wrap[@]}" --args echo "WARNING: Container is configured for Local Use Only. At least one of SHARING_KEY, AISCATCHER_EXTRA_OPTIONS, or UDP_FEEDS must be defined for this container to feed a service."
-  exit 0
-fi
+SHARING_KEY="${SHARING_KEY:-${SX_SHARING_KEY:-${SHIPXPLORER_SHARING_KEY}}}"
+SERIAL_NUMBER="${SERIAL_NUMBER:-${SX_SERIAL_NUMBER:-${SHIPXPLORER_SERIAL_NUMBER}}}"
 
-if [[ -z "${SHARING_KEY}" ]]
-then
-  "${s6wrap[@]}" --args echo "WARNING: SHARING_KEY is not set. Feeding to ShipXplorer is disabled."
-  "${s6wrap[@]}" --args echo "         If you are attempting to generate a new ShipXplorer sharing key and serial, you can do so by giving this command:"
-  "${s6wrap[@]}" --args echo "         docker exec -it shipxplorer /usr/bin/getcreds"
+if [[ -z "${SHARING_KEY}" ]]; then
+  "${s6wrap[@]}" --args echo "ShipXplorer feeding not enabled. Continuing..."
   exit 0
 fi
 
@@ -42,11 +36,6 @@ if [[ -z "${SERIAL_NUMBER}" ]]
 then
   "${s6wrap[@]}" --args echo "ERROR: ShipXplorer SHARING_KEY is defined but SERIAL_NUMBER is not set. We need both to feed ShipXplorer. If you want to disable feeding ShipXplorer, make sure that SHARING_KEY is empty as well."
   exit 1
-fi
-
-if [[ -z "${RTLSDR_DEVICE_SERIAL}" ]]
-then
-  "${s6wrap[@]}" --args echo "WARNING: RTLSDR_DEVICE_SERIAL is not set. The container will run in network-only mode."
 fi
 
 # Generate /etc/sxfeeder.ini based on environment variables
@@ -68,7 +57,7 @@ sed -i 's/#SERIALNUMBER/sn='"$SERIAL_NUMBER"'/g' /etc/sxfeeder.ini
 # Create log dirs
 mkdir -p /var/run/sxfeeder
 chmod a+rwx /var/run/sxfeeder
-touch /var/log/rbfeeder.log
-chmod a+rwx /var/log/rbfeeder.log
-truncate --size=0 /var/log/rbfeeder.log
+touch /var/log/sxfeeder.log
+chmod a+rwx /var/log/sxfeeder.log
+truncate --size=0 /var/log/sxfeeder.log
 chmod a+rw /etc/sxfeeder.ini
