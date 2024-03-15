@@ -2,7 +2,23 @@
 
 [![Discord](https://img.shields.io/discord/734090820684349521)](https://discord.gg/sTf9uYF)
 
+## What's New
+
+So you came here expecting `docker-shipxplorer`? As of March 15, 2024 (*the Ides of March*!), the `docker-shipxplorer` repo has been renamed to `docker-shipfeeder`. The container can do so much more than just feeding ShipXplorer, and the new name covers the scope of what we're doing much better!
+
+We're still enthusiastic feeders of AIS data to AirNav's ShipXplorer, and the amount of support that company has provided to the community is much appreciated. No changes there!
+
+The newly updated container now also allows you to much easier configure feeding the other aggregators, see the [Feeding AIS Aggregator Services](#feeding-ais-aggregator-services) section!
+
+In adding all these improvements, we didn't forget our current users: the container is fully backwards compatible with the settings and environment variables you are already using. So no change is needed, unless you want to. We're also automatically producing two container images in parallel - they are exactly the same except for their names: `ghcr.io/sdr-enthusiasts/docker-shipfeeder` (new!) and `ghcr.io/sdr-enthusiasts/shipxplorer` (legacy).
+
+If you need help, feel free to chat with us at the Discord server that is linked elsewhere in this Readme.
+
+## Table of Contents
+
 - [sdr-enthusiasts/docker-shipfeeder](#sdr-enthusiastsdocker-shipfeeder)
+  - [What's New](#whats-new)
+  - [Table of Contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
   - [Multi Architecture Support](#multi-architecture-support)
   - [Up-and-Running with Docker Compose](#up-and-running-with-docker-compose)
