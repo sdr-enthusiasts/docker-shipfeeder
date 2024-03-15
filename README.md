@@ -43,6 +43,8 @@ If you need help, feel free to chat with us at the Discord server that is linked
   - [Aggregating multiple instances of the container](#aggregating-multiple-instances-of-the-container)
   - [Hardware requirements](#hardware-requirements)
   - [Getting Help](#getting-help)
+  - [Acknowledgements](#acknowledgements)
+  - [License](#license)
 
 Docker container for feeding many AIS aggregators, showing a local map with ships heard, etc. The container uses [AIS-Catcher](https://aiscatcher.org) and also includes [AirNav ShipXplorer](https://www.shipxplorer.com)'s `sxfeeder`. Builds and runs on `arm64`, `armv7/armhf`, and `amd64/x86`.
 
@@ -438,3 +440,21 @@ Last - the software will run on a Raspberry Pi 3B+ or 4, with Raspberry Pi OS, U
 You can [log an issue](https://github.com/sdr-enthusiasts/docker-shipfeeder/issues) on the project's GitHub.
 
 I also have a [Discord channel](https://discord.gg/sTf9uYF), feel free to [join](https://discord.gg/sTf9uYF) and converse.
+
+## Acknowledgements
+
+This effort wouldn't exist without much help and advice of the following individuals:
+
+- [JvdE-Github](https://github.com/jvde-github/ais-catcher), who created the excellent `ais-catcher` package which forms the basis of this container
+- [Wiedehopf]((https://github.com/wiedehopf) without whose advice we'd all still live in the stone age
+- [John Norrbin](https://github.com/Johnex) for his ideas, testing, feature requests, more testing, nagging, pushing, prodding, and overall efforts to make this a high quality container and for the USB "hotplug" configuration
+- The community at the [SDR-Enthusiasts Discord Server](https://discord.gg/sTf9uYF) for helping out, testing, asking questions, and generally driving to make this a better productn
+- [Pete](https://pliw.co.uk/ais) who provided access and major help testing new features
+
+## License
+
+Copyright (C) 2022-2024, Ramon F. Kolb (kx1t)
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
