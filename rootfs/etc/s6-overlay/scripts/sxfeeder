@@ -22,7 +22,8 @@ s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 # If not, see <https://www.gnu.org/licenses/>.
 #---------------------------------------------------------------------------------------------
 
-if [[ -z "${SHARING_KEY}" ]]; then
+
+if [[ -z "${SHARING_KEY:-${SX_SHARING_KEY:-${SHIPXPLORER_SHARING_KEY}}}" ]] || [[ -z "${SERIAL_NUMBER:-${SX_SERIAL_NUMBER:-${SHIPXPLORER_SERIAL_NUMBER}}}" ]]; then
   "${s6wrap[@]}" --args echo "ShipXplorer sharing disabled."
   sleep infinity
 fi
