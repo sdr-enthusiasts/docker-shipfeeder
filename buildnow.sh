@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC2086
 
 
@@ -30,7 +30,6 @@ else
     sed -i 's/##BRANCH##/'"$BRANCH"'/g' Dockerfile
 fi
 
-docker buildx build -f Dockerfile --compress --push $2 --platform $ARCHS --tag "$IMAGE1" .
-[[ $? ]] && docker buildx build --compress --push $2 --platform $ARCHS --tag $IMAGE2 .
+docker buildx build -f Dockerfile --compress --push $2 --platform $ARCHS --tag "$IMAGE1" "${IMAGE2:+-tag $IMAGE2}" .
 mv -f /tmp/Dockerfile .
 echo "Total build time: $(( $(date +%s) - starttime )) seconds"
