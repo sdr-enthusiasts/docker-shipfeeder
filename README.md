@@ -136,6 +136,7 @@ If the `AISCATCHER_CHANNELS` and `AISCATCHER_DECODER_XXXX` parameters listed abo
 ### Website Related Parameters
 
 | Environment Variable | Purpose | Default value if omitted |
+| ---------------------- | ------------------------------- | --- |
 | `DISABLE_WEBSITE` | If set to `true`, the AIS-Catcher website will not be available | `false` |
 | `PLUGINS_FILE` | Load a file with custom javascript to override parts of the WebUI or add functionality. Map the container `/data` to any volume, place your file inside the volume and put the file name here (for example `plugins.js`) | Empty |
 | `STYLES_FILE` | Load a file with custom css to override parts of the WebUI or add functionality. Map the container `/data` to any volume, place your file inside the volume and put the file name here (for example `styles.css`) | Empty |
@@ -170,7 +171,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | MyShipTracking | `MYSHIPTRACKING_UDP_PORT` | 178.162.215.175 | UDP | [https://www.myshiptracking.com/help-center/contributors/add-your-station](https://www.myshiptracking.com/help-center/contributors/add-your-station) |
  | ShipFinder | `SHIPFINDER_SHAREDATA=true` | [ais.shipfinder.co.uk:4001](http://ais.shipfinder.co.uk:4001/) | UDP | [https://shipfinder.co/about/coverage/](https://shipfinder.co/about/coverage/) |
  | ShippingExplorer | `SHIPPINGEXPLORER_UDP_PORT` | 144.76.54.111 | UDP | Request UDP port at [https://www.shippingexplorer.net/en/contact](https://www.shippingexplorer.net/en/contact) |
- | ShipXplorer | `SHIPXPLORER_FEEDER_KEY` or `FEEDER_KEY` (legacy)<br>`SHIPXPLORER_SERIAL_NUMBER` or `SERIAL_NUMBER` (legacy) | | Other | See [Obtaining a ShipXplorer Sharing Key](#obtaining-a-shipxplorer-sharing-key) |
+ | ShipXplorer | `SHIPXPLORER_SHARING_KEY` or `SHARING_KEY` (legacy)<br>`SHIPXPLORER_SERIAL_NUMBER` or `SERIAL_NUMBER` (legacy) | | Other | See [Obtaining a ShipXplorer Sharing Key](#obtaining-a-shipxplorer-sharing-key) |
  | VesselFinder | `VESSELFINDER_UDP_PORT` | [ais.vesselfinder.com](http://ais.vesselfinder.com) | UDP | [https://stations.vesselfinder.com/become-partner](https://stations.vesselfinder.com/become-partner) |
  | VesselTracker | `VESSELTRACKER_UDP_PORT` | 83.220.137.136 | UDP | [https://www.vesseltracker.com/en/static/antenna-partner.html](https://www.vesseltracker.com/en/static/antenna-partner.html) |
 

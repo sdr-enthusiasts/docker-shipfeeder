@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2086
 
+echo "Shell: $(bash --version)"
 
 [[ "$1" != "" ]] && BRANCH="$1" || BRANCH="$(git branch --show-current)"
 [[ "$BRANCH" == "main" ]] && TAG="latest" || TAG="$BRANCH"
@@ -30,6 +31,6 @@ else
     sed -i 's/##BRANCH##/'"$BRANCH"'/g' Dockerfile
 fi
 
-docker buildx build -f Dockerfile --compress --push $2 --platform $ARCHS --tag "$IMAGE1" "${IMAGE2:+-tag $IMAGE2}" .
+docker buildx build -f Dockerfile --compress --push $2 --platform $ARCHS --tag $IMAGE1 ${IMAGE2:+--tag $IMAGE2} .
 mv -f /tmp/Dockerfile .
 echo "Total build time: $(( $(date +%s) - starttime )) seconds"
