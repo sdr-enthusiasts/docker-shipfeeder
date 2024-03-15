@@ -171,7 +171,7 @@ fi
 # ShippingExplorer:
 if [[ -n "$SHIPPINGEXPLORER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPPINGEXPLORER_UDP_PORT"; then SHIPPINGEXPLORER_UDP_PORT="144.76.54.111:$SHIPPINGEXPLORER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${SHIPPINGEXPLORER_UDP_PORT/:/ :}")
+    aiscatcher_command+=("-u ${SHIPPINGEXPLORER_UDP_PORT/:/ }")
 fi
 
 # ShipFinder:
@@ -190,7 +190,7 @@ fi
 
 # VesselTracker:
 if [[ -n "$VESSELTRACKER_UDP_PORT" ]]; then
-    if ! grep -q ":" <<< "$VESSELFINDER_UDP_PORT"; then VESSELTRACKER_UDP_PORT="83.220.137.136:$VESSELTRACKER_UDP_PORT"; fi
+    if ! grep -q ":" <<< "$VESSELTRACKER_UDP_PORT"; then VESSELTRACKER_UDP_PORT="83.220.137.136:$VESSELTRACKER_UDP_PORT"; fi
     aiscatcher_command+=("-u ${VESSELTRACKER_UDP_PORT/:/ }")
 fi
 
