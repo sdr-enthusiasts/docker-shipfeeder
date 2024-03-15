@@ -76,7 +76,7 @@ then
   for file in /tmp/AIS-catcher/plugins/*
   do
     file="${file##*/}"
-    if [[  f /data/plugins/${file} ]] && ! diff "${file}" "/data/plugins/${file}" >/dev/null 2>&1
+    if [[ -f /data/plugins/${file} ]] && ! diff "${file}" "/data/plugins/${file}" >/dev/null 2>&1
     then
       # Copy plugin file if it's newer but leave a backup in place
       cp --backup=numbered -u "/tmp/AIS-catcher/plugins/${file}" "/data/plugins/${file}"
