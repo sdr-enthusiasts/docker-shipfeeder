@@ -63,46 +63,90 @@ services:
     hostname: shipfeeder
     restart: always
     environment:
+#     general parameters:
       - VERBOSE_LOGGING=
-      - SHARING_KEY=${SX_SHARING_KEY}
-      - SERIAL_NUMBER=${SX_SERIAL_NUMBER}
-      - RTLSDR_DEVICE_SERIAL=${SX_RTLSDR_DEVICE_SERIAL}
-      - UDP_FEEDS=${SX_UDP_FEEDS}
-      - RTLSDR_DEVICE_GAIN=${SX_RTLSDR_GAIN}
+#     ais-catcher general and website related parameters
       - AISCATCHER_EXTRA_OPTIONS=${SX_EXTRA_OPTIONS}
-      - STATION_NAME=${SX_STATION_NAME}${SX_SERIAL_NUMBER}
+      - STATION_NAME=${STATION_NAME}
       - STATION_HISTORY=3600
       - BACKUP_INTERVAL=5
-      - SXFEEDER_LON=${FEEDER_LONG}
-      - SXFEEDER_LAT=${FEEDER_LAT}
-      - PROMETHEUS_ENABLE=true
-      - AISCATCHER_SHAREDATA=true
+      - FEEDER_LONG=${FEEDER_LONG}
+      - FEEDER_LAT=${FEEDER_LAT}
+      - SITESHOW=on
+      - PROMETHEUS_ENABLE=on
+      - REALTIME=on
+#     ais-catcher receiver related parameters
+      - RTLSDR_DEVICE_SERIAL=${RTLSDR_DEVICE_SERIAL}
+      - RTLSDR_DEVICE_GAIN=${RTLSDR_DEVICE_GAIN}
+      - RTLSDR_DEVICE_PPM=${RTLSDR_DEVICE_PPM}
+      - RTLSDR_DEVICE_BANDWIDTH=${RTLSDR_DEVICE_BANDWIDTH}
+      - AISCATCHER_DECODER_AFC_WIDE=${AISCATCHER_DECODER_AFC_WIDE}
+#     aggregrators related parameters
+      - AIRFRAMES_STATION_ID=${AIRFRAMES_STATION_ID}
+      - AISCATCHER_FEEDER_KEY=${AISCATCHER_FEEDER_KEY}
+      - AISHUB_UDP_PORT=${AISHUB_UDP_PORT}
+      - APRSFI_FEEDER_KEY=${APRSFI_FEEDER_KEY}
+      - BOATBEACON_SHAREDATA=${BOATBEACON_SHAREDATA}
+      - HPRADAR_UDP_PORT=${HPRADAR_UDP_PORT}
+      - MARINETRAFFIC_UDP_PORT=${MARINETRAFFIC_UDP_PORT}
+      - MYSHIPTRACKING_UDP_PORT=${MYSHIPTRACKING_UDP_PORT}
+      - RADARVIRTUEL_FEEDER_KEY=${RADARVIRTUEL_FEEDER_KEY}
+      - RADARVIRTUEL_STATION_ID=${RADARVIRTUEL_STATION_ID}
+      - SHIPFINDER_SHAREDATA=${SHIPFINDER_SHAREDATA}
+      - SHIPPINGEXPLORER_UDP_PORT=${SHIPPINGEXPLORER_UDP_PORT}
+      - SHIPXPLORER_SHARING_KEY=${SHIPXPLORER_SHARING_KEY}
+      - SHIPXPLORER_SERIAL_NUMBER=${SHIPXPLORER_SERIAL_NUMBER}
+      - VESSELFINDER_UDP_PORT=${VESSELFINDER_UDP_PORT}
+      - VESSELTRACKER_UDP_PORT=${VESSELTRACKER_UDP_PORT}
+      - UDP_FEEDS=${SX_UDP_FEEDS}
+#     incoming UDP data related parameters:
+      - AISCATCHER_UDP_INPUTS=${AISCATCHER_UDP_INPUTS}
     ports:
       - 90:80
-    devices:
-      - /dev/bus/usb
+      - 9988:9988/udp
+    device_cgroup_rules:
+      - 'c 189:* rwm'
     tmpfs:
       - /tmp
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "/etc/timezone:/etc/timezone:ro"
-      - "/opt/ais/shipfeeder/data:/data"
-    labels:
-      - "com.centurylinklabs.watchtower.scope=ais"
+      - "/opt/ais/shipxplorer/data:/data"
+      - /dev:/dev:rw
 ```
 
 Example accompanying `.env` file:
 
-```bash
-FEEDER_LAT=42.3788502
-FEEDER_LONG=-71.0360718
-SX_SHARING_KEY=0123456789abcdef
-SX_SERIAL_NUMBER=SXTRPI000xxx
-SX_RTLSDR_DEVICE_SERIAL=sdr_serial_number_here
-SX_RTLSDR_GAIN=auto
-SX_UDP_FEEDS=ip1:port1,ip2:port2:JSON on,ip3:port3
-SX_EXTRA_OPTIONS=-p 0 -a 192K -m 4 -go AFC_WIDE on
-SX_STATION_NAME=My_station_name_single_string_no_spaces_but_html_char_encoding_is_ok_for_example&nbsp;This&nbsp;is&nbsp;Boston&nbsp;Calling
+```text
+# ShipFeeder receiver and webpage related parameters:
+FEEDER_LAT=xx.xxxxxx
+FEEDER_LONG=yy.yyyyyy
+RTLSDR_DEVICE_SERIAL=DEVICE-SERIAL
+RTLSDR_DEVICE_GAIN=xxx
+RTLSDR_DEVICE_PPM=xxx
+AISCATCHER_DECODER_AFC_WIDE=on
+AISCATCHER_CHANNELS=AB CD
+STATION_NAME=My&nbsp;Station&nbsp;Name
+#
+# keys and params for aggregators:
+# If you aren't feeding a specific aggregator, leave the value EMPTY or remove the parameter
+AIRFRAMES_STATION_ID=XX-XXXXXXX-AIS
+AISCATCHER_FEEDER_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+AISHUB_UDP_PORT=xxxx
+APRSFI_FEEDER_KEY=xxxxxxx
+APRSFI_STATION_ID=MYCALL
+BOATBEACON_SHAREDATA=true
+HPRADAR_UDP_PORT=xxxx
+MARINETRAFFIC_UDP_PORT=xxxxx
+MYSHIPTRACKING_UDP_PORT=xxxxx
+RADARVIRTUEL_FEEDER_KEY=xxxxxxxxx
+RADARVIRTUEL_STATION_ID=xx
+SHIPFINDER_SHAREDATA=true
+SHIPPINGEXPLORER_UDP_PORT=xxxxx
+SHIPXPLORER_SHARING_KEY=xxxxxxxxxxxxxxxxxxx
+SHIPXPLORER_SERIAL_NUMBER=SXTRPI00xxxx
+VESSELFINDER_UDP_PORT=xxxx
+VESSELTRACKER_UDP_PORT=xxxx
 ```
 
 Replace the `SHARING_KEY`, `SERIAL_NUMBER`, and `RTLSDR_DEVICE_SERIAL` with the appropriate values.
