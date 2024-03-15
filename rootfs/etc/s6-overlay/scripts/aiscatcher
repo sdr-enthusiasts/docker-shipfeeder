@@ -133,7 +133,7 @@ fi
 
 # AISHub:
 if [[ -n "$AISHUB_UDP_PORT" ]]; then
-    if ! grep -q ":" $AISHUB_UDP_PORT; then AISHUB_UDP_PORT="data.aishub.net:$AISHUB_UDP_PORT"; fi
+    if ! grep -q ":" <<< "$AISHUB_UDP_PORT"; then AISHUB_UDP_PORT="data.aishub.net:$AISHUB_UDP_PORT"; fi
     aiscatcher_command+=("-u ${AISHUB_UDP_PORT%%:*} ${AISHUB_UDP_PORT##*:}")
 fi
 
@@ -146,57 +146,57 @@ fi
 if chk_enabled "$BOATBEACON_SHAREDATA"; then
     aiscatcher_command+=("-u boatbeaconapp.com 5322")
 elif [[ -n "$BOATBEACON_UDP_PORT" ]]; then
-    if ! grep -q ":" $BOATBEACON_UDP_PORT; then BOATBEACON_UDP_PORT="boatbeaconapp.com:$BOATBEACON_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${BOATBEACON_UDP_PORT%%:*} ${BOATBEACON_UDP_PORT##*:}")
+    if ! grep -q ":"  <<< "$BOATBEACON_UDP_PORT"; then BOATBEACON_UDP_PORT="boatbeaconapp.com:$BOATBEACON_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${BOATBEACON_UDP_PORT/:/ }")
 fi
 
 # HPRadar:
 if [[ -n "$HPRADAR_UDP_PORT" ]]; then
-    if ! grep -q ":" $HPRADAR_UDP_PORT; then HPRADAR_UDP_PORT="aisfeed.hpradar.com:$HPRADAR_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${HPRADAR_UDP_PORT%%:*} ${HPRADAR_UDP_PORT##*:} JSON on")
+    if ! grep -q ":" <<< "$HPRADAR_UDP_PORT"; then HPRADAR_UDP_PORT="aisfeed.hpradar.com:$HPRADAR_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${HPRADAR_UDP_PORT/:/ } JSON on")
 fi
 
 # MarineTraffic:
 if [[ -n "$MARINETRAFFIC_UDP_PORT" ]]; then
-    if ! grep -q ":" $MARINETRAFFIC_UDP_PORT; then MARINETRAFFIC_UDP_PORT="5.9.207.224:$MARINETRAFFIC_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${MARINETRAFFIC_UDP_PORT%%:*} ${MARINETRAFFIC_UDP_PORT##*:}")
+    if ! grep -q ":" <<< "$MARINETRAFFIC_UDP_PORT"; then MARINETRAFFIC_UDP_PORT="5.9.207.224:$MARINETRAFFIC_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${MARINETRAFFIC_UDP_PORT/:/ }")
 fi
 
 # MyShipTracker:
 if [[ -n "$MYSHIPTRACKER_UDP_PORT" ]]; then
-    if ! grep -q ":" $MYSHIPTRACKER_UDP_PORT; then MYSHIPTRACKER_UDP_PORT="178.162.215.175:$MYSHIPTRACKER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${MYSHIPTRACKER_UDP_PORT%%:*} ${MYSHIPTRACKER_UDP_PORT##*:}")
+    if ! grep -q ":" <<< "$MYSHIPTRACKER_UDP_PORT"; then MYSHIPTRACKER_UDP_PORT="178.162.215.175:$MYSHIPTRACKER_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${MYSHIPTRACKER_UDP_PORT/:/ }")
 fi
 
 # ShippingExplorer:
 if [[ -n "$SHIPPINGEXPLORER_UDP_PORT" ]]; then
-    if ! grep -q ":" $SHIPPINGEXPLORER_UDP_PORT; then SHIPPINGEXPLORER_UDP_PORT="144.76.54.111:$SHIPPINGEXPLORER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${SHIPPINGEXPLORER_UDP_PORT%%:*} ${SHIPPINGEXPLORER_UDP_PORT##*:}")
+    if ! grep -q ":" <<< "$SHIPPINGEXPLORER_UDP_PORT"; then SHIPPINGEXPLORER_UDP_PORT="144.76.54.111:$SHIPPINGEXPLORER_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${SHIPPINGEXPLORER_UDP_PORT/:/ :}")
 fi
 
 # ShipFinder:
 if chk_enabled "$SHIPFINDER_SHAREDATA"; then
     aiscatcher_command+=("-u ais.shipfinder.co.uk 4001")
 elif [[ -n "$SHIPFINDER_UDP_PORT" ]]; then
-    if ! grep -q ":" $SHIPFINDER_UDP_PORT; then SHIPFINDER_UDP_PORT="ais.shipfinder.co.uk:$SHIPFINDER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${SHIPFINDER_UDP_PORT%%:*} ${SHIPFINDER_UDP_PORT##*:}")
+    if ! grep -q ":" <<< "$SHIPFINDER_UDP_PORT"; then SHIPFINDER_UDP_PORT="ais.shipfinder.co.uk:$SHIPFINDER_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${SHIPFINDER_UDP_PORT/:/ }")
 fi
 
 # VesselFinder:
 if [[ -n "$VESSELFINDER_UDP_PORT" ]]; then
-    if ! grep -q ":" $VESSELFINDER_UDP_PORT; then VESSELFINDER_UDP_PORT="ais.vesselfinder.com:$VESSELFINDER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${VESSELFINDER_UDP_PORT%%:*} ${VESSELFINDER_UDP_PORT##*:}")
+    if ! grep -q ":" <<< "$VESSELFINDER_UDP_PORT"; then VESSELFINDER_UDP_PORT="ais.vesselfinder.com:$VESSELFINDER_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${VESSELFINDER_UDP_PORT/:/ }")
 fi
 
 # VesselTracker:
 if [[ -n "$VESSELTRACKER_UDP_PORT" ]]; then
-    if ! grep -q ":" $VESSELFINDER_UDP_PORT; then VESSELTRACKER_UDP_PORT="83.220.137.136:$VESSELTRACKER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${VESSELTRACKER_UDP_PORT%%:*} ${VESSELTRACKER_UDP_PORT##*:}")
+    if ! grep -q ":" <<< "$VESSELFINDER_UDP_PORT"; then VESSELTRACKER_UDP_PORT="83.220.137.136:$VESSELTRACKER_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${VESSELTRACKER_UDP_PORT/:/ }")
 fi
 
+aiscatcher_command+=("${FEEDSTRING[*]}")
 aiscatcher_command+=("-u 127.0.0.1 34994")
 aiscatcher_command+=("-u 127.0.0.1 34995")
-aiscatcher_command+=("${FEEDSTRING[*]}")
 aiscatcher_command+=("$SHOWLOGS")
 if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then 
     AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"; aiscatcher_command+=("-c ${AISCATCHER_CHANNELS:-AB}")
