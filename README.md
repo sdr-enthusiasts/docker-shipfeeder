@@ -72,8 +72,8 @@ In theory, it should work, but I don't have the time nor inclination to test it.
 
 You can find these as files here: [`docker-compose.yml` example](https://github.com/sdr-enthusiasts/docker-shipfeeder/blob/main/config-examples/docker-compose.yml.sample); [`.env` example](https://github.com/sdr-enthusiasts/docker-shipfeeder/blob/main/config-examples/.env.sample)
 
-Example `docker-compose.yml` extract - <details>
-  <summary>&lt;&dash;&dash; Click the arrow to see the <code>docker-compose.yml</code> text</summary>.
+<details>
+  <summary>&lt;&dash;&dash; Click the arrow to see the <code>docker-compose.yml</code> and <code>.env</code> examples</summary>
 
 ```yaml
 version: '3.8'
