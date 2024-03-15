@@ -89,7 +89,7 @@ Make the changes based on the description below, and once you are done, you can 
 | `VA_DISCORD_AVATAR_URL` | Link to a URL that contains your avatar / picture |
 | `VA_DISCORD_WEBHOOKS` | Webhook(s) for Discord notifications. If you have multiple channels your want to notify to, you can comma-separate them. We prefilled this field with one for our special [`#Vessel-Alerts` Discord Channel](https://discord.gg/UMgZMc2AGp) |
 | `VA_SCREENSHOT_URL` | `http://ais-screenshot:5042` |
-| `BACKUP_RETENTION_TIME` | Time (in days) to keep backups of `aiscatcher.bin` and plugins. Note - this only affects the backups of these files and not the active `aiscatcher.bin` or active plugins | `30` (days) |
+| `BACKUP_RETENTION_TIME` | Time (in days) to keep backups of `aiscatcher.bin` and plugins. Note - this only affects the backups of these files and not the active `aiscatcher.bin` or active plugins. Default: `30` (days) |
 
 ## Starting your AIS Feeder
 
