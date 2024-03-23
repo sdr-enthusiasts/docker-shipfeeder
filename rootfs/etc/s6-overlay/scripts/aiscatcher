@@ -123,7 +123,7 @@ if [[ -n "$AIRFRAMES_STATION_ID" ]]; then
 fi
 
 # AIS-Catcher:
-if chk_enabled "$AISCATCHER_SHAREDATA" || [[ -z "$AISCATCHER_FEEDER_KEY" ]]; then
+if chk_enabled "$AISCATCHER_SHAREDATA" && [[ -z "$AISCATCHER_FEEDER_KEY" ]]; then
     aiscatcher_command+=("-X")
     AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-X\s+[0-9]*\s*//g'<<< "$AISCATCHER_EXTRA_OPTIONS")" # Remove any -X from param to avoid duplication
 elif [[ -n "$AISCATCHER_FEEDER_KEY" ]]; then
