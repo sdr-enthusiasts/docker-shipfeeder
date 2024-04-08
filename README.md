@@ -146,7 +146,7 @@ RTLSDR_DEVICE_SERIAL=DEVICE-SERIAL
 RTLSDR_DEVICE_GAIN=xxx
 RTLSDR_DEVICE_PPM=xxx
 AISCATCHER_DECODER_AFC_WIDE=on
-AISCATCHER_CHANNELS=AB CD
+AISCATCHER_CHANNELS=AB
 STATION_NAME=My&nbsp;Station&nbsp;Name
 #
 # keys and params for aggregators:
@@ -271,7 +271,7 @@ timeout 180s docker run \
     --rm \
     -it \
     --entrypoint /usr/bin/get-creds \
-    ghcr.io/sdr-enthusiasts/shipxplorer:latest
+    ghcr.io/sdr-enthusiasts/docker-shipfeeder:latest
 ```
 
 This will run the container for 3 minutes, allowing a sharing key to be generated.
