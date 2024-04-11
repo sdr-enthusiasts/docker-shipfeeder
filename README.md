@@ -96,13 +96,13 @@ services:
       - SITESHOW=on
       - PROMETHEUS_ENABLE=on
       - REALTIME=on
-#     ais-catcher receiver related parameters
+#     ais-catcher receiver-related parameters
       - RTLSDR_DEVICE_SERIAL=${RTLSDR_DEVICE_SERIAL}
       - RTLSDR_DEVICE_GAIN=${RTLSDR_DEVICE_GAIN}
       - RTLSDR_DEVICE_PPM=${RTLSDR_DEVICE_PPM}
       - RTLSDR_DEVICE_BANDWIDTH=${RTLSDR_DEVICE_BANDWIDTH}
       - AISCATCHER_DECODER_AFC_WIDE=${AISCATCHER_DECODER_AFC_WIDE}
-#     aggregrators related parameters
+#     aggregrators-related parameters
       - AIRFRAMES_STATION_ID=${AIRFRAMES_STATION_ID}
       - AISCATCHER_FEEDER_KEY=${AISCATCHER_FEEDER_KEY}
       - AISHUB_UDP_PORT=${AISHUB_UDP_PORT}
@@ -146,7 +146,6 @@ RTLSDR_DEVICE_SERIAL=DEVICE-SERIAL
 RTLSDR_DEVICE_GAIN=xxx
 RTLSDR_DEVICE_PPM=xxx
 AISCATCHER_DECODER_AFC_WIDE=on
-AISCATCHER_CHANNELS=AB CD
 STATION_NAME=My&nbsp;Station&nbsp;Name
 #
 # keys and params for aggregators:
@@ -185,7 +184,7 @@ You can use `rtl_test` to see which devices and device serials are connected to 
 | `RTLSDR_DEVICE_GAIN` | SDR device gain. Can also be set to `auto` | `33` |
 | `RTLSDR_DEVICE_PPM`| PPM deviation of your RTLSDR device | Empty |
 | `RTLSDR_DEVICE_BANDWIDTH` | Channel bandwitdh of the receiver | `192K` |
-| `AISCATCHER_CHANNELS` | Channels flag for `ais-catcher`. Set to `AB`, `CD`, or `AB CD` | Empty |
+| `AISCATCHER_CHANNELS` | Channels flag for `ais-catcher`. Set to `AB` (receive on channel AB, default value if omitted), `CD` (receive on channel CD), or `CD AB` (receive on channel CD but forward this data to aggregators saying it's channel AB; this can be used to send channels CD data to aggregators that can't handle CD data) | Empty (`AB`) |
 | `AISCATCHER_DECODER_MODEL` | Decoder model number for `ais-catcher` | `2` |
 | `AISCATCHER_DECODER_AFC_WIDE` | `-go AFC_WIDE` flag for `ais-catcher`. Recommended to set to `on` | `on` |
 | `AISCATCHER_DECODER_FP_DS` | `-go PF_DS` flag for `ais-catcher` | Empty |
@@ -271,7 +270,7 @@ timeout 180s docker run \
     --rm \
     -it \
     --entrypoint /usr/bin/get-creds \
-    ghcr.io/sdr-enthusiasts/shipxplorer:latest
+    ghcr.io/sdr-enthusiasts/docker-shipfeeder:latest
 ```
 
 This will run the container for 3 minutes, allowing a sharing key to be generated.
