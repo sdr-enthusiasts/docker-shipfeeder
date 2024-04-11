@@ -48,7 +48,7 @@ echo "TARGETARCH $TARGETARCH" && \
         "${TEMP_PACKAGES[@]}" \
         && \
     #
-    # install shipxplorer packages
+    # install shipfeeder packages
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 1D043681 && \
     echo 'deb https://apt.rb24.com/ bullseye main' > /etc/apt/sources.list.d/rb24.list && \
     #
@@ -86,8 +86,8 @@ RUN set -x && \
 pushd /tmp && \
     branch="##BRANCH##" && \
     [[ "${branch:0:1}" == "#" ]] && branch="main" || true && \
-    git clone --depth=1 -b "$branch" https://github.com/sdr-enthusiasts/docker-shipxplorer.git && \
-    cd docker-shipxplorer && \
+    git clone --depth=1 -b "$branch" https://github.com/sdr-enthusiasts/docker-shipfeeder.git && \
+    cd docker-shipfeeder && \
     echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > "/.CONTAINER_VERSION" && \
 popd && \
 rm -rf /tmp/*
