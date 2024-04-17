@@ -162,10 +162,11 @@ if [[ -n "$MARINETRAFFIC_UDP_PORT" ]]; then
     aiscatcher_command+=("-u ${MARINETRAFFIC_UDP_PORT/:/ }")
 fi
 
-# MyShipTracker:
-if [[ -n "$MYSHIPTRACKER_UDP_PORT" ]]; then
-    if ! grep -q ":" <<< "$MYSHIPTRACKER_UDP_PORT"; then MYSHIPTRACKER_UDP_PORT="178.162.215.175:$MYSHIPTRACKER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${MYSHIPTRACKER_UDP_PORT/:/ }")
+# MyShipTracking:
+MYSHIPTRACKING_UDP_PORT="${MYSHIPTRACKING_UDP_PORT:-$MYSHIPTRACKER_UDP_PORT}" # bug fix - originally wrote wrongly MYSHIPTRACKER_UDP_PORT, now we need to keep this for backward compatibility
+if [[ -n "$MYSHIPTRACKING_UDP_PORT" ]]; then
+    if ! grep -q ":" <<< "$MYSHIPTRACKING_UDP_PORT"; then MYSHIPTRACKING_UDP_PORT="178.162.215.175:$MYSHIPTRACKING_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${MYSHIPTRACKING_UDP_PORT/:/ }")
 fi
 
 # ShippingExplorer:
