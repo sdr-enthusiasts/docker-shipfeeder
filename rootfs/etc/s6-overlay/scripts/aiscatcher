@@ -59,7 +59,7 @@ then
         if [[ "$(awk "BEGIN {print int($GAIN * 10);}")" -ge "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" ]]
         then
             RTLSDR_DEVICE_GAIN="$GAIN"
-            "${s6wrap[@]}" --args echo "Gain rounded to ${RTLSDR_DEVICE_GAIN}"
+            "${s6wrap[@]}" echo "Gain rounded to ${RTLSDR_DEVICE_GAIN}"
             break
         fi
     done
@@ -244,7 +244,7 @@ aiscatcher_command+=("$AISCATCHER_EXTRA_OPTIONS")
 
 aiscommand="$(echo ${aiscatcher_command[@]} | xargs)"
 
-"${s6wrap[@]}" --args echo "Starting: ${aiscommand}"
+"${s6wrap[@]}" echo "Starting: ${aiscommand}"
 
 # shellcheck disable=SC2048
-exec "${s6wrap[@]}" --args ${aiscommand}
+exec "${s6wrap[@]}" ${aiscommand}
