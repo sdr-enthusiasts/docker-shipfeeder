@@ -6,19 +6,19 @@ on:
     inputs:
       reason:
         required: false
-        description: 'Reason for running this workflow'
+        description: "Reason for running this workflow"
   push:
     branches:
       - main
     # Don't trigger if it's just a documentation update
     paths-ignore:
-      - '**.md'
-      - '**.MD'
-      - '**.yml'
-      - 'LICENSE'
-      - '.gitattributes'
-      - '.gitignore'
-      - '.dockerignore'
+      - "**.md"
+      - "**.MD"
+      - "**.yml"
+      - "LICENSE"
+      - ".gitattributes"
+      - ".gitignore"
+      - ".dockerignore"
   workflow_call:
   repository_dispatch:
     types: build_on_aiscatcher_update
@@ -27,14 +27,13 @@ on:
 #  - REPO: repo name on dockerhub
 #  - IMAGE: image name on dockerhub
 env:
-#  DOCKERHUB_REPO: sdr-enthusiasts
-#  DOCKERHUB_IMAGE: shipxplorer
+  #  DOCKERHUB_REPO: sdr-enthusiasts
+  #  DOCKERHUB_IMAGE: shipxplorer
   GHCR_IMAGE: sdr-enthusiasts/shipxplorer
   GHCR_IMAGE2: sdr-enthusiasts/docker-shipfeeder
   GHCR_REGISTRY: ghcr.io
 
 jobs:
-
   workflow-dispatch:
     name: Triggered via Workflow Dispatch?
     # only run this step if workflow dispatch triggered
@@ -54,7 +53,7 @@ jobs:
     name: Run hadolint against docker files
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.5
       - name: Pull hadolint/hadolint:latest Image
         run: docker pull hadolint/hadolint:latest
       - name: Run hadolint against Dockerfiles
@@ -62,13 +61,12 @@ jobs:
 
   deploy_ghcr_multiarch:
     name: Deploy ghcr.io (Multi-Arch)
-#    needs: [hadolint]
+    #    needs: [hadolint]
     runs-on: ubuntu-latest
     steps:
-
       # Check out our code
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.5
         with:
           fetch-depth: 0
 

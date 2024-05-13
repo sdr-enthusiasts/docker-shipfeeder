@@ -7,8 +7,8 @@ on:
       - main
       # only run these if markdown files are updated
     paths:
-      - '**.md'
-      - '**.MD'
+      - "**.md"
+      - "**.MD"
 
 jobs:
   markdownlint:
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.5
       - name: Pull markdownlint/markdownlint:latest Image
         run: docker pull markdownlint/markdownlint:latest
       - name: Run markdownlint against *.md files
