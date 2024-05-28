@@ -34,6 +34,7 @@ If you need help, feel free to chat with us at the Discord server that is linked
       - [Adding Additional Command-line Parameters to `sxfeeder`](#adding-additional-command-line-parameters-to-sxfeeder)
       - [Workaround for CPU Serial (only needed when feeding ShipXplorer with non-Raspberry Pi systems)](#workaround-for-cpu-serial-only-needed-when-feeding-shipxplorer-with-non-raspberry-pi-systems)
     - [Feeding Additional Services Using UDP](#feeding-additional-services-using-udp)
+    - [Feeding Additional Services Using TCP](#feeding-additional-services-using-tcp)
     - [Feeding Additional Services Using HTTP](#feeding-additional-services-using-http)
   - [Adding an `About` Page to the AIS-Catcher Website](#adding-an-about-page-to-the-ais-catcher-website)
   - [Logging](#logging)
@@ -235,6 +236,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | BoatBeacon | `BOATBEACON_SHAREDATA=true` | [boatbeaconapp.com:5322](http://boatbeaconapp.com:5322) | UDP | [https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/](https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/) - no keys or IDs are required |
  | HPRadar | `HPRADAR_UDP_PORT` | [aisfeed.hpradar.com](http://aisfeed.hpradar.com) | UDP | |
  | MarineTraffic | `MARINETRAFFIC_UDP_PORT` | 5.9.207.224 | UDP | [https://www.marinetraffic.com/en/join-us/cover-your-area](https://www.marinetraffic.com/en/join-us/cover-your-area) |
+ | MarineTraffic | `MARINETRAFFIC_TCP_PORT` | 5.9.207.224 | TCP | Alternative using TCP for `MARINETRAFFIC_UDP_PORT`. Please use one or the other, and not both! [https://www.marinetraffic.com/en/join-us/cover-your-area](https://www.marinetraffic.com/en/join-us/cover-your-area) |
  | MyShipTracking | `MYSHIPTRACKING_UDP_PORT` | 178.162.215.175 | UDP | [https://www.myshiptracking.com/help-center/contributors/add-your-station](https://www.myshiptracking.com/help-center/contributors/add-your-station) |
  | ShipFinder | `SHIPFINDER_SHAREDATA=true` | [ais.shipfinder.co.uk:4001](http://ais.shipfinder.co.uk:4001/) | UDP | [https://shipfinder.co/about/coverage/](https://shipfinder.co/about/coverage/) |
  | ShippingExplorer | `SHIPPINGEXPLORER_UDP_PORT` | 144.76.54.111 | UDP | Request UDP port at [https://www.shippingexplorer.net/en/contact](https://www.shippingexplorer.net/en/contact) |
@@ -340,12 +342,22 @@ You can now map this file into your container:
 
 ### Feeding Additional Services Using UDP
 
-If you want to feed and additional AIS aggregator that uses a hostname/UDP port and that is not listed above, then simply add a comma separated list of hostnames/ip addresses and UDP ports to the `UDP_FEEDS` parameter. Format: `UDP_FEEDS=domain1.com:port1[:params],domain2,com:port2[:params],...`
+If you want to feed and additional AIS aggregator that uses a hostname/UDP port that is not listed above, then simply add a comma separated list of hostnames/ip addresses and UDP ports to the `UDP_FEEDS` parameter. Format: `UDP_FEEDS=domain1.com:port1[:params],domain2,com:port2[:params],...`
 
 For example:
 
 ```yaml
 - UDP_FEEDS=1.2.3.4:9999,ais.aggregator.org:1234
+```
+
+### Feeding Additional Services Using TCP
+
+If you want to feed and additional AIS aggregator that uses a hostname/TCP port that is not listed above, then simply add a comma separated list of hostnames/ip addresses and UDP ports to the `TCP_FEEDS` parameter. Format: `TCP_FEEDS=domain1.com:port1[:params],domain2,com:port2[:params],...`
+
+For example:
+
+```yaml
+- TCP_FEEDS=1.2.3.4:8888,ais.aggregator.org:4321
 ```
 
 ### Feeding Additional Services Using HTTP
