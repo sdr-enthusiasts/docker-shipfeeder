@@ -43,6 +43,7 @@ If you need help, feel free to chat with us at the Discord server that is linked
   - [Configuring 2 SDRs for Reception on Channels AB and CD](#configuring-2-sdrs-for-reception-on-channels-ab-and-cd)
   - [Aggregating multiple instances of the container](#aggregating-multiple-instances-of-the-container)
   - [Hardware requirements](#hardware-requirements)
+    - [Working around ShipXplorer issues on Raspberry Pi 5](#working-around-shipxplorer-issues-on-raspberry-pi-5)
   - [Getting Help](#getting-help)
   - [Acknowledgements](#acknowledgements)
   - [License](#license)
@@ -463,16 +464,16 @@ Debian Linux for Raspberry Pi 5 uses by default a kernel with 16kb page sizes, a
 2024-05-23T23:15:49.006086000Z [2024-05-24 01:15:49.005][sxfeeder] FATAL: Cannot initiate feeder to ShipXplorer.
 ```
 
-There are 2 work-arounds for this. You should implement either of them; it's not necessary to implement both:
+You can check your kernel page size with this command: `getconf PAGE_SIZE` . If the value returned is 4096, then all is good. If it is something else (for example 16384 for 16kb page size), you will need to implement one of the following work-arounds. You should implement either of them; it's not necessary to implement both:
 
-- Add the following to `/boot/config.txt` to use a kernel with page size of 4kb. This will make CPU use across your Raspberry Pi 5 slightly less efficient, but it will solve the issue for many software packages. After adding this, you must reboot your system for it to take effect. You can check your kernel page size with this command: `getconf PAGE_SIZE`
+- Add the following to `/boot/config.txt` to use a kernel with page size of 4kb. This will make CPU use across your Raspberry Pi 5 slightly less efficient, but it will solve the issue for many software packages that have [the same issue](https://github.com/raspberrypi/bookworm-feedback/issues/107). After changing this, you must reboot your system for it to take effect:
   
   ```config
   kernel=kernel8.img
   ``` 
 
 - Feed ShipXplorer with UDP instead of with a Sharing Key. To do this:
-  - Browse to https://www.shipxplorer.com/addcoverage and select "I want to share with: NMEA over UDP"
+  - Browse to [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "_I want to share with: NMEA over UDP_"
   - Follow the instructions until you are issued a hostname and UDP port number
   - set this environment variable in your `docker-compose.yml` file: `SHIPXPLORER_UDP_PORT=portnumber` (replace `portnumber` with the UDP port you were assigned) and remove `SHIPXPLORER_SHARING_KEY` and/or `SHARING_KEY` from your configuration
   - recreate and restart the container with `docker compose up -d`
