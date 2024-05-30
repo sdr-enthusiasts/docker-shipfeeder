@@ -194,6 +194,12 @@ elif [[ -n "$SHIPFINDER_UDP_PORT" ]]; then
     aiscatcher_command+=("-u ${SHIPFINDER_UDP_PORT/:/ }")
 fi
 
+# ShipXplorer UDP feed (can be used as an alternative for feeding with sxfeeder):
+if [[ -n "$SHIPXPLORER_UDP_PORT" ]]; then
+    if ! grep -q ":" <<< "$SHIPXPLORER_UDP_PORT"; then SHIPXPLORER_UDP_PORT="hub.shipxplorer.com:$SHIPXPLORER_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${SHIPXPLORER_UDP_PORT/:/ }")
+fi
+
 # VesselFinder:
 if [[ -n "$VESSELFINDER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELFINDER_UDP_PORT"; then VESSELFINDER_UDP_PORT="ais.vesselfinder.com:$VESSELFINDER_UDP_PORT"; fi
