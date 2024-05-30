@@ -24,7 +24,7 @@ s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 
 
 if [[ -z "${SHARING_KEY:-${SX_SHARING_KEY:-${SHIPXPLORER_SHARING_KEY}}}" ]] || [[ -z "${SERIAL_NUMBER:-${SX_SERIAL_NUMBER:-${SHIPXPLORER_SERIAL_NUMBER}}}" ]]; then
-  "${s6wrap[@]}" --args echo "ShipXplorer sharing disabled."
+  if [[ -z "$SHIPXPLORER_UDP_PORT" ]]; then "${s6wrap[@]}" --args echo "ShipXplorer sharing disabled."; fi
   sleep infinity
 fi
 
