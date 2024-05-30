@@ -241,6 +241,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | ShipFinder | `SHIPFINDER_SHAREDATA=true` | [ais.shipfinder.co.uk:4001](http://ais.shipfinder.co.uk:4001/) | UDP | [https://shipfinder.co/about/coverage/](https://shipfinder.co/about/coverage/) |
  | ShippingExplorer | `SHIPPINGEXPLORER_UDP_PORT` | 144.76.54.111 | UDP | Request UDP port at [https://www.shippingexplorer.net/en/contact](https://www.shippingexplorer.net/en/contact) |
  | ShipXplorer | `SHIPXPLORER_SHARING_KEY` or `SHARING_KEY` (legacy)<br>`SHIPXPLORER_SERIAL_NUMBER` or `SERIAL_NUMBER` (legacy) | | Other | See [Obtaining a ShipXplorer Sharing Key](#obtaining-a-shipxplorer-sharing-key) |
+  | ShipXplorer (alt. config with UDP) | `SHIPXPLORER_UDP_PORT` | hub.shipxplorer.com| UDP | Alternative way to feed ShipXplorer via UDP instead of via a Sharing Key. Please use one or the other, but not both! Sign up at [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "I want to share with: NMEA over UDP" |
  | VesselFinder | `VESSELFINDER_UDP_PORT` | [ais.vesselfinder.com](http://ais.vesselfinder.com) | UDP | [https://stations.vesselfinder.com/become-partner](https://stations.vesselfinder.com/become-partner) |
  | VesselTracker | `VESSELTRACKER_UDP_PORT` | 83.220.137.136 | UDP | [https://www.vesseltracker.com/en/static/antenna-partner.html](https://www.vesseltracker.com/en/static/antenna-partner.html) |
 
@@ -447,7 +448,34 @@ Once you have done this, and after you recreate the containers, the `shipfeeder_
 
 AIS data is transmitted in the 160 MHz band, for which you'd need a suitable antenna. Note -- ADSB/UAT antennas will definitely not work!
 You would need a RTL-SDR dongle, potentially with an LNA, and potentially with a filter. The filter must be dedicated to the 160 MHz band. Dongles with built-in filters for the ADSB or UAT bands won't work.
-Last - the software will run on a Raspberry Pi 3B+ or 4, with Raspberry Pi OS, Ubuntu, or a similar Debian-based operating system. It will also run on X86 (Linux PC) systems with Ubuntu. The prebuilt Docker container will work on `armhf`/`arm64`/`x86_64` (`amd64`) architectures. You may be able to build containers for other systems, but for that you're on your own.
+Last - the software will run on a Raspberry Pi 3B+ or 4, with Raspberry Pi OS, Ubuntu, or a similar Debian-based operating system. It will also run on X86 (Linux PC) systems with Ubuntu. The prebuilt Docker container will work on `armhf`/`arm64` (`aarch64`) /`x86_64` (`amd64`) architectures. You may be able to build containers for other systems, but for that you're on your own.
+
+### Working around ShipXplorer issues on Raspberry Pi 5
+
+If you use ShipXplorer as recommended in [Configuring feeding to ShipXplorer](#configuring-feeding-to-shipxplorer), the container internally uses a binary called `sxfeeder` to send data to the ShipXplorer service. This binary is provided as closed-source by AirNav (the company that operates ShipXplorer) and is only available in `armhf` (32-bits) format using 4kb kernel pages. This will work well on Raspberry Pi 3B+, 4B, and other ARM-based systems that use either 32-bits or 64-bits Debian Linux with a 4kb kernel page size.
+
+Debian Linux for Raspberry Pi 5 uses by default a kernel with 16kb page sizes, and this is not compatible with the `sxfeeder` binary. You will see this in your container logs:
+
+```text
+2024-05-23T23:15:48.998327000Z [2024-05-24 01:15:48.998][sxfeeder] Starting: /usr/bin/sxfeeder 
+2024-05-23T23:15:49.003069000Z [2024-05-24 01:15:49.002][sxfeeder] FATAL: sxfeeder cannot be run natively, and QEMU is not available. You cannot use this container
+2024-05-23T23:15:49.004680000Z [2024-05-24 01:15:49.004][sxfeeder] FATAL: on this system / architecture. Feel free to file an issue at https://github.com/sdr-enthusiasts/docker-shipxplorer/issues
+2024-05-23T23:15:49.006086000Z [2024-05-24 01:15:49.005][sxfeeder] FATAL: Cannot initiate feeder to ShipXplorer.
+```
+
+There are 2 work-arounds for this. You should implement either of them; it's not necessary to implement both:
+
+- Add the following to `/boot/config.txt` to use a kernel with page size of 4kb. This will make CPU use across your Raspberry Pi 5 slightly less efficient, but it will solve the issue for many software packages. After adding this, you must reboot your system for it to take effect. You can check your kernel page size with this command: `getconf PAGE_SIZE`
+  
+  ```config
+  kernel=kernel8.img
+  ``` 
+
+- Feed ShipXplorer with UDP instead of with a Sharing Key. To do this:
+  - Browse to https://www.shipxplorer.com/addcoverage and select "I want to share with: NMEA over UDP"
+  - Follow the instructions until you are issued a hostname and UDP port number
+  - set this environment variable in your `docker-compose.yml` file: `SHIPXPLORER_UDP_PORT=portnumber` (replace `portnumber` with the UDP port you were assigned) and remove `SHIPXPLORER_SHARING_KEY` and/or `SHARING_KEY` from your configuration
+  - recreate and restart the container with `docker compose up -d`
 
 ## Getting Help
 
