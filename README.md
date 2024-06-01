@@ -466,7 +466,7 @@ Debian Linux for Raspberry Pi 5 uses by default a kernel with 16kb page sizes, a
 
 You can check your kernel page size with this command: `getconf PAGE_SIZE` . If the value returned is 4096, then all is good. If it is something else (for example 16384 for 16kb page size), you will need to implement one of the following work-arounds. You should implement either of them; it's not necessary to implement both:
 
-- Add the following to `/boot/config.txt` to use a kernel with page size of 4kb. This will make CPU use across your Raspberry Pi 5 slightly less efficient, but it will solve the issue for many software packages that have [the same issue](https://github.com/raspberrypi/bookworm-feedback/issues/107). After changing this, you must reboot your system for it to take effect:
+- Add the following to `/boot/firmware/config.txt` (Debian 12 Bookworm or later) or `/boot/config.txt` (Debian 11 Bullseye or earlier) to use a kernel with page size of 4kb. This will make CPU use across your Raspberry Pi 5 slightly less efficient, but it will solve the issue for many software packages that have [the same issue](https://github.com/raspberrypi/bookworm-feedback/issues/107). After changing this, you must reboot your system for it to take effect:
   
   ```config
   kernel=kernel8.img
