@@ -236,22 +236,27 @@ This table shows which parameters to set and how to obtain credentials for a num
  | [APRS.fi](http://APRS.fi) | `APRSFI_FEEDER_KEY`<br>`APRSFI_STATION_ID` | [http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY](http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY) | HTTP | Get AIS Password (`APRSFI_FEEDER_KEY`) at [https://aprs.fi/?c=account](https://aprs.fi/?c=account). Use your Ham Radio callsign for `APRSFI_STATION_ID`. Both fields are mandatory. |
  | BoatBeacon | `BOATBEACON_SHAREDATA=true` | [boatbeaconapp.com:5322](http://boatbeaconapp.com:5322) | UDP | [https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/](https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/) - no keys or IDs are required |
  | HPRadar | `HPRADAR_UDP_PORT` | [aisfeed.hpradar.com](http://aisfeed.hpradar.com) | UDP | |
- | MarineTraffic | `MARINETRAFFIC_UDP_PORT` | 5.9.207.224 | UDP | [https://www.marinetraffic.com/en/join-us/cover-your-area](https://www.marinetraffic.com/en/join-us/cover-your-area) |
- | MarineTraffic | `MARINETRAFFIC_TCP_PORT` | 5.9.207.224 | TCP | Alternative using TCP for `MARINETRAFFIC_UDP_PORT`. Please use one or the other, and not both! [https://www.marinetraffic.com/en/join-us/cover-your-area](https://www.marinetraffic.com/en/join-us/cover-your-area) |
- | MyShipTracking | `MYSHIPTRACKING_UDP_PORT` | 178.162.215.175 | UDP | [https://www.myshiptracking.com/help-center/contributors/add-your-station](https://www.myshiptracking.com/help-center/contributors/add-your-station) |
+ | MarineTraffic | `MARINETRAFFIC_UDP_PORT` or<br/>`MARINETRAFFIC_TCP_PORT` | 5.9.207.224 | UDP / TCP | [https://www.marinetraffic.com/en/join-us/cover-your-area](https://www.marinetraffic.com/en/join-us/cover-your-area) Please use either the UDP option or the TCP option as instructed by MarineTraffic, but don't use both! |
+ | MyShipTracking | `MYSHIPTRACKING_UDP_PORT` or<br/>`MYSHIPTRACKING_TCP_PORT` | 178.162.215.175 | UDP / TCP | [https://www.myshiptracking.com/help-center/contributors/add-your-station](https://www.myshiptracking.com/help-center/contributors/add-your-station) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
  | ShipFinder | `SHIPFINDER_SHAREDATA=true` | [ais.shipfinder.co.uk:4001](http://ais.shipfinder.co.uk:4001/) | UDP | [https://shipfinder.co/about/coverage/](https://shipfinder.co/about/coverage/) |
- | ShippingExplorer | `SHIPPINGEXPLORER_UDP_PORT` | 144.76.54.111 | UDP | Request UDP port at [https://www.shippingexplorer.net/en/contact](https://www.shippingexplorer.net/en/contact) |
+ | ShippingExplorer | `SHIPPINGEXPLORER_UDP_PORT` or<br/>`SHIPPINGEXPLORER_TCP_PORT` | 144.76.54.111 | UDP or TCP | Request UDP port at [https://www.shippingexplorer.net/en/contact](https://www.shippingexplorer.net/en/contact) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
  | ShipXplorer | `SHIPXPLORER_SHARING_KEY` or `SHARING_KEY` (legacy)<br>`SHIPXPLORER_SERIAL_NUMBER` or `SERIAL_NUMBER` (legacy) | | Other | See [Obtaining a ShipXplorer Sharing Key](#obtaining-a-shipxplorer-sharing-key) |
   | ShipXplorer (alt. config with UDP) | `SHIPXPLORER_UDP_PORT` | hub.shipxplorer.com| UDP | Alternative way to feed ShipXplorer via UDP instead of via a Sharing Key. Please use one or the other, but not both! Sign up at [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "I want to share with: NMEA over UDP" |
- | VesselFinder | `VESSELFINDER_UDP_PORT` | [ais.vesselfinder.com](http://ais.vesselfinder.com) | UDP | [https://stations.vesselfinder.com/become-partner](https://stations.vesselfinder.com/become-partner) |
- | VesselTracker | `VESSELTRACKER_UDP_PORT` <br/>`VESSELTRACKER_TCP_PORT` | 83.220.137.136 | UDP or TCP| [https://www.vesseltracker.com/en/static/antenna-partner.html](https://www.vesseltracker.com/en/static/antenna-partner.html) By default, you should use UDP to feed VesselTracker, unless you are specifically asked to use TCP by the company |
+ | VesselFinder | `VESSELFINDER_UDP_PORT` or<br/>`VESSELFINDER_TCP_PORT` | [ais.vesselfinder.com](http://ais.vesselfinder.com) | UDP / TCP | [https://stations.vesselfinder.com/become-partner](https://stations.vesselfinder.com/become-partner) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
+ | VesselTracker | `VESSELTRACKER_UDP_PORT` or<br/>`VESSELTRACKER_TCP_PORT` | 83.220.137.136 | UDP or TCP| [https://www.vesseltracker.com/en/static/antenna-partner.html](https://www.vesseltracker.com/en/static/antenna-partner.html) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company |
 
 Note: for all parameters `SERVICE_UDP_PORT` (and similarly for `SERVICE_TCP_PORT` where supported), you may use one of the following formats:
 
 - `- SERVICE_UDP_PORT=1234` --> use UDP port 1234
 - `- SERVICE_UDP_PORT=hostname:1234` or `- SERVICE_UDP_PORT=ip_addr:1234` --> use the hostname or ip address instead of the one indicated in the table, and UDP port 1234
 
-For services that do no need any UDP ports or credentials, you can simply set `- SERVICE_SHAREDATA=true`. However, if you want to use a non-default port and/or hostname/ip, you can set also `SERVICE_UDP_PORT` (as shown above) for that service
+For services that do no need any UDP ports or credentials, you can simply set `- SERVICE_SHAREDATA=true`. However, if you want to use a non-default port and/or hostname/ip, you can set also `SERVICE_UDP_PORT` (as shown above) for that service. Order of preference:
+
+- if `SERVICE_UDP_PORT` is defined --> use this UDP port regardless of the value of `SERVICE_SHAREDATA`
+- if `SERVICE_SHAREDATA` is set to `true` and `SERVICE_UDP_PORT` is not defined --> use the default UDP port to feed `SERVICE`
+- if `SERVICE_TCP_PORT` is defined --> use this TCP port in addition to any UDP port (or `SHAREDATA` setting). Warning - this may cause duplicate feeding to the aggregator
+
+We decided to allow parallel feeding to UDP and TCP ports because some aggregators have asked our users to do this temporarily for testing. However, the user should take caution not to feed duplicate data to any aggregator unless the aggregator specifically requested this for testing purposes.
 
 ### Exchanging data with `aiscatcher.org`
 
@@ -267,8 +272,9 @@ You can enable it by simply adding the following to the environment section of y
 
 #### Obtaining a ShipXplorer Sharing Key
 
-First-time users should obtain a ShipXplorer sharing key.
+**ATTENTION** Raspberry Pi 5 users (only) should read [Working around ShipXplorer issues on Raspberry Pi 5](#working-around-shipxplorer-issues-on-raspberry-pi-5) before proceeding! 
 
+First-time users should obtain a ShipXplorer sharing key.
 In order to obtain a ShipXplorer sharing key, on the first run of the container, it will generate a sharing key and print this to the container log. If you can't find it, you can also copy and paste this command:
 
 ```bash
@@ -296,7 +302,7 @@ in https://www.shipxplorer.com/. This key is also saved in configuration file (/
 ```
 
 You can wait for the 3 minutes to pass, or you can press CTRL-C now to finish.
-Take a note of the Sharing Key (`f1...57` - yours will be a different number) and the Serial Number (`SXTRPIxxxxxx`), and add these to the `SHARING_KEY` and `SERIAL_NUMBER` parameters of your `docker-compose.yml` file.
+Take a note of the Sharing Key (`f1...57` - yours will be a different number) and the Serial Number (`SXTRPIxxxxxx`), and add these to the `SHIPXPLORER_SHARING_KEY` and `SHIPXPLORER_SERIAL_NUMBER` parameters of your `docker-compose.yml` file.
 
 If you're not a first time user and are migrating from another installation, you can retrieve your sharing key by doing this:
 
