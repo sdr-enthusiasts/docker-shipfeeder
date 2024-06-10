@@ -145,7 +145,7 @@ if [[ -n "$AISHUB_TCP_PORT" ]]; then
     aiscatcher_command+=("-P ${AISHUB_TCP_PORT/:/ }")
 fi
 if [[ -n "$AISHUB_UDP_PORT" ]] && [[ -n "$AISHUB_TCP_PORT" ]]; then
-    "$s6wrap[@]}" echo "[WARNING] Both AISHUB_UDP_PORT and AISHUB_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+    "${s6wrap[@]}" echo "[WARNING] Both AISHUB_UDP_PORT and AISHUB_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # aprs.fi:
@@ -165,10 +165,10 @@ if [[ -n "$BOATBEACON_TCP_PORT" ]]; then
     aiscatcher_command+=("-P ${BOATBEACON_TCP_PORT/:/ }")
 fi
 if [[ -n "$BOATBEACON_UDP_PORT" ]] && [[ -n "$BOATBEACON_TCP_PORT" ]]; then
-    "$s6wrap[@]}" echo "[WARNING] Both BOATBEACON_UDP_PORT and BOATBEACON_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+    "${s6wrap[@]}" echo "[WARNING] Both BOATBEACON_UDP_PORT and BOATBEACON_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 if chk_enabled "$BOATBEACON_SHAREDATA" && [[ -n "$BOATBEACON_TCP_PORT" ]]; then
-    "$s6wrap[@]}" echo "[WARNING] Both BOATBEACON_SHAREDATA and BOATBEACON_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+    "${s6wrap[@]}" echo "[WARNING] Both BOATBEACON_SHAREDATA and BOATBEACON_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # HPRadar:
@@ -181,7 +181,7 @@ if [[ -n "$HPRADAR_TCP_PORT" ]]; then
     aiscatcher_command+=("-P ${HPRADAR_TCP_PORT/:/ }")
 fi
 if [[ -n "$HPRADAR_UDP_PORT" ]] && [[ -n "$HPRADAR_TCP_PORT" ]]; then
-    "$s6wrap[@]}" echo "[WARNING] Both HPRADAR_UDP_PORT and HPRADAR_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+    "${s6wrap[@]}" echo "[WARNING] Both HPRADAR_UDP_PORT and HPRADAR_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # MarineTraffic:
@@ -194,7 +194,7 @@ if [[ -n "$MARINETRAFFIC_TCP_PORT" ]]; then
     aiscatcher_command+=("-P ${MARINETRAFFIC_TCP_PORT/:/ }")
 fi
 if [[ -n "$MARINETRAFFIC_UDP_PORT" ]] && [[ -n "$MARINETRAFFIC_TCP_PORT" ]]; then
-    "$s6wrap[@]}" echo "[WARNING] Both MARINETRAFFIC_UDP_PORT and MARINETRAFFIC_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+    "${s6wrap[@]}" echo "[WARNING] Both MARINETRAFFIC_UDP_PORT and MARINETRAFFIC_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # MyShipTracking:
@@ -208,7 +208,7 @@ if [[ -n "$MYSHIPTRACKING_TCP_PORT" ]]; then
     aiscatcher_command+=("-P ${MYSHIPTRACKING_TCP_PORT/:/ }")
 fi
 if [[ -n "$MYSHIPTRACKING_UDP_PORT" ]] && [[ -n "$MYSHIPTRACKING_TCP_PORT" ]]; then
-    "$s6wrap[@]}" echo "[WARNING] Both MYSHIPTRACKING_UDP_PORT and MYSHIPTRACKING_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+    "${s6wrap[@]}" echo "[WARNING] Both MYSHIPTRACKING_UDP_PORT and MYSHIPTRACKING_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # ShippingExplorer:
@@ -221,7 +221,7 @@ if [[ -n "$SHIPPINGEXPLORER_TCP_PORT" ]]; then
     aiscatcher_command+=("-P ${SHIPPINGEXPLORER_TCP_PORT/:/ }")
 fi
 if [[ -n "$SHIPPINGEXPLORER_UDP_PORT" ]] && [[ -n "$SHIPPINGEXPLORER_TCP_PORT" ]]; then
-    "$s6wrap[@]}" echo "[WARNING] Both SHIPPINGEXPLORER_UDP_PORT and SHIPPINGEXPLORER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+    "${s6wrap[@]}" echo "[WARNING] Both SHIPPINGEXPLORER_UDP_PORT and SHIPPINGEXPLORER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # ShipFinder:
@@ -236,10 +236,10 @@ if [[ -n "$SHIPFINDER_TCP_PORT" ]]; then
     aiscatcher_command+=("-P ${SHIPFINDER_TCP_PORT/:/ }")
 fi
 if [[ -n "$SHIPFINDER_UDP_PORT" ]] && [[ -n "$SHIPFINDER_TCP_PORT" ]]; then
-    "$s6wrap[@]}" echo "[WARNING] Both SHIPFINDER_UDP_PORT and SHIPFINDER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+    "${s6wrap[@]}" echo "[WARNING] Both SHIPFINDER_UDP_PORT and SHIPFINDER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 if [[ -n "$SHIPFINDER_SHAREDATA" ]] && [[ -n "$SHIPFINDER_TCP_PORT" ]]; then
-    "$s6wrap[@]}" echo "[WARNING] Both SHIPFINDER_SHAREDATA and SHIPFINDER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+    "${s6wrap[@]}" echo "[WARNING] Both SHIPFINDER_SHAREDATA and SHIPFINDER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # ShipXplorer UDP feed (can be used as an alternative for feeding with sxfeeder):
@@ -261,7 +261,7 @@ if [[ -n "$VESSELFINDER_TCP_PORT" ]]; then
     aiscatcher_command+=("-P $VESSELFINDER_TCP_PORT/:/ }")
 fi
 if [[ -n "$VESSELFINDER_UDP_PORT" ]] && [[ -n "$VESSELFINDER_TCP_PORT" ]]; then
-    "$s6wrap[@]}" echo "[WARNING] Both VESSELFINDER_UDP_PORT and VESSELFINDER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+    "${s6wrap[@]}" echo "[WARNING] Both VESSELFINDER_UDP_PORT and VESSELFINDER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # VesselTracker:
@@ -274,7 +274,7 @@ if [[ -n "$VESSELTRACKER_TCP_PORT" ]]; then
     aiscatcher_command+=("-P ${VESSELTRACKER_TCP_PORT/:/ }")
 fi
 if [[ -n "$VESSELTRACKER_UDP_PORT" ]] && [[ -n "$VESSELTRACKER_TCP_PORT" ]]; then
-    "$s6wrap[@]}" echo "[WARNING] Both VESSELTRACKER_UDP_PORT and VESSELTRACKER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+    "${s6wrap[@]}" echo "[WARNING] Both VESSELTRACKER_UDP_PORT and VESSELTRACKER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 aiscatcher_command+=("${FEEDSTRING[*]}")
