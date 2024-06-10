@@ -247,8 +247,8 @@ if [[ -n "$SHIPXPLORER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPXPLORER_UDP_PORT"; then SHIPXPLORER_UDP_PORT="hub.shipxplorer.com:$SHIPXPLORER_UDP_PORT"; fi
     aiscatcher_command+=("-u ${SHIPXPLORER_UDP_PORT/:/ }")
 fi
-if [[ -n "${SHARING_KEY:-${SX_SHARING_KEY:-${SHIPXPLORER_SHARING_KEY}}}" ]] && [[ -n "${SERIAL_NUMBER:-${SX_SERIAL_NUMBER:-${SHIPXPLORER_SERIAL_NUMBER}}}" ]]; then
-    "${s6wrap[@]}" echo "[WARNING] Both SHIPXPLORER_SHARING_KEY/SHIPXPLORER_SERIAL_NUMBER and SHIPXPLORER_UDP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+if [[ -n "${SHARING_KEY:-${SX_SHARING_KEY:-${SHIPXPLORER_SHARING_KEY}}}${SERIAL_NUMBER:-${SX_SERIAL_NUMBER:-${SHIPXPLORER_SERIAL_NUMBER}}}" ]] && [[ -n "$SHIPXPLORER_UDP_PORT" ]]; then
+    "${s6wrap[@]}" echo "[WARNING] Both [SHIPXPLORER_]SHARING_KEY/[SHIPXPLORER_]SERIAL_NUMBER and SHIPXPLORER_UDP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # VesselFinder:
