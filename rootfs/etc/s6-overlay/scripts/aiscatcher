@@ -209,7 +209,8 @@ fi
 if [[ -n "$VESSELTRACKER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELTRACKER_UDP_PORT"; then VESSELTRACKER_UDP_PORT="83.220.137.136:$VESSELTRACKER_UDP_PORT"; fi
     aiscatcher_command+=("-u ${VESSELTRACKER_UDP_PORT/:/ }")
-elif [[ -n "$VESSELTRACKER_TCP_PORT" ]]; then
+fi
+if [[ -n "$VESSELTRACKER_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELTRACKER_TCP_PORT"; then VESSELTRACKER_TCP_PORT="83.220.137.136:$VESSELTRACKER_TCP_PORT"; fi
     aiscatcher_command+=("-P ${VESSELTRACKER_TCP_PORT/:/ }")
 fi
