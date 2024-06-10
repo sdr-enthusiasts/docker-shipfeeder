@@ -244,9 +244,9 @@ This table shows which parameters to set and how to obtain credentials for a num
  | ShipXplorer | `SHIPXPLORER_SHARING_KEY` or `SHARING_KEY` (legacy)<br>`SHIPXPLORER_SERIAL_NUMBER` or `SERIAL_NUMBER` (legacy) | | Other | See [Obtaining a ShipXplorer Sharing Key](#obtaining-a-shipxplorer-sharing-key) |
   | ShipXplorer (alt. config with UDP) | `SHIPXPLORER_UDP_PORT` | hub.shipxplorer.com| UDP | Alternative way to feed ShipXplorer via UDP instead of via a Sharing Key. Please use one or the other, but not both! Sign up at [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "I want to share with: NMEA over UDP" |
  | VesselFinder | `VESSELFINDER_UDP_PORT` | [ais.vesselfinder.com](http://ais.vesselfinder.com) | UDP | [https://stations.vesselfinder.com/become-partner](https://stations.vesselfinder.com/become-partner) |
- | VesselTracker | `VESSELTRACKER_UDP_PORT` | 83.220.137.136 | UDP | [https://www.vesseltracker.com/en/static/antenna-partner.html](https://www.vesseltracker.com/en/static/antenna-partner.html) |
+ | VesselTracker | `VESSELTRACKER_UDP_PORT` <br/>`VESSELTRACKER_TCP_PORT` | 83.220.137.136 | UDP or TCP| [https://www.vesseltracker.com/en/static/antenna-partner.html](https://www.vesseltracker.com/en/static/antenna-partner.html) By default, you should use UDP to feed VesselTracker, unless you are specifically asked to use TCP by the company |
 
-Note: for all parameters `SERVICE_UDP_PORT`, you may use one of the following formats:
+Note: for all parameters `SERVICE_UDP_PORT` (and similarly for `SERVICE_TCP_PORT` where supported), you may use one of the following formats:
 
 - `- SERVICE_UDP_PORT=1234` --> use UDP port 1234
 - `- SERVICE_UDP_PORT=hostname:1234` or `- SERVICE_UDP_PORT=ip_addr:1234` --> use the hostname or ip address instead of the one indicated in the table, and UDP port 1234
