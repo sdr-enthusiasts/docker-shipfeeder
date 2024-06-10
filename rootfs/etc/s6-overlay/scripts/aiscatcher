@@ -164,8 +164,7 @@ fi
 if [[ -n "$MARINETRAFFIC_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$MARINETRAFFIC_UDP_PORT"; then MARINETRAFFIC_UDP_PORT="5.9.207.224:$MARINETRAFFIC_UDP_PORT"; fi
     aiscatcher_command+=("-u ${MARINETRAFFIC_UDP_PORT/:/ }")
-fi
-if [[ -n "$MARINETRAFFIC_TCP_PORT" ]]; then
+elif [[ -n "$MARINETRAFFIC_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$MARINETRAFFIC_TCP_PORT"; then MARINETRAFFIC_TCP_PORT="5.9.207.224:$MARINETRAFFIC_TCP_PORT"; fi
     aiscatcher_command+=("-P ${MARINETRAFFIC_TCP_PORT/:/ }")
 fi
@@ -210,6 +209,9 @@ fi
 if [[ -n "$VESSELTRACKER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELTRACKER_UDP_PORT"; then VESSELTRACKER_UDP_PORT="83.220.137.136:$VESSELTRACKER_UDP_PORT"; fi
     aiscatcher_command+=("-u ${VESSELTRACKER_UDP_PORT/:/ }")
+elif [[ -n "$VESSELTRACKER_TCP_PORT" ]]; then
+    if ! grep -q ":" <<< "$VESSELTRACKER_TCP_PORT"; then VESSELTRACKER_TCP_PORT="83.220.137.136:$VESSELTRACKER_TCP_PORT"; fi
+    aiscatcher_command+=("-P ${VESSELTRACKER_TCP_PORT/:/ }")
 fi
 
 aiscatcher_command+=("${FEEDSTRING[*]}")
