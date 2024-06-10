@@ -2,8 +2,6 @@
 # shellcheck shell=bash disable=SC1091
 
 source /scripts/common
-APPNAME="10-container-init"
-s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 
 #---------------------------------------------------------------------------------------------
 # Copyright (C) 2022-2024, Ramon F. Kolb (kx1t)
@@ -21,5 +19,5 @@ s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 # If not, see <https://www.gnu.org/licenses/>.
 #---------------------------------------------------------------------------------------------
 
-"${s6wrap[@]}" --args echo "Starting ShipExplorer version $(cat /.CONTAINER_VERSION)"
+"${s6wrap[@]}" --args echo "Starting docker-shipfeeder version $(cat /.CONTAINER_VERSION)"
 mkdir -p /data
