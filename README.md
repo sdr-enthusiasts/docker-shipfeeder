@@ -272,7 +272,7 @@ You can enable it by simply adding the following to the environment section of y
 
 #### Obtaining a ShipXplorer Sharing Key
 
-**ATTENTION** Raspberry Pi 5 users (only) should read [Working around ShipXplorer issues on Raspberry Pi 5](#working-around-shipxplorer-issues-on-raspberry-pi-5) before proceeding! 
+**ATTENTION** Raspberry Pi 5 users (only) should read [Working around ShipXplorer issues on Raspberry Pi 5](#working-around-shipxplorer-issues-on-raspberry-pi-5) before proceeding!
 
 First-time users should obtain a ShipXplorer sharing key.
 In order to obtain a ShipXplorer sharing key, on the first run of the container, it will generate a sharing key and print this to the container log. If you can't find it, you can also copy and paste this command:
@@ -307,6 +307,7 @@ Take a note of the Sharing Key (`f1...57` - yours will be a different number) an
 If you're not a first time user and are migrating from another installation, you can retrieve your sharing key by doing this:
 
 - SSH onto your existing receiver and run the command `cat /etc/sxfeeder.ini`
+
 The `key` and `sn` lines show your current credentials
 
 #### Claiming Your ShipXplorer Receiver
@@ -464,7 +465,7 @@ If you use ShipXplorer as recommended in [Configuring feeding to ShipXplorer](#c
 Debian Linux for Raspberry Pi 5 uses by default a kernel with 16kb page sizes, and this is not compatible with the `sxfeeder` binary. You will see this in your container logs:
 
 ```text
-2024-05-23T23:15:48.998327000Z [2024-05-24 01:15:48.998][sxfeeder] Starting: /usr/bin/sxfeeder 
+2024-05-23T23:15:48.998327000Z [2024-05-24 01:15:48.998][sxfeeder] Starting: /usr/bin/sxfeeder
 2024-05-23T23:15:49.003069000Z [2024-05-24 01:15:49.002][sxfeeder] FATAL: sxfeeder cannot be run natively, and QEMU is not available. You cannot use this container
 2024-05-23T23:15:49.004680000Z [2024-05-24 01:15:49.004][sxfeeder] FATAL: on this system / architecture. Feel free to file an issue at https://github.com/sdr-enthusiasts/docker-shipxplorer/issues
 2024-05-23T23:15:49.006086000Z [2024-05-24 01:15:49.005][sxfeeder] FATAL: Cannot initiate feeder to ShipXplorer.
@@ -473,10 +474,10 @@ Debian Linux for Raspberry Pi 5 uses by default a kernel with 16kb page sizes, a
 You can check your kernel page size with this command: `getconf PAGE_SIZE` . If the value returned is 4096, then all is good. If it is something else (for example 16384 for 16kb page size), you will need to implement one of the following work-arounds. You should implement either of them; it's not necessary to implement both:
 
 - Add the following to `/boot/firmware/config.txt` (Debian 12 Bookworm or later) or `/boot/config.txt` (Debian 11 Bullseye or earlier) to use a kernel with page size of 4kb. This will make CPU use across your Raspberry Pi 5 slightly less efficient, but it will solve the issue for many software packages that have [the same issue](https://github.com/raspberrypi/bookworm-feedback/issues/107). After changing this, you must reboot your system for it to take effect:
-  
+
   ```config
   kernel=kernel8.img
-  ``` 
+  ```
 
 - Feed ShipXplorer with UDP instead of with a Sharing Key. To do this:
   - Browse to [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "_I want to share with: NMEA over UDP_"
