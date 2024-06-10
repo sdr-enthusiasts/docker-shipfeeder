@@ -19,5 +19,5 @@ source /scripts/common
 # If not, see <https://www.gnu.org/licenses/>.
 #---------------------------------------------------------------------------------------------
 
-"${s6wrap[@]}" --args echo "Starting docker-shipfeeder version $(cat /.CONTAINER_VERSION)"
+"${s6wrap[@]}" echo "Starting docker-shipfeeder version $(cat /.CONTAINER_VERSION)"
 mkdir -p /data
