@@ -98,7 +98,7 @@ jobs:
 
       # Build "latest" for org and new package
       - name: Build & Push - latest - org package
-        uses: docker/build-push-action@v6.1.0
+        uses: docker/build-push-action@v6.2.0
         with:
           context: .
           file: ./Dockerfile
@@ -109,7 +109,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build & Push - latest - new package
-        uses: docker/build-push-action@v6.1.0
+        uses: docker/build-push-action@v6.2.0
         with:
           context: .
           file: ./Dockerfile
