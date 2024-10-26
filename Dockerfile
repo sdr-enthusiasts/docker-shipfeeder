@@ -73,6 +73,8 @@ echo "TARGETARCH $TARGETARCH" && \
         apt-get remove -y "${TEMP_PACKAGES[@]}"; \
     fi && \
     apt-get autoremove -y && \
+    # delete unnecessary qemu binaries to save lots of space
+    { find /usr/bin -regex '/usr/bin/qemu-.*-static'  | grep -v qemu-arm-static | xargs rm -vf {} || true; } && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/*
 
 # add AIS-catcher and libairspyhf
