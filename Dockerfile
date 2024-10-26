@@ -82,7 +82,8 @@ RUN \
     --mount=type=bind,from=build,source=/,target=/build/ \
     set -x && \
     cp -v /build/usr/local/bin/AIS-catcher /usr/local/bin/AIS-catcher && \
-    find /build | grep libairspyhf | cut -d/ --complement -f1,2 | xargs --replace cp -r -v /build/'{}' /'{}' && \
+    find /build | grep libairspyhf | cut -d/ --complement -f1,2 | xargs --replace cp -a -T -v /build/'{}' /'{}' && \
+    ldconfig && \
     true
 
 # Add Container Version
