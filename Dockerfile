@@ -30,7 +30,6 @@ echo "TARGETARCH $TARGETARCH" && \
     #KEPT_PACKAGES+=(librtlsdr0) && \
     KEPT_PACKAGES+=(libairspy0) && \
     KEPT_PACKAGES+=(libhackrf0) && \
-    KEPT_PACKAGES+=(libairspyhf1) && \
     KEPT_PACKAGES+=(libzmq5) && \
     KEPT_PACKAGES+=(libsoxr0) && \
     # KEPT_PACKAGES+=(libcurl4) && \
@@ -76,10 +75,13 @@ echo "TARGETARCH $TARGETARCH" && \
     apt-get autoremove -y && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/*
 
-COPY rootfs/ /
-
-# add AIS-catcher
-COPY --from=build /usr/local/bin/AIS-catcher /usr/local/bin/AIS-catcher
+# add AIS-catcher and libairspyhf
+RUN \
+    --mount=type=bind,from=build,source=/,target=/build/ \
+    set -x && \
+    cp -v /build/usr/local/bin/AIS-catcher /usr/local/bin/AIS-catcher && \
+    find /build | grep libairspyhf | cut -d/ --complement -f1,2 | xargs --replace echo cp -v /build/'{}' /'{}' && \
+    true
 
 # Add Container Version
 RUN set -x && \
@@ -91,6 +93,8 @@ pushd /tmp && \
     echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > "/.CONTAINER_VERSION" && \
 popd && \
 rm -rf /tmp/*
+
+COPY rootfs/ /
 
 # Add healthcheck
 HEALTHCHECK --start-period=60s --interval=120s --timeout=100s CMD /healthcheck/healthcheck.sh
