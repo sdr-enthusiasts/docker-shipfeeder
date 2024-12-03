@@ -324,6 +324,14 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     fi
 fi
 
+if [[ -n "${AISCATCHER_MQTT_URL}" ]]; then
+    aiscatcher_command+=("-Q ${AISCATCHER_MQTT_URL}")
+    if [[ -n "${AISCATCHER_MQTT_CLIENT_ID}" ]]; then aiscatcher_command+=("CLIENT_ID ${AISCATCHER_MQTT_CLIENT_ID}"); fi
+    if [[ -n "${AISCATCHER_MQTT_QOS}" ]]; then aiscatcher_command+=("QOS ${AISCATCHER_MQTT_QOS}"); fi
+    if [[ -n "${AISCATCHER_MQTT_TOPIC}" ]]; then aiscatcher_command+=("TOPIC ${AISCATCHER_MQTT_TOPIC}"); fi
+    if [[ -n "${AISCATCHER_MQTT_MSGFORMAT}" ]]; then aiscatcher_command+=("MSGFORMAT ${AISCATCHER_MQTT_MSGFORMAT}"); fi
+fi
+
 aiscatcher_command+=("$AISCATCHER_EXTRA_OPTIONS")
 
 aiscommand="$(echo ${aiscatcher_command[@]} | xargs)"

@@ -383,6 +383,24 @@ Note: if you want to feed multiple HTTP aggregators, you can simply append each 
 - AISCATCHER_EXTRA_OPTIONS=-H http://5.6.7.8/test/post/aBcDeFgHiJkL ID MYSTATION PROTOCOL aprs INTERVAL 30 RESPONSE off -H http://1.2.3.4/test ID my_station_name INTERVAL 30 RESPONSE off JSON on
 ```
 
+### Sending AIS data to a MQTT broker
+
+Shipfeeder supports sending AIS data to a MQTT broker. This is done by setting the MQTT broker's URL in the `AISCATCHER_MQTT_URL` parameter, and (optionally) adding values to the parameters listed below.
+
+| Environment Variable | Purpose | Default value if omitted |
+| --- | --- | --- |
+| `AISCATCHER_MQTT_URL` | MQTT Broker's URL. This often has the format of `mqtt://username:password@ipaddress:1883`. When left empty, MQTT is disabled. Note - the `ipaddress` can be an IP Address or hostname that is resolved by the container. When using IP addresses, avoid using internal IP addresses like `128.0.0.1` because they point at the container itself. Instead, if your MQTT broker runs on your host system, use the IP address that is rendered when you do `hostname -I | awk '{print $1}'` on the command line | Empty |
+| `AISCATCHER_MQTT_CLIENT_ID` | (Optional) `CLIENT_ID` value that is passed to the MQTT Broker. For example, `aiscatcher`. | Empty |
+| `AISCATCHER_MQTT_QOS` | (Optional) QOS (Quality of Service) value that is passed to the MQTT Broker. For example, `0`. | Empty |
+| `AISCATCHER_MQTT_TOPIC` | (Optional) MQTT Topic that is passed to the MQTT Broker. For example, `data/ais`. | Empty |
+| `AISCATCHER_MQTT_MSGFORMAT` | (Optional) Message Format indicator for the messages passed to the MQTT Broker. The following values are supported: <tbd> | `JSON_NMEA` |
+
+Note - if you want to configure ShipFeeder to *receive* AIS data from a MQTT broker, you can do this by adding (for example) the following to the `AISCATCHER_EXTRA_OPTIONS` parameter:
+
+```yaml
+AISCATCHER_EXTRA_OPTIONS=-t mqtt://hostname:port -gt TOPIC data/ais USERNAME admin PASSWORD password
+```
+
 ## Adding an `About` Page to the AIS-Catcher Website
 
 You can add an About page to the AIS-Catcher Website by placing a file called `about.md` in the `/data` directory of the container. If you mapped this directory to a volume as shown in the example, the file as seen from the host system would be `/opt/ais/shipfeeder/about.md`.
@@ -480,7 +498,7 @@ You can check your kernel page size with this command: `getconf PAGE_SIZE` . If 
   ```
 
 - Feed ShipXplorer with UDP instead of with a Sharing Key. To do this:
-  - Browse to [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "_I want to share with: NMEA over UDP_"
+  - Browse to [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "*I want to share with: NMEA over UDP*"
   - Follow the instructions until you are issued a hostname and UDP port number
   - set this environment variable in your `docker-compose.yml` file: `SHIPXPLORER_UDP_PORT=portnumber` (replace `portnumber` with the UDP port you were assigned) and remove `SHIPXPLORER_SHARING_KEY` and/or `SHARING_KEY` from your configuration
   - recreate and restart the container with `docker compose up -d`
