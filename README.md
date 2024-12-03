@@ -394,7 +394,7 @@ Shipfeeder supports sending AIS data to a MQTT broker. This is done by setting t
 | `AISCATCHER_MQTT_CLIENT_ID` | (Optional) `CLIENT_ID` value that is passed to the MQTT Broker. For example, `aiscatcher`. | Empty |
 | `AISCATCHER_MQTT_QOS` | (Optional) QOS (Quality of Service) value that is passed to the MQTT Broker. For example, `0`. | Empty |
 | `AISCATCHER_MQTT_TOPIC` | (Optional) MQTT Topic that is passed to the MQTT Broker. For example, `data/ais`. | Empty |
-| `AISCATCHER_MQTT_MSGFORMAT` | (Optional) Message Format indicator for the messages passed to the MQTT Broker. The following values are supported: <tbd> | `JSON_NMEA` |
+| `AISCATCHER_MQTT_MSGFORMAT` | (Optional) Message Format indicator for the messages passed to the MQTT Broker. The following values are supported: `NMEA`, `NMEA_TAG`, `FULL`, `JSON_NMEA`, `JSON_SPARSE` `JSON_FULL` | `JSON_FULL` |
 
 Note - if you want to configure ShipFeeder to *receive* AIS data from a MQTT broker, you can do this by adding (for example) the following to the `AISCATCHER_EXTRA_OPTIONS` parameter:
 
