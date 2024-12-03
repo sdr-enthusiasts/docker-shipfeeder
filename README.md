@@ -36,6 +36,7 @@ If you need help, feel free to chat with us at the Discord server that is linked
     - [Feeding Additional Services Using UDP](#feeding-additional-services-using-udp)
     - [Feeding Additional Services Using TCP](#feeding-additional-services-using-tcp)
     - [Feeding Additional Services Using HTTP](#feeding-additional-services-using-http)
+    - [Sending AIS data to a MQTT broker](#sending-ais-data-to-a-mqtt-broker)
   - [Adding an `About` Page to the AIS-Catcher Website](#adding-an-about-page-to-the-ais-catcher-website)
   - [Logging](#logging)
   - [AIS-Catcher Web Plugin Support and AIS-Catcher Persistency](#ais-catcher-web-plugin-support-and-ais-catcher-persistency)
@@ -389,7 +390,7 @@ Shipfeeder supports sending AIS data to a MQTT broker. This is done by setting t
 
 | Environment Variable | Purpose | Default value if omitted |
 | --- | --- | --- |
-| `AISCATCHER_MQTT_URL` | MQTT Broker's URL. This often has the format of `mqtt://username:password@ipaddress:1883`. When left empty, MQTT is disabled. Note - the `ipaddress` can be an IP Address or hostname that is resolved by the container. When using IP addresses, avoid using internal IP addresses like `128.0.0.1` because they point at the container itself. Instead, if your MQTT broker runs on your host system, use the IP address that is rendered when you do `hostname -I | awk '{print $1}'` on the command line | Empty |
+| `AISCATCHER_MQTT_URL` | MQTT Broker's URL. This often has the format of `mqtt://username:password@ipaddress:1883`. When left empty, MQTT is disabled. Note - the `ipaddress` can be an IP Address or hostname that is resolved by the container. When using IP addresses, avoid using internal IP addresses like `128.0.0.1` because they point at the container itself. Instead, if your MQTT broker runs on your host system, use the IP address that is rendered when you do `hostname -I \| awk '{print $1}'` on the command line | Empty |
 | `AISCATCHER_MQTT_CLIENT_ID` | (Optional) `CLIENT_ID` value that is passed to the MQTT Broker. For example, `aiscatcher`. | Empty |
 | `AISCATCHER_MQTT_QOS` | (Optional) QOS (Quality of Service) value that is passed to the MQTT Broker. For example, `0`. | Empty |
 | `AISCATCHER_MQTT_TOPIC` | (Optional) MQTT Topic that is passed to the MQTT Broker. For example, `data/ais`. | Empty |
