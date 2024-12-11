@@ -39,6 +39,7 @@ echo "TARGETARCH $TARGETARCH" && \
     KEPT_PACKAGES+=(nano) && \
     KEPT_PACKAGES+=(libpqxx-dev) && \
     KEPT_PACKAGES+=(lsb-release) && \
+    KEPT_PACKAGES+=(sqlite3) && \
     #
     # install packages
     apt-get update && \
