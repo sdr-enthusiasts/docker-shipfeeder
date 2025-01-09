@@ -79,7 +79,6 @@ You can find these as files here: [`docker-compose.yml` example](https://github.
   <summary>&lt;&dash;&dash; Click the arrow to see the <code>docker-compose.yml</code> and <code>.env</code> examples</summary>
 
 ```yaml
-version: '3.8'
 services:
   shipfeeder:
     image: ghcr.io/sdr-enthusiasts/docker-shipfeeder
@@ -235,7 +234,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | AIS-Catcher | `AISCATCHER_SHAREDATA=true`<br>`AISCATCHER_FEEDER_KEY` | | Other | See [Exchanging data with `aiscatcher.org`](#exchanging-data-with-aiscatcherorg) [https://aiscatcher.org/#join](https://aiscatcher.org/#join). In the future, AISCatcher may provide you with an optional UUID that you can set in `AISCATCHER_FEEDER_KEY` |
  | AISHub | `AISHUB_UDP_PORT` | [data.aishub.net](http://data.aishub.net) | UDP | [https://www.aishub.net/join-us](https://www.aishub.net/join-us) |
  | [APRS.fi](http://APRS.fi) | `APRSFI_FEEDER_KEY`<br>`APRSFI_STATION_ID` | [http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY](http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY) | HTTP | Get AIS Password (`APRSFI_FEEDER_KEY`) at [https://aprs.fi/?c=account](https://aprs.fi/?c=account). Use your Ham Radio callsign for `APRSFI_STATION_ID`. Both fields are mandatory. |
- | BoatBeacon | `BOATBEACON_SHAREDATA=true` | [boatbeaconapp.com:5322](http://boatbeaconapp.com:5322) | UDP | [https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/](https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/) - no keys or IDs are required |
+ | BoatBeacon (aka Pocket Mariner)| `BOATBEACON_SHAREDATA=true` or<br/> `BOATBEACON_UDP_PORT` or<br/> `BOATBEACON_TCP_PORT` | [boatbeaconapp.com:5322](http://boatbeaconapp.com:5322) | UDP / TCP | [https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/](https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/) - set `BOATBEACON_SHAREDATA=true` to feed without any key or assigned port, or set your assigned UDP or TCP port in the respective parameter |
  | HPRadar | `HPRADAR_UDP_PORT` | [aisfeed.hpradar.com](http://aisfeed.hpradar.com) | UDP | |
  | MarineTraffic | `MARINETRAFFIC_UDP_PORT` or<br/>`MARINETRAFFIC_TCP_PORT` | 5.9.207.224 | UDP / TCP | [https://www.marinetraffic.com/en/join-us/cover-your-area](https://www.marinetraffic.com/en/join-us/cover-your-area) Please use either the UDP option or the TCP option as instructed by MarineTraffic, but don't use both! |
  | MyShipTracking | `MYSHIPTRACKING_UDP_PORT` or<br/>`MYSHIPTRACKING_TCP_PORT` | 178.162.215.175 | UDP / TCP | [https://www.myshiptracking.com/help-center/contributors/add-your-station](https://www.myshiptracking.com/help-center/contributors/add-your-station) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
