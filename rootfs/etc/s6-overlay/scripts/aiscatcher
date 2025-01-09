@@ -153,22 +153,19 @@ if [[ -n "${APRSFI_FEEDER_KEY:+$APRSFI_STATION_ID}" ]]; then
     aiscatcher_command+=("-H http://aprs.fi/jsonais/post/$APRSFI_FEEDER_KEY ID $APRSFI_STATION_ID PROTOCOL aprs INTERVAL 30 RESPONSE off")
 fi
 
-# BoatBeacon:
+# BoatBeacon aka Pocket Mariner
 if [[ -n "$BOATBEACON_UDP_PORT" ]]; then
     if ! grep -q ":"  <<< "$BOATBEACON_UDP_PORT"; then BOATBEACON_UDP_PORT="boatbeaconapp.com:$BOATBEACON_UDP_PORT"; fi
     aiscatcher_command+=("-u ${BOATBEACON_UDP_PORT/:/ }")
+elif [[ -n "$BOATBEACON_TCP_PORT" ]]; then
+    if ! grep -q ":" <<< "$BOATBEACON_TCP_PORT"; then BOATBEACON_TCP_PORT="data.aishub.net:$BOATBEACON_TCP_PORT"; fi
+    aiscatcher_command+=("-P ${BOATBEACON_TCP_PORT/:/ }")
 elif chk_enabled "$BOATBEACON_SHAREDATA"; then
     aiscatcher_command+=("-u boatbeaconapp.com 5322")
 fi
-if [[ -n "$BOATBEACON_TCP_PORT" ]]; then
-    if ! grep -q ":" <<< "$BOATBEACON_TCP_PORT"; then BOATBEACON_TCP_PORT="data.aishub.net:$BOATBEACON_TCP_PORT"; fi
-    aiscatcher_command+=("-P ${BOATBEACON_TCP_PORT/:/ }")
-fi
+
 if [[ -n "$BOATBEACON_UDP_PORT" ]] && [[ -n "$BOATBEACON_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both BOATBEACON_UDP_PORT and BOATBEACON_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
-fi
-if chk_enabled "$BOATBEACON_SHAREDATA" && [[ -n "$BOATBEACON_TCP_PORT" ]]; then
-    "${s6wrap[@]}" echo "[WARNING] Both BOATBEACON_SHAREDATA and BOATBEACON_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # HPRadar:
