@@ -4,7 +4,7 @@
 source /scripts/common
 
 #---------------------------------------------------------------------------------------------
-# Copyright (C) 2022-2024, Ramon F. Kolb (kx1t)
+# Copyright (C) 2022-2025, Ramon F. Kolb (kx1t)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -133,6 +133,19 @@ fi
 if [[ -n "$AISCATCHER_FEEDER_KEY" ]] || chk_enabled "$AISCATCHER_SHAREDATA"; then
     aiscatcher_command+=("-X${AISCATCHER_FEEDER_KEY:+ }$AISCATCHER_FEEDER_KEY")
     AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-X\s+[0-9]*\s*//g'<<< "$AISCATCHER_EXTRA_OPTIONS")" # Remove any -X from param to avoid duplication
+fi
+
+# AIS Friends:
+if [[ -n "$AISFRIENDS_UDP_PORT" ]]; then
+    if ! grep -q ":" <<< "$AISFRIENDS_UDP_PORT"; then AISFRIENDS_UDP_PORT="ais.aisfriends.com:$AISFRIENDS_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${AISFRIENDS_UDP_PORT/:/ }")
+fi
+if [[ -n "$AISFRIENDS_TCP_PORT" ]]; then
+    if ! grep -q ":" <<< "$AISFRIENDS_TCP_PORT"; then AISFRIENDS_TCP_PORT="ais.aisfriends.com:$AISFRIENDS_TCP_PORT"; fi
+    aiscatcher_command+=("-P ${AISFRIENDS_TCP_PORT/:/ }")
+fi
+if [[ -n "$AISFRIENDS_UDP_PORT" ]] && [[ -n "$AISFRIENDS_TCP_PORT" ]]; then
+    "${s6wrap[@]}" echo "[WARNING] Both AISFRIENDS_UDP_PORT and AISFRIENDS_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # AISHub:

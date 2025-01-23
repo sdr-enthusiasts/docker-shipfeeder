@@ -107,6 +107,7 @@ services:
 #     aggregrators-related parameters
       - AIRFRAMES_STATION_ID=${AIRFRAMES_STATION_ID}
       - AISCATCHER_FEEDER_KEY=${AISCATCHER_FEEDER_KEY}
+      - AISFRIENDS_UDP_PORT=${AISFRIENDS_UDP_PORT}
       - AISHUB_UDP_PORT=${AISHUB_UDP_PORT}
       - APRSFI_FEEDER_KEY=${APRSFI_FEEDER_KEY}
       - BOATBEACON_SHAREDATA=${BOATBEACON_SHAREDATA}
@@ -154,11 +155,12 @@ STATION_NAME=My&nbsp;Station&nbsp;Name
 # If you aren't feeding a specific aggregator, leave the value EMPTY or remove the parameter
 AIRFRAMES_STATION_ID=XX-XXXXXXX-AIS
 AISCATCHER_FEEDER_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-AISHUB_UDP_PORT=xxxx
+AISFRIENDS_UDP_PORT=xxxxx
+AISHUB_UDP_PORT=xxxxx
 APRSFI_FEEDER_KEY=xxxxxxx
 APRSFI_STATION_ID=MYCALL
 BOATBEACON_SHAREDATA=true
-HPRADAR_UDP_PORT=xxxx
+HPRADAR_UDP_PORT=xxxxx
 MARINETRAFFIC_UDP_PORT=xxxxx
 MYSHIPTRACKING_UDP_PORT=xxxxx
 RADARVIRTUEL_FEEDER_KEY=xxxxxxxxx
@@ -167,8 +169,8 @@ SHIPFINDER_SHAREDATA=true
 SHIPPINGEXPLORER_UDP_PORT=xxxxx
 SHIPXPLORER_SHARING_KEY=xxxxxxxxxxxxxxxxxxx
 SHIPXPLORER_SERIAL_NUMBER=SXTRPI00xxxx
-VESSELFINDER_UDP_PORT=xxxx
-VESSELTRACKER_UDP_PORT=xxxx
+VESSELFINDER_UDP_PORT=xxxxx
+VESSELTRACKER_UDP_PORT=xxxxx
 ```
 
 Replace these parameters with the appropriate values.
@@ -232,6 +234,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | ADSB-Network (RadarVirtuel) | `RADARVIRTUEL_FEEDER_KEY` (optional, value is `lourd` if omitted)<br>`RADARVIRTUEL_STATION_ID` | [https://ais.adsbnetwork.com/ingester/insert/$RADARVIRTUEL_FEEDER_KEY](https://ais.adsbnetwork.com/ingester/insert/$RADARVIRTUEL_FEEDER_KEY) | HTTP | Email <support@adsbnetwork.com> with your request to join. If you receive an `ais-catcher` string like this: `-H http://ais.adsbnetwork.com/ingester/insert/lourd ID xx INTERVAL 5 RESPONSE off`, then simply set `RADARVIRTUEL_STATION_ID` to `xx` and omit or leave blank the `RADARVIRTUEL_FEEDER_KEY` parameter |
  | Airframes | `AIRFRAMES_STATION_ID` | [http://feed.airframes.io:5599](http://feed.airframes.io:5599) | HTTP | No signup needed. `AIRFRAMES_STATION_ID` is a self-chosen ID that has the form of `II-STATIONNAME-AIS`, where `II` are the initials of the owner's name, and `STATIONNAME` is a self-chosen station name (A-Z, 0-9 only please) |
  | AIS-Catcher | `AISCATCHER_SHAREDATA=true`<br>`AISCATCHER_FEEDER_KEY` | | Other | See [Exchanging data with `aiscatcher.org`](#exchanging-data-with-aiscatcherorg) [https://aiscatcher.org/#join](https://aiscatcher.org/#join). In the future, AISCatcher may provide you with an optional UUID that you can set in `AISCATCHER_FEEDER_KEY` |
+ | AIS Friends | `AISFRIENDS_UDP_PORT` | | UDP | Sign up at [AIS Friends](https://www.aisfriends.com/register) to receive a dedicated UDP port by email | 
  | AISHub | `AISHUB_UDP_PORT` | [data.aishub.net](http://data.aishub.net) | UDP | [https://www.aishub.net/join-us](https://www.aishub.net/join-us) |
  | [APRS.fi](http://APRS.fi) | `APRSFI_FEEDER_KEY`<br>`APRSFI_STATION_ID` | [http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY](http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY) | HTTP | Get AIS Password (`APRSFI_FEEDER_KEY`) at [https://aprs.fi/?c=account](https://aprs.fi/?c=account). Use your Ham Radio callsign for `APRSFI_STATION_ID`. Both fields are mandatory. |
  | BoatBeacon (aka Pocket Mariner)| `BOATBEACON_SHAREDATA=true` or<br/> `BOATBEACON_UDP_PORT` or<br/> `BOATBEACON_TCP_PORT` | [boatbeaconapp.com:5322](http://boatbeaconapp.com:5322) | UDP / TCP | [https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/](https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/) - set `BOATBEACON_SHAREDATA=true` to feed without any key or assigned port, or set your assigned UDP or TCP port in the respective parameter |
@@ -241,7 +244,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | ShipFinder | `SHIPFINDER_SHAREDATA=true` | [ais.shipfinder.co.uk:4001](http://ais.shipfinder.co.uk:4001/) | UDP | [https://shipfinder.co/about/coverage/](https://shipfinder.co/about/coverage/) |
  | ShippingExplorer | `SHIPPINGEXPLORER_UDP_PORT` or<br/>`SHIPPINGEXPLORER_TCP_PORT` | 144.76.54.111 | UDP or TCP | Request UDP port at [https://www.shippingexplorer.net/en/contact](https://www.shippingexplorer.net/en/contact) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
  | ShipXplorer | `SHIPXPLORER_SHARING_KEY` or `SHARING_KEY` (legacy)<br>`SHIPXPLORER_SERIAL_NUMBER` or `SERIAL_NUMBER` (legacy) | | Other | See [Obtaining a ShipXplorer Sharing Key](#obtaining-a-shipxplorer-sharing-key) |
-  | ShipXplorer (alt. config with UDP) | `SHIPXPLORER_UDP_PORT` | hub.shipxplorer.com| UDP | Alternative way to feed ShipXplorer via UDP instead of via a Sharing Key. Please use one or the other, but not both! Sign up at [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "I want to share with: NMEA over UDP" |
+ | ShipXplorer (alt. config with UDP) | `SHIPXPLORER_UDP_PORT` | hub.shipxplorer.com| UDP | Alternative way to feed ShipXplorer via UDP instead of via a Sharing Key. Please use one or the other, but not both! Sign up at [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "I want to share with: NMEA over UDP" |
  | VesselFinder | `VESSELFINDER_UDP_PORT` or<br/>`VESSELFINDER_TCP_PORT` | [ais.vesselfinder.com](http://ais.vesselfinder.com) | UDP / TCP | [https://stations.vesselfinder.com/become-partner](https://stations.vesselfinder.com/become-partner) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
  | VesselTracker | `VESSELTRACKER_UDP_PORT` or<br/>`VESSELTRACKER_TCP_PORT` | 83.220.137.136 | UDP or TCP| [https://www.vesseltracker.com/en/static/antenna-partner.html](https://www.vesseltracker.com/en/static/antenna-partner.html) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company |
 
@@ -250,7 +253,7 @@ Note: for all parameters `SERVICE_UDP_PORT` (and similarly for `SERVICE_TCP_PORT
 - `- SERVICE_UDP_PORT=1234` --> use UDP port 1234
 - `- SERVICE_UDP_PORT=hostname:1234` or `- SERVICE_UDP_PORT=ip_addr:1234` --> use the hostname or ip address instead of the one indicated in the table, and UDP port 1234
 
-For services that do no need any UDP ports or credentials, you can simply set `- SERVICE_SHAREDATA=true`. However, if you want to use a non-default port and/or hostname/ip, you can set also `SERVICE_UDP_PORT` (as shown above) for that service. Order of preference:
+For services that do not need any UDP ports or credentials, you can simply set `- SERVICE_SHAREDATA=true`. However, if you want to use a non-default port and/or hostname/ip, you can set also `SERVICE_UDP_PORT` (as shown above) for that service. Order of preference:
 
 - if `SERVICE_UDP_PORT` is defined --> use this UDP port regardless of the value of `SERVICE_SHAREDATA`
 - if `SERVICE_SHAREDATA` is set to `true` and `SERVICE_UDP_PORT` is not defined --> use the default UDP port to feed `SERVICE`
