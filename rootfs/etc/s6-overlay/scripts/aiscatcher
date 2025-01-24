@@ -342,6 +342,14 @@ if [[ -n "${AISCATCHER_MQTT_URL}" ]]; then
     aiscatcher_command+=("MSGFORMAT ${AISCATCHER_MQTT_MSGFORMAT:-JSON_FULL}")
 fi
 
+if [[ -n "$ADSB_CONNECTOR" ]]; then
+    readarray -d, -t connector <<< "$ADSB_CONNECTOR"
+    aiscatcher_command+=("-t ${connector[0]//$'\n'/} ${connector[1]//$'\n'/} ${connector[2]//$'\n'/}")
+    if [[ -n "$FEEDER_LAT" ]] && [[ -n "$FEEDER_LONG" ]]; then
+        aiscatcher_command+=("-Z $FEEDER_LAT $FEEDER_LONG")
+    fi
+fi
+
 aiscatcher_command+=("$AISCATCHER_EXTRA_OPTIONS")
 
 aiscommand="$(echo ${aiscatcher_command[@]} | xargs)"
