@@ -222,6 +222,7 @@ If the `AISCATCHER_CHANNELS` and `AISCATCHER_DECODER_XXXX` parameters listed abo
 | `PLUGIN_UPDATE_INTERVAL` | Optional. Set this to the interval (for example, `30` (secs) or `5m` or `6h` or `3d`) to check the AIS-Catcher github repository for updates to the JavaScript web plugins. Set to `0` or `off` to disable checking. | `6h` |
 | `REFRESHRATE` | Refresh rate of the vessel data on the web page, in msec. Larger numbers reduce web page traffic, which can become an issue if there are a large number of vessels | `2500` (msec) |
 | `DISABLE_GEOJSON` | If set to `true`, no GeoJSON info will be available at <http://my_aiscatcher/geojson>. This is normally enabled if the parameter is omitted. | Empty (GeoJSON is default enabled) |
+| `ADSB_CONNECTOR` | Connect to a `beast` or `raw1090` ADS-B data stream to show aircraft on your AIS map. Format: `ADSB_CONNECTOR=<format>,<hostname>,<port>` where `<format>` is either `beast` or `raw1090`, and the `<hostname>` and `<port>` parameters indicate where the data comes from | Empty |
 
 ## Feeding AIS Aggregator Services
 
