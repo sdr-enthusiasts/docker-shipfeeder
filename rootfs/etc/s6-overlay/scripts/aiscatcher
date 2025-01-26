@@ -50,6 +50,8 @@ then
     done
 fi
 
+# if rtlagc is not defined, default is ON
+RTLSDR_DEVICE_RTLAGC="${RTLSDR_DEVICE_RTLAGC:ON}"
 # get gain
 VALID_GAINS=(0.0 0.9 1.4 2.7 3.7 7.7 8.7 12.5 14.4 15.7 16.6 19.7 20.7 22.9 25.4 28.0 29.7 32.8 33.8 36.4 37.2 38.6 40.2 42.1 43.4 43.9 44.5 48.0 49.6)
 # if the gain isn't defined, default to 33.8 (middle of the scale)
@@ -295,7 +297,7 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"; aiscatcher_command+=("-c ${AISCATCHER_CHANNELS:-AB}")
     #AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-c\s+[a-dA-D ]+//g' <<< "$AISCATCHER_EXTRA_OPTIONS")"   # remove any -c items from param to avoid duplication
     aiscatcher_command+=("-d ${RTLSDR_DEVICE_SERIAL}")
-    aiscatcher_command+=("-gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ON")
+    aiscatcher_command+=("-gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ${RTLSDR_DEVICE_RTLAGC}")
     if chk_enabled "${RTLSDR_DEVICE_BIASTEE}"; then
         aiscatcher_command+=("BIASTEE on")
     fi
