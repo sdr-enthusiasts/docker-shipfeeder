@@ -297,7 +297,12 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"; aiscatcher_command+=("-c ${AISCATCHER_CHANNELS:-AB}")
     #AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-c\s+[a-dA-D ]+//g' <<< "$AISCATCHER_EXTRA_OPTIONS")"   # remove any -c items from param to avoid duplication
     aiscatcher_command+=("-d ${RTLSDR_DEVICE_SERIAL}")
-    aiscatcher_command+=("-gr tuner ${RTLSDR_DEVICE_GAIN} rtlagc ${RTLSDR_DEVICE_RTLAGC}")
+    aiscatcher_command+=("-gr tuner ${RTLSDR_DEVICE_GAIN}")
+    if ! chk_disabled "${RTLSDR_DEVICE_RTLAGC}"; then
+        aiscatcher_command+=("rtlagc ON")
+    else
+        aiscatcher_command+=("rtlagc OFF")
+    fi
     if chk_enabled "${RTLSDR_DEVICE_BIASTEE}"; then
         aiscatcher_command+=("BIASTEE on")
     fi
