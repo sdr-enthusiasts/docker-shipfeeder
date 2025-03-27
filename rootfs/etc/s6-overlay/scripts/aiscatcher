@@ -221,6 +221,11 @@ if [[ -n "$MYSHIPTRACKING_UDP_PORT" ]] && [[ -n "$MYSHIPTRACKING_TCP_PORT" ]]; t
     "${s6wrap[@]}" echo "[WARNING] Both MYSHIPTRACKING_UDP_PORT and MYSHIPTRACKING_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
+# SDRMap:
+if [[ -n "${SDRMAP_PASSWORD:+$SDRMAP_STATION_ID}" ]]; then
+    aiscatcher_command+=("-H https://ais.feed.sdrmap.org/ USERPWD ${SDRMAP_STATION_ID}:${SDRMAP_PASSWORD} GZIP on INTERVAL 15 RESPONSE off")
+fi
+
 # ShippingExplorer:
 if [[ -n "$SHIPPINGEXPLORER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPPINGEXPLORER_UDP_PORT"; then SHIPPINGEXPLORER_UDP_PORT="144.76.54.111:$SHIPPINGEXPLORER_UDP_PORT"; fi
