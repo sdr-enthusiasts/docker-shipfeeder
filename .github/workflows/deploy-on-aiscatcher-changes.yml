@@ -19,6 +19,8 @@ jobs:
   check_upstream_image:
     name: Check upstream image
     runs-on: ubuntu-latest
+    outputs:
+      needs_updated: ${{ steps.check_container.outputs.needs_updated }}
     steps:
       # Check out our code
       - name: Checkout
@@ -27,6 +29,7 @@ jobs:
           fetch-depth: 0
 
       - name: check container SHAs
+        id: check_container
         env:
           CHECK_CONTAINER: ${{ env.CHECK_CONTAINER }}
           CHECK_TAG: ${{ env.CHECK_TAG }}
@@ -58,9 +61,10 @@ jobs:
               git commit -am "GH Action SHA updated $(date)"
               git push -f origin main
               echo "Success - container needs rebuilding"
+              echo "needs_updated=true" >> "$GITHUB_OUTPUT"
           else
               echo "Remote container has not changed, no need to run deploy. Exiting."
-              exit 1
+              echo "needs_updated=false" >> "$GITHUB_OUTPUT"
           fi
 
   call-workflow-in-local-repo:
@@ -69,5 +73,6 @@ jobs:
     #   workflow_call:
     #   repository_dispatch:
     #     types: build_on_aiscatcher_update
+    if: ${{ needs.check_upstream_image.outputs.needs_updated == 'true' }}
     needs: check_upstream_image
     uses: ./.github/workflows/deploy.yml

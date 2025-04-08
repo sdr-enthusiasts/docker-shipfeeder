@@ -192,7 +192,7 @@ You can use `rtl_test` to see which devices and device serials are connected to 
 | `RTLSDR_DEVICE_GAIN` | SDR device gain. Can also be set to `auto` | `33` |
 | `RTLSDR_DEVICE_PPM`| PPM deviation of your RTLSDR device | Empty |
 | `RTLSDR_DEVICE_RTLAGC` | Switches AGC on/off for your RTL-SDR device. | `on` |
-| `RTLSDR_DEVICE_BANDWIDTH` | Channel bandwitdh of the receiver | `192K` |
+| `RTLSDR_DEVICE_BANDWIDTH` | Channel bandwidth of the receiver | `192K` |
 | `RTLSDR_DEVICE_BIASTEE` | If set to `on`, `1`, `enabled`, or `yes`, the bias-tee function of the RTLSDR device will be switched on | Empty |
 | `AISCATCHER_CHANNELS` | Channels flag for `ais-catcher`. Set to `AB` (receive on channel AB, default value if omitted), `CD` (receive on channel CD), or `CD AB` (receive on channel CD but forward this data to aggregators saying it's channel AB; this can be used to send channels CD data to aggregators that can't handle CD data) | Empty (`AB`) |
 | `AISCATCHER_DECODER_MODEL` | Decoder model number for `ais-catcher` | `2` |
