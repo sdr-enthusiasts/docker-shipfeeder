@@ -1,5 +1,5 @@
 #!/command/with-contenv bash
-# shellcheck shell=bash disable=SC1091,SC2016,SC2068,SC2076,SC2086,SC2015,SC2154
+# shellcheck shell=bash disable=SC1091,SC2154
 
 source /scripts/common
 
@@ -60,46 +60,53 @@ then
     RTLSDR_DEVICE_GAIN="33.8"
 fi
 # Now make sure that the gain is in the valid gains range, and if it isn't, pick the nearest higher one
+# shellcheck disable=SC2076
 if [[ ! " ${VALID_GAINS[*]} " =~ " ${RTLSDR_DEVICE_GAIN} " ]] && [[ "${RTLSDR_DEVICE_GAIN,,}" != "auto" ]]
 then
     for GAIN in "${VALID_GAINS[@]}"
     do
         if [[ "$(awk "BEGIN {print int($GAIN * 10);}")" -ge "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" ]]
         then
-            RTLSDR_DEVICE_GAIN="$GAIN"
-            "${s6wrap[@]}" echo "Gain rounded to ${RTLSDR_DEVICE_GAIN}"
+            if [[ "$RTLSDR_DEVICE_GAIN" == "$GAIN" ]]; then
+                "${s6wrap[@]}" echo "Gain set to ${RTLSDR_DEVICE_GAIN}"
+            else
+                "${s6wrap[@]}" echo "Gain ${RTLSDR_DEVICE_GAIN} rounded to ${GAIN}"
+                RTLSDR_DEVICE_GAIN="$GAIN"
+            fi
             break
         fi
     done
 fi
 # If the number is still larger than the largest allowed number, then default to that one
-[[ "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" -gt "$(awk "BEGIN {print int(${VALID_GAINS[-1]} * 10);}")" ]] && RTLSDR_DEVICE_GAIN="${VALID_GAINS[-1]}"
+if [[ "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" -gt "$(awk "BEGIN {print int(${VALID_GAINS[-1]} * 10);}")" ]]; then 
+    RTLSDR_DEVICE_GAIN="${VALID_GAINS[-1]}"
+fi
 
 # check if STATION_NAME and STATION_LINK is defined. If it is not, add the ShipXplorer URL
-[[ -z "$STATION_NAME" ]] && [[ -n "$SERIAL_NUMBER" ]] && STATION_NAME="${SERIAL_NUMBER}" || true
-[[ -z "$STATION_LINK" ]] && [[ -n "$SERIAL_NUMBER" ]] && STATION_LINK="https://www.shipxplorer.com/stations/${SERIAL_NUMBER}" || true
+if [[ -z "$STATION_NAME" ]] && [[ -n "$SERIAL_NUMBER" ]]; then STATION_NAME="${SERIAL_NUMBER}"; fi
+if [[ -z "$STATION_LINK" ]] && [[ -n "$SERIAL_NUMBER" ]]; then STATION_LINK="https://www.shipxplorer.com/stations/${SERIAL_NUMBER}"; fi
 
 aiscatcher_command=()
 aiscatcher_command+=("/usr/local/bin/AIS-catcher")
 # set the web site parameters:
 if ! chk_enabled "${DISABLE_WEBSITE}"; then
     aiscatcher_command+=("-N 80 FILE /data/aiscatcher.bin")
-    ! chk_enabled "${DISABLE_GEOJSON}" && aiscatcher_command+=("GEOJSON on") || true
-    chk_enabled "${DISABLE_SHIPSJSON_COMPRESS}" && aiscatcher_command+=("ZLIB off") || true
-    [[ -d "/data/plugins" ]] && aiscatcher_command+=("PLUGIN_DIR /data/plugins") || true
-    [[ -f "/data/about.md" ]] && aiscatcher_command+=("ABOUT /data/about.md") || true
-    [[ -n "${BACKUP_INTERVAL}" ]] && aiscatcher_command+=("BACKUP ${BACKUP_INTERVAL}") || true
-    [[ -n "${STATION_HISTORY}" ]] && aiscatcher_command+=("HISTORY ${STATION_HISTORY}") || true
-    chk_enabled "${PROMETHEUS_ENABLE}" && aiscatcher_command+=("PROME on") || true
-    [[ -n "${STATION_NAME}" ]] && aiscatcher_command+=("STATION $STATION_NAME") || true
-    [[ -n "${STATION_LINK}" ]] && aiscatcher_command+=("STATION_LINK $STATION_LINK") || true
+    if ! chk_enabled "${DISABLE_GEOJSON}"; then aiscatcher_command+=("GEOJSON on"); fi
+    if chk_enabled "${DISABLE_SHIPSJSON_COMPRESS}"; then aiscatcher_command+=("ZLIB off"); fi
+    if [[ -d "/data/plugins" ]]; then aiscatcher_command+=("PLUGIN_DIR /data/plugins"); fi
+    if [[ -f "/data/about.md" ]]; then aiscatcher_command+=("ABOUT /data/about.md"); fi
+    if [[ -n "${BACKUP_INTERVAL}" ]]; then aiscatcher_command+=("BACKUP ${BACKUP_INTERVAL}"); fi
+    if [[ -n "${STATION_HISTORY}" ]]; then aiscatcher_command+=("HISTORY ${STATION_HISTORY}"); fi
+    if chk_enabled "${PROMETHEUS_ENABLE}"; then aiscatcher_command+=("PROME on"); fi
+    if [[ -n "${STATION_NAME}" ]]; then aiscatcher_command+=("STATION $STATION_NAME"); fi
+    if [[ -n "${STATION_LINK}" ]]; then aiscatcher_command+=("STATION_LINK $STATION_LINK"); fi
     if [[ -n "$FEEDER_LAT" ]] && [[ -n "$FEEDER_LONG" ]]
     then
         aiscatcher_command+=("LAT $FEEDER_LAT LON $FEEDER_LONG")
-        chk_enabled "${SITESHOW}" && aiscatcher_command+=("SHARE_LOC on") || true
+        if chk_enabled "${SITESHOW}"; then aiscatcher_command+=("SHARE_LOC on"); fi
     fi
-    chk_enabled "${DISABLE_SHOWLASTMSG}" && true || aiscatcher_command+=("MESSAGE on")
-    chk_enabled "${REALTIME}" && aiscatcher_command+=("REALTIME on") || true
+    if ! chk_enabled "${DISABLE_SHOWLASTMSG}"; then aiscatcher_command+=("MESSAGE on"); fi
+    if chk_enabled "${REALTIME}"; then aiscatcher_command+=("REALTIME on"); fi
 fi
 
 # Add NMEA UDP inputs if needed:
@@ -328,17 +335,17 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
            { [[ -z "$AISCATCHER_DECODER_AFC_WIDE" ]] && ! grep -qi 'AFC_WIDE' <<< "$AISCATCHER_EXTRA_OPTIONS"; }; then
                 aiscatcher_command+=("AFC_WIDE on")
         fi
-        chk_disabled "$AISCATCHER_DECODER_AFC_WIDE" && aiscatcher_command+=("AFC_WIDE off") || true
-        chk_enabled "$AISCATCHER_DECODER_FP_DS" && aiscatcher_command+=("FP_DS on") || true
-        chk_disabled "$AISCATCHER_DECODER_FP_DS" && aiscatcher_command+=("FP_DS off") || true
-        chk_enabled "$AISCATCHER_DECODER_PS_EMA" && aiscatcher_command+=("PS_EMA on") || true
-        chk_disabled "$AISCATCHER_DECODER_PS_EMA" && aiscatcher_command+=("PS_EMA off") || true
-        chk_enabled "$AISCATCHER_DECODER_SOXR" && aiscatcher_command+=("SOXR on") || true
-        chk_disabled "$AISCATCHER_DECODER_SOXR" && aiscatcher_command+=("SOXR off") || true
-        chk_enabled "$AISCATCHER_DECODER_SRC" && aiscatcher_command+=("SRC on") || true
-        chk_disabled "$AISCATCHER_DECODER_SRC" && aiscatcher_command+=("SRC off") || true
-        chk_enabled "$AISCATCHER_DECODER_DROOP" && aiscatcher_command+=("DROOP on") || true
-        chk_disabled "$AISCATCHER_DECODER_DROOP" && aiscatcher_command+=("DROOP off") || true
+        if chk_disabled "$AISCATCHER_DECODER_AFC_WIDE"; then aiscatcher_command+=("AFC_WIDE off"); fi
+        if chk_enabled "$AISCATCHER_DECODER_FP_DS"; then aiscatcher_command+=("FP_DS on"); fi
+        if chk_disabled "$AISCATCHER_DECODER_FP_DS"; then aiscatcher_command+=("FP_DS off"); fi
+        if chk_enabled "$AISCATCHER_DECODER_PS_EMA"; then aiscatcher_command+=("PS_EMA on"); fi
+        if chk_disabled "$AISCATCHER_DECODER_PS_EMA"; then aiscatcher_command+=("PS_EMA off"); fi
+        if chk_enabled "$AISCATCHER_DECODER_SOXR"; then aiscatcher_command+=("SOXR on"); fi
+        if chk_disabled "$AISCATCHER_DECODER_SOXR"; then aiscatcher_command+=("SOXR off"); fi
+        if chk_enabled "$AISCATCHER_DECODER_SRC"; then aiscatcher_command+=("SRC on"); fi
+        if chk_disabled "$AISCATCHER_DECODER_SRC"; then aiscatcher_command+=("SRC off"); fi
+        if chk_enabled "$AISCATCHER_DECODER_DROOP"; then aiscatcher_command+=("DROOP on"); fi
+        if chk_disabled "$AISCATCHER_DECODER_DROOP"; then aiscatcher_command+=("DROOP off"); fi
     elif [[ -z "$AISCATCHER_DECODER_AFC_WIDE" ]] && ! grep -qi 'AFC_WIDE' <<< "$AISCATCHER_EXTRA_OPTIONS"; then
         aiscatcher_command+=("-go AFC_WIDE on")
     fi
@@ -362,9 +369,11 @@ fi
 
 aiscatcher_command+=("$AISCATCHER_EXTRA_OPTIONS")
 
+# shellcheck disable=SC2068
 aiscommand="$(echo ${aiscatcher_command[@]} | xargs)"
 
 "${s6wrap[@]}" echo "Starting: ${aiscommand}"
 
 # shellcheck disable=SC2048
+# shellcheck disable=SC2086
 exec "${s6wrap[@]}" ${aiscommand}

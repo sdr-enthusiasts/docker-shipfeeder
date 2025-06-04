@@ -4,7 +4,7 @@
 source /scripts/common
 
 #---------------------------------------------------------------------------------------------
-# Copyright (C) 2022-2024, Ramon F. Kolb (kx1t)
+# Copyright (C) 2022-2025, Ramon F. Kolb (kx1t)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -28,7 +28,6 @@ SHARING_KEY="${SHARING_KEY:-${SX_SHARING_KEY:-${SHIPXPLORER_SHARING_KEY}}}"
 SERIAL_NUMBER="${SERIAL_NUMBER:-${SX_SERIAL_NUMBER:-${SHIPXPLORER_SERIAL_NUMBER}}}"
 
 if [[ -z "${SHARING_KEY}" ]]; then
-  "${s6wrap[@]}" --args echo "ShipXplorer feeding not enabled. Continuing..."
   exit 0
 fi
 
