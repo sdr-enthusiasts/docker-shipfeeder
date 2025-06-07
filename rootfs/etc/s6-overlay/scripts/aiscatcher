@@ -50,36 +50,61 @@ then
     done
 fi
 
-# get gain
-VALID_GAINS=(0.0 0.9 1.4 2.7 3.7 7.7 8.7 12.5 14.4 15.7 16.6 19.7 20.7 22.9 25.4 28.0 29.7 32.8 33.8 36.4 37.2 38.6 40.2 42.1 43.4 43.9 44.5 48.0 49.6)
-# if the gain isn't defined, default to 33.8 (middle of the scale)
-RTLSDR_DEVICE_GAIN="${RTLSDR_DEVICE_GAIN:-33.8}"
-# if the gain isn't a number and it isn't "auto", then default to 33.8 (middle of the scale)
-if [[ "${RTLSDR_DEVICE_GAIN,,}" != "auto" ]] && [[ ! $RTLSDR_DEVICE_GAIN =~ ^[+-]?[0-9.]+$ ]]
-then
-    RTLSDR_DEVICE_GAIN="33.8"
-fi
-# Now make sure that the gain is in the valid gains range, and if it isn't, pick the nearest higher one
-# shellcheck disable=SC2076
-if [[ ! " ${VALID_GAINS[*]} " =~ " ${RTLSDR_DEVICE_GAIN} " ]] && [[ "${RTLSDR_DEVICE_GAIN,,}" != "auto" ]]
-then
-    for GAIN in "${VALID_GAINS[@]}"
-    do
-        if [[ "$(awk "BEGIN {print int($GAIN * 10);}")" -ge "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" ]]
-        then
-            if [[ "$RTLSDR_DEVICE_GAIN" == "$GAIN" ]]; then
-                "${s6wrap[@]}" echo "Gain set to ${RTLSDR_DEVICE_GAIN}"
-            else
-                "${s6wrap[@]}" echo "Gain ${RTLSDR_DEVICE_GAIN} rounded to ${GAIN}"
-                RTLSDR_DEVICE_GAIN="$GAIN"
+if [[ -z "$SDR_TYPE" || "${SDR_TYPE^^}" == "RTLSDR" ]]; then
+    # get gain
+    VALID_GAINS=(0.0 0.9 1.4 2.7 3.7 7.7 8.7 12.5 14.4 15.7 16.6 19.7 20.7 22.9 25.4 28.0 29.7 32.8 33.8 36.4 37.2 38.6 40.2 42.1 43.4 43.9 44.5 48.0 49.6)
+    # if the gain isn't defined, default to 33.8 (middle of the scale)
+    RTLSDR_DEVICE_GAIN="${RTLSDR_DEVICE_GAIN:-33.8}"
+    # if the gain isn't a number and it isn't "auto", then default to 33.8 (middle of the scale)
+    if [[ "${RTLSDR_DEVICE_GAIN,,}" != "auto" ]] && [[ ! $RTLSDR_DEVICE_GAIN =~ ^[+-]?[0-9.]+$ ]]
+    then
+        RTLSDR_DEVICE_GAIN="33.8"
+    fi
+    # Now make sure that the gain is in the valid gains range, and if it isn't, pick the nearest higher one
+    # shellcheck disable=SC2076
+    if [[ ! " ${VALID_GAINS[*]} " =~ " ${RTLSDR_DEVICE_GAIN} " ]] && [[ "${RTLSDR_DEVICE_GAIN,,}" != "auto" ]]
+    then
+        for GAIN in "${VALID_GAINS[@]}"
+        do
+            if [[ "$(awk "BEGIN {print int($GAIN * 10);}")" -ge "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" ]]
+            then
+                if [[ "$RTLSDR_DEVICE_GAIN" == "$GAIN" ]]; then
+                    "${s6wrap[@]}" echo "Gain set to ${RTLSDR_DEVICE_GAIN}"
+                else
+                    "${s6wrap[@]}" echo "Gain ${RTLSDR_DEVICE_GAIN} rounded to ${GAIN}"
+                    RTLSDR_DEVICE_GAIN="$GAIN"
+                fi
+                break
             fi
-            break
-        fi
-    done
-fi
-# If the number is still larger than the largest allowed number, then default to that one
-if [[ "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" -gt "$(awk "BEGIN {print int(${VALID_GAINS[-1]} * 10);}")" ]]; then 
-    RTLSDR_DEVICE_GAIN="${VALID_GAINS[-1]}"
+        done
+    fi
+    # If the number is still larger than the largest allowed number, then default to that one
+    if [[ "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" -gt "$(awk "BEGIN {print int(${VALID_GAINS[-1]} * 10);}")" ]]; then
+        RTLSDR_DEVICE_GAIN="${VALID_GAINS[-1]}"
+    fi
+    GAINSTRING="-gr tuner ${RTLSDR_DEVICE_GAIN}"
+elif [[ "${SDR_TYPE^^}" == "AIRSPY" ]]
+then
+    RTLSDR_DEVICE_GAIN="${RTLSDR_DEVICE_GAIN:-12}"
+    if (( RTLSDR_DEVICE_GAIN > 21 ))
+    then
+        RTLSDR_DEVICE_GAIN=21
+    elif (( RTLSDR_DEVICE_GAIN < 0 ))
+    then
+        RTLSDR_DEVICE_GAIN=0
+    fi
+    GAINSTRING="-gm linearity ${RTLSDR_DEVICE_GAIN}"
+elif [[ "${SDR_TYPE^^}" == "SDRPLAY" ]]
+then
+    RTLSDR_DEVICE_GAIN="${RTLSDR_DEVICE_GAIN:-32}"
+    if (( RTLSDR_DEVICE_GAIN > 59 ))
+    then
+        RTLSDR_DEVICE_GAIN=59
+    elif (( RTLSDR_DEVICE_GAIN < 0 ))
+    then
+        RTLSDR_DEVICE_GAIN=0
+    fi
+    GAINSTRING="-gs GRDB ${RTLSDR_DEVICE_GAIN}"
 fi
 
 # check if STATION_NAME and STATION_LINK is defined. If it is not, add the ShipXplorer URL
@@ -307,11 +332,19 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"; aiscatcher_command+=("-c ${AISCATCHER_CHANNELS:-AB}")
     #AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-c\s+[a-dA-D ]+//g' <<< "$AISCATCHER_EXTRA_OPTIONS")"   # remove any -c items from param to avoid duplication
     aiscatcher_command+=("-d ${RTLSDR_DEVICE_SERIAL}")
-    aiscatcher_command+=("-gr tuner ${RTLSDR_DEVICE_GAIN}")
-    if ! chk_disabled "${RTLSDR_DEVICE_RTLAGC}"; then
-        aiscatcher_command+=("rtlagc ON")
-    else
-        aiscatcher_command+=("rtlagc OFF")
+    aiscatcher_command+=("${GAINSTRING}")
+    if [[ -z "$SDR_TYPE" || "${SDR_TYPE^^}" == "RTLSDR" ]]; then
+        if ! chk_disabled "${RTLSDR_DEVICE_RTLAGC}"; then
+            aiscatcher_command+=("rtlagc ON")
+        else
+            aiscatcher_command+=("rtlagc OFF")
+        fi
+    elif [[ "${SDR_TYPE^^}" == "SDRPLAY" ]]; then
+        if ! chk_disabled "${RTLSDR_DEVICE_RTLAGC}"; then
+            aiscatcher_command+=("agc ON")
+        else
+            aiscatcher_command+=("agc OFF")
+        fi
     fi
     if chk_enabled "${RTLSDR_DEVICE_BIASTEE}"; then
         aiscatcher_command+=("BIASTEE on")

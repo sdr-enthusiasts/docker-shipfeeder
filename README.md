@@ -186,14 +186,17 @@ You can use `rtl_test` to see which devices and device serials are connected to 
 
 ### SDR and Receiver Related Variables
 
+For backwards compatibility reasons the SDR related variables all have `RTLSDR` in their name, even though they apply to any supported SDR where that value makes sense.
+
 | Environment Variable | Purpose | Default value if omitted |
 | ---------------------- | ------------------------------- | --- |
-| `RTLSDR_DEVICE_SERIAL` | Serial Number of your RTL-SDR dongle | Empty |
-| `RTLSDR_DEVICE_GAIN` | SDR device gain. Can also be set to `auto` | `33` |
-| `RTLSDR_DEVICE_PPM`| PPM deviation of your RTLSDR device | Empty |
-| `RTLSDR_DEVICE_RTLAGC` | Switches AGC on/off for your RTL-SDR device. | `on` |
+| `SDR_TYPE` | `RTLSDR` or `AIRSPY` or `SDRPLAY` | `RTLSDR` |
+| `RTLSDR_DEVICE_SERIAL` | Serial Number of your SDR dongle | Empty |
+| `RTLSDR_DEVICE_GAIN` | SDR device gain. Can also be set to `auto` (RTLSDR only) | `33` (RTLSDR) / `12` (AIRSPY) / `32` (SDRPLAY) |
+| `RTLSDR_DEVICE_PPM`| PPM deviation of your SDR device | Empty |
+| `RTLSDR_DEVICE_RTLAGC` | Switches AGC on/off for your RTLSDR or SDRPLAY device. | `on` |
 | `RTLSDR_DEVICE_BANDWIDTH` | Channel bandwidth of the receiver | `192K` |
-| `RTLSDR_DEVICE_BIASTEE` | If set to `on`, `1`, `enabled`, or `yes`, the bias-tee function of the RTLSDR device will be switched on | Empty |
+| `RTLSDR_DEVICE_BIASTEE` | If set to `on`, `1`, `enabled`, or `yes`, the bias-tee function of the SDR device will be switched on (only Airspy and some RTLSDR devices) | Empty |
 | `AISCATCHER_CHANNELS` | Channels flag for `ais-catcher`. Set to `AB` (receive on channel AB, default value if omitted), `CD` (receive on channel CD), or `CD AB` (receive on channel CD but forward this data to aggregators saying it's channel AB; this can be used to send channels CD data to aggregators that can't handle CD data) | Empty (`AB`) |
 | `AISCATCHER_DECODER_MODEL` | Decoder model number for `ais-catcher` | `2` |
 | `AISCATCHER_DECODER_AFC_WIDE` | `-go AFC_WIDE` flag for `ais-catcher`. Recommended to set to `on` | `on` |
