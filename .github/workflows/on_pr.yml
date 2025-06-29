@@ -40,22 +40,16 @@ jobs:
   test_build:
     name: Image Build & Push
     needs: [hadolint, shellcheck]
-    uses: sdr-enthusiasts/common-github-workflows/.github/workflows/build_and_push_image.yml@main
+    uses: sdr-enthusiasts/common-github-workflows/.github/workflows/sdre.yml@main
     with:
       push_enabled: false
       push_destinations: ghcr.io
       ghcr_repo_owner: ${{ github.repository_owner }}
       ghcr_repo: ${{ github.repository }}
-      platform_linux_arm32v6_enabled: false
       platform_linux_arm32v7_enabled: true
-      platform_linux_i386_enabled: false
       # set build_latest to true if github.event.inputs.use_test_image is false
       build_latest: true
       build_baseimage_test: false
-      # only build the entire stack if we are not using the test image
-      build_version_specific: false
-      build_platform_specific: false
-      build_nohealthcheck: false
-      build_baseimage_url: :rtlsdr/:rtlsdr-test-pr
+      build_baseimage_url: :base/:base-test-pr
     secrets:
       ghcr_token: ${{ secrets.GITHUB_TOKEN }}
