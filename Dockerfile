@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM ghcr.io/jvde-github/ais-catcher:edge AS build
 
-FROM ghcr.io/sdr-enthusiasts/docker-baseimage:rtlsdr
+FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
 ARG TARGETPLATFORM TARGETOS TARGETARCH
 
@@ -11,11 +11,11 @@ ENV S6_KILL_FINISH_MAXTIME=10000 \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN set -x && \
-#
-echo "TARGETPLATFORM $TARGETPLATFORM" && \
-echo "TARGETOS $TARGETOS" && \
-echo "TARGETARCH $TARGETARCH" && \
-#
+    #
+    echo "TARGETPLATFORM $TARGETPLATFORM" && \
+    echo "TARGETOS $TARGETOS" && \
+    echo "TARGETARCH $TARGETARCH" && \
+    #
     # define required packages
     TEMP_PACKAGES=() && \
     KEPT_PACKAGES=() && \
@@ -44,16 +44,16 @@ echo "TARGETARCH $TARGETARCH" && \
     # install packages
     apt-get update && \
     apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
-        "${KEPT_PACKAGES[@]}" \
-        "${TEMP_PACKAGES[@]}" \
-        && \
+    "${KEPT_PACKAGES[@]}" \
+    "${TEMP_PACKAGES[@]}" \
+    && \
     #
     # install shipfeeder packages
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 1D043681 && \
     echo 'deb https://apt.rb24.com/ bullseye main' > /etc/apt/sources.list.d/rb24.list && \
     #
     if [ "$TARGETPLATFORM" != "linux/arm/v7" ]; then \
-        dpkg --add-architecture armhf; \
+    dpkg --add-architecture armhf; \
     fi && \
     #
     # The lines below would allow the apt.rb24.com repo to be access insecurely. We were using this because their key had expired
@@ -63,7 +63,7 @@ echo "TARGETARCH $TARGETARCH" && \
     #         "${SX_PACKAGES[@]}"; \
     apt-get update -q && \
     apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
-            "${SX_PACKAGES[@]}" && \
+    "${SX_PACKAGES[@]}" && \
     #
     # Do some other stuff
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
@@ -71,7 +71,7 @@ echo "TARGETARCH $TARGETARCH" && \
     #
     # clean up
     if [[ "${#TEMP_PACKAGES[@]}" -gt 0 ]]; then \
-        apt-get remove -y "${TEMP_PACKAGES[@]}"; \
+    apt-get remove -y "${TEMP_PACKAGES[@]}"; \
     fi && \
     apt-get autoremove -y && \
     # delete unnecessary qemu binaries to save lots of space
@@ -89,14 +89,14 @@ RUN \
 
 # Add Container Version
 RUN set -x && \
-pushd /tmp && \
+    pushd /tmp && \
     branch="##BRANCH##" && \
     { [[ "${branch:0:1}" == "#" ]] && branch="main" || true; } && \
     git clone --depth=1 -b "$branch" https://github.com/sdr-enthusiasts/docker-shipfeeder.git && \
     cd docker-shipfeeder && \
     echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > "/.CONTAINER_VERSION" && \
-popd && \
-rm -rf /tmp/*
+    popd && \
+    rm -rf /tmp/*
 
 COPY rootfs/ /
 
