@@ -50,7 +50,7 @@ then
     done
 fi
 
-if [[ -z "$SDR_TYPE" || "${SDR_TYPE^^}" == "RTLSDR" ]]; then
+if [[ "${SDR_TYPE^^}" == "RTLSDR" ]]; then
     # get gain
     VALID_GAINS=(0.0 0.9 1.4 2.7 3.7 7.7 8.7 12.5 14.4 15.7 16.6 19.7 20.7 22.9 25.4 28.0 29.7 32.8 33.8 36.4 37.2 38.6 40.2 42.1 43.4 43.9 44.5 48.0 49.6)
     # if the gain isn't defined, default to 33.8 (middle of the scale)
@@ -333,7 +333,11 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     #AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-c\s+[a-dA-D ]+//g' <<< "$AISCATCHER_EXTRA_OPTIONS")"   # remove any -c items from param to avoid duplication
     aiscatcher_command+=("-d ${RTLSDR_DEVICE_SERIAL}")
     aiscatcher_command+=("${GAINSTRING}")
-    if [[ -z "$SDR_TYPE" || "${SDR_TYPE^^}" == "RTLSDR" ]]; then
+    if [[ -z "$SDR_TYPE" ]]; then
+        # default to RTLSDR as SDR type if none is specified
+        SDR_TYPE="RTLSDR"
+    fi
+    if [[ "${SDR_TYPE^^}" == "RTLSDR" ]]; then
         if ! chk_disabled "${RTLSDR_DEVICE_RTLAGC}"; then
             aiscatcher_command+=("rtlagc ON")
         else
@@ -346,8 +350,12 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
             aiscatcher_command+=("agc OFF")
         fi
     fi
-    if chk_enabled "${RTLSDR_DEVICE_BIASTEE}"; then
-        aiscatcher_command+=("BIASTEE on")
+    if [[ "${SDR_TYPE^^}" == "AIRSPY" || "${SDR_TYPE^^}" == "RTLSDR" ]]; then
+        if chk_enabled "${RTLSDR_DEVICE_BIASTEE}"; then
+            aiscatcher_command+=("BIASTEE on")
+        else
+            aiscatcher_command+=("BIASTEE off")
+        fi
     fi
     if [[ -n "${RTLSDR_DEVICE_PPM}" ]]; then
         aiscatcher_command+=("-p ${RTLSDR_DEVICE_PPM}")
