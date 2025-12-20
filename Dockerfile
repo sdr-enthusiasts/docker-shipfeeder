@@ -71,6 +71,16 @@ RUN set -x && \
     apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
     "${SX_PACKAGES[@]}" && \
     #
+    cd /tmp/ && \
+    git clone https://github.com/hydrasdr/rfone_host.git --depth 1 && \
+    cd rfone_host/libhydrasdr && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr && \
+    make && \
+    make install && \
+    ldconfig && \
+
     # Do some other stuff
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
     echo "alias nano=\"nano -l\"" >> /root/.bashrc && \
@@ -92,10 +102,6 @@ RUN \
     find /build | grep libairspyhf | cut -d/ --complement -f1,2 | xargs --replace cp -a -T -v /build/'{}' /'{}' && \
     ldconfig && \
     true
-
-RUN cd /root/; git clone https://github.com/hydrasdr/rfone_host.git --depth 1
-RUN cd /root/rfone_host/libhydrasdr && mkdir build && cd build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make && make install && ldconfig
-RUN rm -rf /root/rfone_host
 
 # Add Container Version
 RUN set -x && \
