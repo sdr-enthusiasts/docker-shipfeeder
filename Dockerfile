@@ -40,7 +40,6 @@ RUN set -x && \
     KEPT_PACKAGES+=(libpqxx-dev) && \
     KEPT_PACKAGES+=(lsb-release) && \
     KEPT_PACKAGES+=(sqlite3) && \
-    TEMP_PACKAGES+=(git) && \
     TEMP_PACKAGES+=(make) && \
     TEMP_PACKAGES+=(gcc) && \
     TEMP_PACKAGES+=(g++) && \
@@ -81,7 +80,7 @@ RUN set -x && \
     make && \
     make install && \
     ldconfig && \
-
+    #
     # Do some other stuff
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
     echo "alias nano=\"nano -l\"" >> /root/.bashrc && \
