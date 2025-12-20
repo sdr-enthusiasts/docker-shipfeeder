@@ -45,7 +45,7 @@ RUN set -x && \
     TEMP_PACKAGES+=(gcc) && \
     TEMP_PACKAGES+=(g++) && \
     TEMP_PACKAGES+=(cmake) && \
-    TEMP_PACKAGES+=(pkg-config)
+    TEMP_PACKAGES+=(pkg-config) && \
     #
     # install packages
     apt-get update && \
