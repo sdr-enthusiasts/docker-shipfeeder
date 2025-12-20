@@ -87,6 +87,10 @@ RUN \
     ldconfig && \
     true
 
+RUN cd /root/; git clone https://github.com/hydrasdr/rfone_host.git --depth 1
+RUN cd /root/rfone_host/libhydrasdr && mkdir build && cd build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make && make install && ldconfig
+RUN rm -rf /root/rfone_host
+
 # Add Container Version
 RUN set -x && \
     pushd /tmp && \
