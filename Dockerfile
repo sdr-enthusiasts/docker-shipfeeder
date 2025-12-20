@@ -46,6 +46,7 @@ RUN set -x && \
     TEMP_PACKAGES+=(g++) && \
     TEMP_PACKAGES+=(cmake) && \
     TEMP_PACKAGES+=(pkg-config) && \
+    TEMP_PACKAGES+=(libusb-1.0.0-dev) && \
     #
     # install packages
     apt-get update && \
