@@ -40,6 +40,12 @@ RUN set -x && \
     KEPT_PACKAGES+=(libpqxx-dev) && \
     KEPT_PACKAGES+=(lsb-release) && \
     KEPT_PACKAGES+=(sqlite3) && \
+    TEMP_PACKAGES+=(git) && \
+    TEMP_PACKAGES+=(make) && \
+    TEMP_PACKAGES+=(gcc) && \
+    TEMP_PACKAGES+=(g++) && \
+    TEMP_PACKAGES+=(cmake) && \
+    TEMP_PACKAGES+=(pkg-config)
     #
     # install packages
     apt-get update && \
