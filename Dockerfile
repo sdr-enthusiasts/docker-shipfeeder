@@ -98,7 +98,7 @@ RUN set -x && \
 RUN \
     --mount=type=bind,from=build,source=/,target=/build/ \
     set -x && \
-    cp -v /build/usr/local/bin/AIS-catcher /usr/local/bin/AIS-catcher && \
+    cp -v /build/usr/bin/AIS-catcher /usr/local/bin/AIS-catcher && \
     find /build | grep libairspyhf | cut -d/ --complement -f1,2 | xargs --replace cp -a -T -v /build/'{}' /'{}' && \
     ldconfig && \
     true
