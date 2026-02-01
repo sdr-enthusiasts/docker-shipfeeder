@@ -16,12 +16,14 @@ RUN set -x && \
     echo "TARGETOS $TARGETOS" && \
     echo "TARGETARCH $TARGETARCH" && \
     #
+    . /etc/os-release && \
+    codename="$VERSION_CODENAME" && \
     # define required packages
     TEMP_PACKAGES=() && \
     KEPT_PACKAGES=() && \
     SX_PACKAGES=() && \
     #
-    SX_PACKAGES+=(sxfeeder:armhf) && \
+    #SX_PACKAGES+=(sxfeeder:armhf) && \
     # SX_PACKAGES+=(aiscatcher:armhf) && \
     #
     TEMP_PACKAGES+=(gnupg) && \
@@ -33,7 +35,11 @@ RUN set -x && \
     KEPT_PACKAGES+=(libzmq5) && \
     KEPT_PACKAGES+=(libsoxr0) && \
     # KEPT_PACKAGES+=(libcurl4) && \
-    KEPT_PACKAGES+=(libssl3) && \
+    if [[ "$codename" == "trixie" ]]; then \
+    KEPT_PACKAGES+=(libssl3t64); \
+    else \
+    KEPT_PACKAGES+=(libssl3); \
+    fi && \
     KEPT_PACKAGES+=(tcpdump) && \
     KEPT_PACKAGES+=(git) && \
     KEPT_PACKAGES+=(nano) && \
@@ -46,6 +52,10 @@ RUN set -x && \
     TEMP_PACKAGES+=(cmake) && \
     TEMP_PACKAGES+=(pkg-config) && \
     TEMP_PACKAGES+=(libusb-1.0.0-dev) && \
+    #packages for getting keys
+    TEMP_PACKAGES+=(dirmngr) && \
+    TEMP_PACKAGES+=(gnupg) && \
+    TEMP_PACKAGES+=(rsync) && \
     #
     # install packages
     apt-get update && \
@@ -55,22 +65,49 @@ RUN set -x && \
     && \
     #
     # install shipfeeder packages
-    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 1D043681 && \
-    echo 'deb https://apt.rb24.com/ bullseye main' > /etc/apt/sources.list.d/rb24.list && \
+    gpg --keyserver keyserver.ubuntu.com --recv-keys 1D043681  && \
+    gpg --export --armor 1D043681 | gpg --dearmor -o /etc/apt/keyrings/flightradar24.gpg   && \
+    echo "deb [signed-by=/etc/apt/keyrings/flightradar24.gpg] https://apt.rb24.com/ bookworm main" | tee /etc/apt/sources.list.d/fr24feed.list  && \
     #
+    SX_PACKAGE_NAME="sxfeeder" && \
     if [ "$TARGETPLATFORM" != "linux/arm/v7" ]; then \
-    dpkg --add-architecture armhf; \
+    SX_PACKAGE_NAME="${SX_PACKAGE_NAME}:armhf" && \
+    dpkg --add-architecture armhf && \
+    SX_PACKAGES+=(libc6:armhf) && \
+    SX_PACKAGES+=(libjansson4:armhf) && \
+    SX_PACKAGES+=(libprotobuf-c1:armhf) && \
+    if [[ "$codename" == "trixie" ]]; then \
+    SX_PACKAGES+=(libglib2.0-0t64:armhf); \
+    SX_PACKAGES+=(libcurl4t64:armhf); \
+    else \
+    SX_PACKAGES+=(libglib2.0-0:armhf); \
+    SX_PACKAGES+=(libcurl4:armhf); \
+    fi; \
+    else \
+    SX_PACKAGES+=(libc6); \
+    SX_PACKAGES+=(libjansson4); \
+    SX_PACKAGES+=(libprotobuf-c1); \
+    if [[ "$codename" == "trixie" ]]; then \
+    SX_PACKAGES+=(libglib2.0-0t64); \
+    SX_PACKAGES+=(libcurl4t64); \
+    else \
+    SX_PACKAGES+=(libglib2.0-0); \
+    SX_PACKAGES+=(libcurl4); \
+    fi; \
     fi && \
     #
     # The lines below would allow the apt.rb24.com repo to be access insecurely. We were using this because their key had expired
     # However, as of 1-feb-2024, the repo was updated to contain again a valid key so this is no longer needed. Leaving it in as an archifact for future reference.
     # apt-get update -q --allow-insecure-repositories && \
-    # apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests --allow-unauthenticated \
-    #         "${SX_PACKAGES[@]}"; \
     apt-get update -q && \
-    apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests \
+    apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests --allow-unauthenticated \
     "${SX_PACKAGES[@]}" && \
-    #
+    apt-get download "${SX_PACKAGE_NAME}" && \
+    mkdir -p /tmp/sxfeeder && \
+    dpkg --fsys-tarfile *.deb | tar -C /tmp/sxfeeder -x && \
+    cp /tmp/sxfeeder/usr/bin/sxfeeder /usr/bin/sxfeeder && \
+    # check that the executable works
+    { qemu-arm-static /usr/bin/sxfeeder --version || /usr/bin/sxfeeder --version; } && \
     cd /tmp/ && \
     git clone https://github.com/hydrasdr/rfone_host.git --depth 1 && \
     cd rfone_host/libhydrasdr && \
