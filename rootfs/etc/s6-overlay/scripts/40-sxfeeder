@@ -60,3 +60,6 @@ touch /var/log/sxfeeder.log
 chmod a+rwx /var/log/sxfeeder.log
 truncate --size=0 /var/log/sxfeeder.log
 chmod a+rw /etc/sxfeeder.ini
+
+# cpu serial workaround, see Dockerfile
+cat /proc/cpuinfo > /proc_cpuinfo

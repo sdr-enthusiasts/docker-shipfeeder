@@ -106,6 +106,8 @@ RUN set -x && \
     mkdir -p /tmp/sxfeeder && \
     dpkg --fsys-tarfile *.deb | tar -C /tmp/sxfeeder -x && \
     cp /tmp/sxfeeder/usr/bin/sxfeeder /usr/bin/sxfeeder && \
+    # work around qemu providing its own /proc/cpuinfo which causes an issue with sxfeeder not finding the serial
+    if [ "${TARGETARCH:0:3}" != "arm" ]; then sed -i -e 's#/proc/cpuinfo#/proc_cpuinfo#' /usr/bin/sxfeeder; fi && \
     # check that the executable works
     { qemu-arm-static /usr/bin/sxfeeder --version || /usr/bin/sxfeeder --version; } && \
     cd /tmp/ && \
