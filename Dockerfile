@@ -102,6 +102,7 @@ RUN set -x && \
     apt-get update -q && \
     apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests --allow-unauthenticated \
     "${SX_PACKAGES[@]}" && \
+    cd /tmp/ && \
     apt-get download "${SX_PACKAGE_NAME}" && \
     mkdir -p /tmp/sxfeeder && \
     dpkg --fsys-tarfile sxfeeder*.deb | tar -C /tmp/sxfeeder -x && \
