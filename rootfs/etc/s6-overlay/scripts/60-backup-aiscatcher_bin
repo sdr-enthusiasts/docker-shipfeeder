@@ -26,5 +26,5 @@ if [[ -f /data/aiscatcher.bin ]]; then
   cp --backup=numbered -u /data/aiscatcher.bin /data/aiscatcher.bin.bkup
 fi
 
-# remove any backups older than BACKUP_RETENTION_TIME (or 30 days if undefined)
-find /data -maxdepth 1 -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-30}" -exec rm {} \;
+# remove any backups older than BACKUP_RETENTION_TIME (or 7 days if undefined)
+find /data -maxdepth 1 -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-7}" -exec rm {} \;

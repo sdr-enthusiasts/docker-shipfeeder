@@ -21,8 +21,8 @@ source /scripts/common
 
 # Update JavaScript plugins and do some other housekeeping
 
-# remove any aiscatcher.bin backups older than BACKUP_RETENTION_TIME (or 30 days if undefined)
-find /data -maxdepth 1 -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-30}" -exec rm {} \;
+# remove any aiscatcher.bin backups older than BACKUP_RETENTION_TIME (or 7 days if undefined)
+find /data -maxdepth 1 -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-7}" -exec rm {} \;
 
 #APPNAME="${APPNAME:-plugin-updates}"
 s6wrap=(s6wrap --quiet --timestamps --prepend="$(basename "$0")")
@@ -92,8 +92,11 @@ if [[ -n "${REFRESHRATE}" ]]; then
   rm -f /data/plugins/refreshrate.pjs
 fi
 
-# remove any plugin backups older than BACKUP_RETENTION_TIME (or 30 days if undefined)
-find /data/plugins -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-30}" -exec rm {} \;
+# remove any plugin backups older than BACKUP_RETENTION_TIME (or 7 days if undefined)
+find /data/plugins -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-7}" -exec rm {} \;
+
+# remove marinetraffic_option.pjs if it exists since it's no longer supported
+rm -f /data/plugins/marinetraffic_option.pjs
 
 rm -rf /tmp/AIS-catcher
 
