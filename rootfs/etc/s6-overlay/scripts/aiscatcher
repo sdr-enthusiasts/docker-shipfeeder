@@ -158,7 +158,7 @@ fi
 # Add a number of well-known feeders: 
 # ADSBNetwork / RadarVirtuel:
 if [[ -n "${RADARVIRTUEL_STATION_ID}" ]]; then
-    aiscatcher_command+=("-H https://ais.adsbnetwork.com/ingester/insert/${RADARVIRTUEL_FEEDER_KEY:-lourd} ID $RADARVIRTUEL_STATION_ID INTERVAL 15 RESPONSE off")
+    aiscatcher_command+=("-H https://ais.adsbnetwork.com/ingester:3002/insert/${RADARVIRTUEL_FEEDER_KEY:-lourd} ID $RADARVIRTUEL_STATION_ID INTERVAL 15 RESPONSE off")
 fi
 
 # AirFrames:
