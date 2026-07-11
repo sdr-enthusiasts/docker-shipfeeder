@@ -57,7 +57,7 @@ We expect you to have the following:
 
 - a piece of hardware that runs Linux. The prebuilt containers support `armhf`, `arm64`, and `amd64`. Systems with those architectures include Raspberry Pi 3B+, 4, and Linux PCs with Ubuntu.
 - a dedicated RTL-SDR dongle that can receive at 160 MHz, with an appropriate antenna
-- Docker must be installed on your system. If you don't know how to do that, please read [here](https://github.com/sdr-enthusiasts/docker-install).
+- Docker must be installed on your system. If you don't know how to do that, please read [the docker install instructions](https://github.com/sdr-enthusiasts/docker-install).
 - Some basic knowledge on how to use Linux and how to configure docker containers with `docker-compose`.
 
 ## Multi Architecture Support
@@ -193,7 +193,7 @@ For backwards compatibility reasons the SDR related variables all have `RTLSDR` 
 | `SDR_TYPE` | `RTLSDR` or `AIRSPY` or `SDRPLAY` | `RTLSDR` |
 | `RTLSDR_DEVICE_SERIAL` | Serial Number of your SDR dongle | Empty |
 | `RTLSDR_DEVICE_GAIN` | SDR device gain. Can also be set to `auto` (RTLSDR only) | `33` (RTLSDR) / `12` (AIRSPY) / `32` (SDRPLAY) |
-| `RTLSDR_DEVICE_PPM`| PPM deviation of your SDR device | Empty |
+| `RTLSDR_DEVICE_PPM` | PPM deviation of your SDR device | Empty |
 | `RTLSDR_DEVICE_RTLAGC` | Switches AGC on/off for your RTLSDR or SDRPLAY device. | `on` |
 | `RTLSDR_DEVICE_BANDWIDTH` | Channel bandwidth of the receiver | `192K` |
 | `RTLSDR_DEVICE_BIASTEE` | If set to `on`, `1`, `enabled`, or `yes`, the bias-tee function of the SDR device will be switched on (only Airspy and some RTLSDR devices) | Empty |
@@ -236,7 +236,7 @@ If the `AISCATCHER_CHANNELS` and `AISCATCHER_DECODER_XXXX` parameters listed abo
 
 ### Easy sharing with other services
 
-This table shows which parameters to set and how to obtain credentials for a number of well-known AIS aggregators. A (partial) list of these aggregators and instructions on how to get a key or port for them can be found [here](https://docs.google.com/spreadsheets/d/1W9uuuS2tGHcNENm7Ze3M1UPl2u8tMZv2N_bID6x060Y/edit?usp=sharing)
+This table shows which parameters to set and how to obtain credentials for a number of well-known AIS aggregators. A (partial) list of these aggregators and instructions on how to get a key or port for them can be found [in this sheet](https://docs.google.com/spreadsheets/d/1W9uuuS2tGHcNENm7Ze3M1UPl2u8tMZv2N_bID6x060Y/edit?usp=sharing)
 
  | Name | Parameter | Default IP/DNS/URL | Feeding protocol:<br>UDP/TCP/HTTP/Other | How to register for a key or ID |
  | ---- | --------- | ------------------ | --------------------------------------- | ------------------------------- |
@@ -246,7 +246,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | AIS Friends | `AISFRIENDS_UDP_PORT` | `ais.aisfriends.com` | UDP | Sign up at [AIS Friends](https://www.aisfriends.com/register) to receive a dedicated UDP port by email |
  | AISHub | `AISHUB_UDP_PORT` | [data.aishub.net](http://data.aishub.net) | UDP | [https://www.aishub.net/join-us](https://www.aishub.net/join-us) |
  | [APRS.fi](http://APRS.fi) | `APRSFI_FEEDER_KEY`<br>`APRSFI_STATION_ID` | [http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY](http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY) | HTTP | Get AIS Password (`APRSFI_FEEDER_KEY`) at [https://aprs.fi/?c=account](https://aprs.fi/?c=account). Use your Ham Radio callsign for `APRSFI_STATION_ID`. Both fields are mandatory. |
- | BoatBeacon (aka Pocket Mariner)| `BOATBEACON_SHAREDATA=true` or<br/> `BOATBEACON_UDP_PORT` or<br/> `BOATBEACON_TCP_PORT` | [boatbeaconapp.com:5322](http://boatbeaconapp.com:5322) | UDP / TCP | [https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/](https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/) - set `BOATBEACON_SHAREDATA=true` to feed without any key or assigned port, or set your assigned UDP or TCP port in the respective parameter |
+ | BoatBeacon (aka Pocket Mariner) | `BOATBEACON_SHAREDATA=true` or<br/> `BOATBEACON_UDP_PORT` or<br/> `BOATBEACON_TCP_PORT` | [boatbeaconapp.com:5322](http://boatbeaconapp.com:5322) | UDP / TCP | [https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/](https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/) - set `BOATBEACON_SHAREDATA=true` to feed without any key or assigned port, or set your assigned UDP or TCP port in the respective parameter |
  | HPRadar | `HPRADAR_UDP_PORT` | [aisfeed.hpradar.com](http://aisfeed.hpradar.com) | UDP | |
  | MarineTraffic | `MARINETRAFFIC_UDP_PORT` or<br/>`MARINETRAFFIC_TCP_PORT` | 5.9.207.224 | UDP / TCP | [https://www.marinetraffic.com/en/join-us/cover-your-area](https://www.marinetraffic.com/en/join-us/cover-your-area) Please use either the UDP option or the TCP option as instructed by MarineTraffic, but don't use both! |
  | MyShipTracking | `MYSHIPTRACKING_UDP_PORT` or<br/>`MYSHIPTRACKING_TCP_PORT` | 178.162.215.175 | UDP / TCP | [https://www.myshiptracking.com/help-center/contributors/add-your-station](https://www.myshiptracking.com/help-center/contributors/add-your-station) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
@@ -254,9 +254,9 @@ This table shows which parameters to set and how to obtain credentials for a num
  | ShipFinder | `SHIPFINDER_SHAREDATA=true` | [ais.shipfinder.co.uk:4001](http://ais.shipfinder.co.uk:4001/) | UDP | [https://shipfinder.co/about/coverage/](https://shipfinder.co/about/coverage/) |
  | ShippingExplorer | `SHIPPINGEXPLORER_UDP_PORT` or<br/>`SHIPPINGEXPLORER_TCP_PORT` | 144.76.54.111 | UDP or TCP | Request UDP port at [https://www.shippingexplorer.net/en/contact](https://www.shippingexplorer.net/en/contact) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
  | ShipXplorer | `SHIPXPLORER_SHARING_KEY` or `SHARING_KEY` (legacy)<br>`SHIPXPLORER_SERIAL_NUMBER` or `SERIAL_NUMBER` (legacy) | | Other | See [Obtaining a ShipXplorer Sharing Key](#obtaining-a-shipxplorer-sharing-key) |
- | ShipXplorer (alt. config with UDP) | `SHIPXPLORER_UDP_PORT` | hub.shipxplorer.com| UDP | Alternative way to feed ShipXplorer via UDP instead of via a Sharing Key. Please use one or the other, but not both! Sign up at [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "I want to share with: NMEA over UDP" |
+ | ShipXplorer (alt. config with UDP) | `SHIPXPLORER_UDP_PORT` | hub.shipxplorer.com | UDP | Alternative way to feed ShipXplorer via UDP instead of via a Sharing Key. Please use one or the other, but not both! Sign up at [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "I want to share with: NMEA over UDP" |
  | VesselFinder | `VESSELFINDER_UDP_PORT` or<br/>`VESSELFINDER_TCP_PORT` | [ais.vesselfinder.com](http://ais.vesselfinder.com) | UDP / TCP | [https://stations.vesselfinder.com/become-partner](https://stations.vesselfinder.com/become-partner) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
- | VesselTracker | `VESSELTRACKER_UDP_PORT` or<br/>`VESSELTRACKER_TCP_PORT` | 83.220.137.136 | UDP or TCP| [https://www.vesseltracker.com/en/static/antenna-partner.html](https://www.vesseltracker.com/en/static/antenna-partner.html) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company |
+ | VesselTracker | `VESSELTRACKER_UDP_PORT` or<br/>`VESSELTRACKER_TCP_PORT` | 83.220.137.136 | UDP or TCP | [https://www.vesseltracker.com/en/static/antenna-partner.html](https://www.vesseltracker.com/en/static/antenna-partner.html) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company |
 
 Note: for all parameters `SERVICE_UDP_PORT` (and similarly for `SERVICE_TCP_PORT` where supported), you may use one of the following formats:
 

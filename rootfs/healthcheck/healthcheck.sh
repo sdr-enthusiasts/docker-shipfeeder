@@ -1,5 +1,5 @@
 #!/command/with-contenv bash
-# shellcheck shell=bash 
+# shellcheck shell=bash
 
 #---------------------------------------------------------------------------------------------
 # Copyright (C) 2022-2023, Ramon F. Kolb (kx1t)
@@ -23,6 +23,7 @@ CHECK_INTERVAL=60
 
 # use TCPDUMP to monitor UDP packets sent internally to port 34995. If none are sent, things are unhealthy.
 
+# shellcheck disable=SC2327,SC2328  # intentional stdout/stderr swap: tcpdump's summary line is written to stderr
 PACKETCOUNT="$(grep captured <<< "$(timeout --preserve-status $CHECK_INTERVAL tcpdump -p -i lo udp port 34995 2>/dev/stdout 1>/dev/null)"| awk '{print $1}')"
 if [[ -z "$PACKETCOUNT" ]] || [[ "$PACKETCOUNT" -lt 1 ]]
 then

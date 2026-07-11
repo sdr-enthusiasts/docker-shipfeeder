@@ -155,7 +155,7 @@ if [[ -n "$AISCATCHER_UDP_INPUTS" ]]; then
     done
 fi
 
-# Add a number of well-known feeders: 
+# Add a number of well-known feeders:
 # ADSBNetwork / RadarVirtuel:
 if [[ -n "${RADARVIRTUEL_STATION_ID}" ]]; then
     aiscatcher_command+=("-H http://ais.adsbnetwork.com:3002/ingester/insert/lourd ID $RADARVIRTUEL_STATION_ID INTERVAL 15 RESPONSE off")
@@ -333,7 +333,7 @@ aiscatcher_command+=("${FEEDSTRING[*]}")
 aiscatcher_command+=("-u 127.0.0.1 34994")
 aiscatcher_command+=("-u 127.0.0.1 34995")
 aiscatcher_command+=("$SHOWLOGS")
-if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then 
+if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"; aiscatcher_command+=("-c ${AISCATCHER_CHANNELS:-AB}")
     #AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-c\s+[a-dA-D ]+//g' <<< "$AISCATCHER_EXTRA_OPTIONS")"   # remove any -c items from param to avoid duplication
     aiscatcher_command+=("-d ${RTLSDR_DEVICE_SERIAL}")

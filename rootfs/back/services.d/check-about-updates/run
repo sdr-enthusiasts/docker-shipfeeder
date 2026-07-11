@@ -21,7 +21,7 @@ s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
 # If not, see <https://www.gnu.org/licenses/>.
 #---------------------------------------------------------------------------------------------
 
-# Check if about.md has been updated by comparing its MD5 hash every 30 seconds; restart 
+# Check if about.md has been updated by comparing its MD5 hash every 30 seconds; restart
 # the aiscatcher service
 
 filename="/data/about.md"

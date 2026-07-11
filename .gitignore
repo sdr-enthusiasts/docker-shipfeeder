@@ -166,3 +166,5 @@ pip-selfcheck.json
 
 .vscode/*
 
+.direnv
+.pre-commit-config.yaml

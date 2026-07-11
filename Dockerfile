@@ -10,6 +10,7 @@ ENV S6_KILL_FINISH_MAXTIME=10000 \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# hadolint ignore=DL3003
 RUN set -x && \
     #
     echo "TARGETPLATFORM $TARGETPLATFORM" && \
@@ -144,6 +145,7 @@ RUN \
     true
 
 # Add Container Version
+# hadolint ignore=DL3003
 RUN set -x && \
     pushd /tmp && \
     branch="##BRANCH##" && \
