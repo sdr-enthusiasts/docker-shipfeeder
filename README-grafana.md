@@ -164,7 +164,7 @@ At this point you should see a very nice dashboard, you can find it under `Gener
 This description presumes that you already do the following:
 
 - have a working Grafana setup as per the instructions above
-- have configured an About page as per the instructions [here](https://github.com/sdr-enthusiasts/docker-shipxplorer/blob/main/README.md#adding-an-about-page-to-the-ais-catcher-website)
+- have configured an About page as per the [instructions](https://github.com/sdr-enthusiasts/docker-shipxplorer/blob/main/README.md#adding-an-about-page-to-the-ais-catcher-website)
 - If your AIS-Catcher/ShipXplorer website is exposed outside your intranet, you should also have an externally accessible link to your Grafana instance.
 
 ### 1 - Create a new Organization in Grafana and import your Data Source and Dashboard

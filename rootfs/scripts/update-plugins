@@ -100,6 +100,6 @@ rm -rf /tmp/AIS-catcher
 if [[ -z "$1" ]]; then
   "${s6wrap[@]}" --args echo "done - restarting AIS-catcher make changes take effect"
   pkill AIS-catcher >/dev/null 2>&1 || true
-else 
+else
   "${s6wrap[@]}" --args echo "done"
 fi

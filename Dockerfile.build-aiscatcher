@@ -1,5 +1,6 @@
 FROM debian:bookwork-slim AS build
 
+# hadolint ignore=DL3003
 RUN set -x && \
     apt-get update -y && \
     apt-get upgrade -y && \
