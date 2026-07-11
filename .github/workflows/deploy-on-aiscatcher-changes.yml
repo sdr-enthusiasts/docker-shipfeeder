@@ -1,17 +1,27 @@
 ---
+# GitHub Action: Update pinned AIS-catcher image digest
+#
+# The Dockerfile pins the upstream ghcr.io/jvde-github/ais-catcher image by
+# digest (FROM ...@sha256:...), so simply detecting an upstream change is not
+# enough to get a new image built - the pinned digest in the Dockerfile has
+# to be updated too. This workflow:
+#   1. Reads the digest currently pinned in the Dockerfile
+#   2. Queries ghcr.io for the current digest of jvde-github/ais-catcher:edge
+#   3. If they differ, updates the Dockerfile and opens a pull request
+#
+# Merging (and any resulting deploy) is left to normal review - this workflow
+# does not auto-merge or trigger a build.
 name: Deploy on aiscatcher changes
 on:
   schedule:
     - cron: "0,15,30,45 * * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 env:
-  # GHCR_IMAGE: <USER>/<REPO> for the local imagesdr-enthusiasts/shipxplorer
-  # GHCR_REGISTRY: Container registry URL, e.g.: ghcr.io . Leave empty for dockerhub
-  # CHECK_CONTAINER: GHRC.IO container to be checked for updates <USER>/<IMAGE>
-  # CHECK_TAG: tag of the CHECK_CONTAINER to be checked. For example: latest
-  GHCR_IMAGE: sdr-enthusiasts/shipxplorer
-  GHCR_REGISTRY: ghcr.io
   CHECK_CONTAINER: jvde-github/ais-catcher
   CHECK_TAG: edge
 
@@ -19,60 +29,81 @@ jobs:
   check_upstream_image:
     name: Check upstream image
     runs-on: ubuntu-latest
-    outputs:
-      needs_updated: ${{ steps.check_container.outputs.needs_updated }}
     steps:
-      # Check out our code
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: false
+          ref: main
 
-      - name: check container SHAs
-        id: check_container
-        env:
-          CHECK_CONTAINER: ${{ env.CHECK_CONTAINER }}
-          CHECK_TAG: ${{ env.CHECK_TAG }}
+      - name: Get currently pinned digest
+        id: current
         run: |
-          SHA_FILE="aiscatcher.sha"
-          TOKEN="$(curl -sSL "https://ghcr.io/token?scope=repository:$CHECK_CONTAINER:pull" | awk -F'"' '$0=$4')"
-          manifest="$(curl -sSL -H "Accept: application/vnd.oci.image.index.v1+json" -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/$CHECK_CONTAINER/manifests/$CHECK_TAG")"
-          SHAs_remote="$(echo "$manifest"|jq '.manifests[].digest')"
-          SHAs_remote="${SHAs_remote//$'\n'/}"
+          digest="$(grep -oP "(?<=${CHECK_CONTAINER##*/}:${CHECK_TAG}@)sha256:[0-9a-f]+" Dockerfile || true)"
+          if [ -z "$digest" ]; then
+            echo "::error::Could not find a pinned ${CHECK_CONTAINER}:${CHECK_TAG} digest in Dockerfile"
+            exit 1
+          fi
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+          echo "Currently pinned digest: ${digest}"
 
-          if grep "error" <<< "$TOKEN $manifest" >/dev/null 2>&1
-          then
-              echo "Error retrieving Token or Manifest."
-              echo "TOKEN=$TOKEN"
-              echo "MANIFEST=$manifest"
-              exit 2
+      - name: Get latest upstream digest
+        id: latest
+        run: |
+          token="$(curl -sSL "https://ghcr.io/token?scope=repository:${CHECK_CONTAINER}:pull" | jq -r .token)"
+          digest="$(curl -sSL -D - -o /dev/null \
+            -H "Accept: application/vnd.oci.image.index.v1+json,application/vnd.docker.distribution.manifest.list.v2+json" \
+            -H "Authorization: Bearer ${token}" \
+            "https://ghcr.io/v2/${CHECK_CONTAINER}/manifests/${CHECK_TAG}" \
+            | grep -i '^docker-content-digest:' | tr -d '\r' | awk '{print $2}')"
+          if [ -z "$token" ] || [ -z "$digest" ]; then
+            echo "::error::Failed to retrieve token or manifest digest for ${CHECK_CONTAINER}:${CHECK_TAG}"
+            exit 1
           fi
-          if [ ! -f "$SHA_FILE" ]; then
-              touch "$SHA_FILE"
-          fi
-          read -r SHAs_local < "$SHA_FILE"
-          # now compare:
-          if [ "$SHAs_local" != "$SHAs_remote" ]; then
-              # we need to rebuild
-              echo "$SHAs_remote" > "$SHA_FILE"
-              git config --local user.name actions-user
-              git config --local user.email "actions@github.com"
-              git add "$SHA_FILE"
-              git commit -am "GH Action SHA updated $(date)"
-              git push -f origin main
-              echo "Success - container needs rebuilding"
-              echo "needs_updated=true" >> "$GITHUB_OUTPUT"
-          else
-              echo "Remote container has not changed, no need to run deploy. Exiting."
-              echo "needs_updated=false" >> "$GITHUB_OUTPUT"
-          fi
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+          echo "Latest upstream digest: ${digest}"
 
-  call-workflow-in-local-repo:
-    # Make sure this in the downstream build action:
-    # on:
-    #   workflow_call:
-    #   repository_dispatch:
-    #     types: build_on_aiscatcher_update
-    if: ${{ needs.check_upstream_image.outputs.needs_updated == 'true' }}
-    needs: check_upstream_image
-    uses: ./.github/workflows/deploy.yml
+      - name: Update Dockerfile digest
+        if: steps.current.outputs.digest != steps.latest.outputs.digest
+        run: |
+          sed -i "s|${{ steps.current.outputs.digest }}|${{ steps.latest.outputs.digest }}|" Dockerfile
+
+      - name: Configure Git identity
+        if: steps.current.outputs.digest != steps.latest.outputs.digest
+        run: |
+          git config --global user.email "noreply@github.com"
+          git config --global user.name "github[bot]"
+
+      - name: Create Pull Request
+        if: steps.current.outputs.digest != steps.latest.outputs.digest
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.PAT }}
+          commit-message: "chore: bump pinned ais-catcher digest to ${{ steps.latest.outputs.digest }}"
+          branch: update-aiscatcher-digest
+          delete-branch: true
+          title: "chore: bump pinned ais-catcher digest"
+          body: |
+            ## AIS-catcher digest update
+
+            The upstream `ghcr.io/${{ env.CHECK_CONTAINER }}:${{ env.CHECK_TAG }}` image has changed.
+
+            - Old digest: `${{ steps.current.outputs.digest }}`
+            - New digest: `${{ steps.latest.outputs.digest }}`
+
+            ### Source
+
+            - **Image**: https://github.com/${{ env.CHECK_CONTAINER }}
+
+            ---
+
+            *This PR was automatically created by the `deploy-on-aiscatcher-changes` GitHub Action.*
+          labels: |
+            dependencies
+            automated
+
+      - name: No update needed
+        if: steps.current.outputs.digest == steps.latest.outputs.digest
+        run: |
+          echo "Upstream ${CHECK_CONTAINER}:${CHECK_TAG} digest has not changed, no update needed."
