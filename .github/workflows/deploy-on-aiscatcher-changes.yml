@@ -7,15 +7,21 @@
 # to be updated too. This workflow:
 #   1. Reads the digest currently pinned in the Dockerfile
 #   2. Queries ghcr.io for the current digest of jvde-github/ais-catcher:edge
-#   3. If they differ, updates the Dockerfile and opens a pull request
+#   3. If they differ, updates the Dockerfile, opens a pull request, and
+#      enables auto-merge on it
 #
-# Merging (and any resulting deploy) is left to normal review - this workflow
-# does not auto-merge or trigger a build.
+# A second job in this same workflow watches for that specific PR (branch
+# `update-aiscatcher-digest`) being merged and, only in that case, dispatches
+# deploy.yml to rebuild the container. Any other merge to main (manual PRs,
+# other automated PRs, etc.) does not trigger a rebuild here.
 name: Deploy on aiscatcher changes
 on:
   schedule:
     - cron: "0,15,30,45 * * * *"
   workflow_dispatch:
+  pull_request:
+    types: [closed]
+    branches: [main]
 
 permissions:
   contents: write
@@ -24,10 +30,12 @@ permissions:
 env:
   CHECK_CONTAINER: jvde-github/ais-catcher
   CHECK_TAG: edge
+  DIGEST_UPDATE_BRANCH: update-aiscatcher-digest
 
 jobs:
   check_upstream_image:
     name: Check upstream image
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -76,12 +84,13 @@ jobs:
           git config --global user.name "github[bot]"
 
       - name: Create Pull Request
+        id: cpr
         if: steps.current.outputs.digest != steps.latest.outputs.digest
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.PAT }}
           commit-message: "chore: bump pinned ais-catcher digest to ${{ steps.latest.outputs.digest }}"
-          branch: update-aiscatcher-digest
+          branch: ${{ env.DIGEST_UPDATE_BRANCH }}
           delete-branch: true
           title: "chore: bump pinned ais-catcher digest"
           body: |
@@ -103,7 +112,36 @@ jobs:
             dependencies
             automated
 
+      - name: Enable auto-merge
+        if: |
+          steps.current.outputs.digest != steps.latest.outputs.digest &&
+          (steps.cpr.outputs.pull-request-operation == 'created' || steps.cpr.outputs.pull-request-operation == 'updated')
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
+        run: |
+          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" \
+            --repo "${{ github.repository }}" \
+            --auto --squash
+
       - name: No update needed
         if: steps.current.outputs.digest == steps.latest.outputs.digest
         run: |
           echo "Upstream ${CHECK_CONTAINER}:${CHECK_TAG} digest has not changed, no update needed."
+
+  trigger_deploy_on_digest_merge:
+    name: Trigger deploy after digest PR merge
+    # Only fire for a merge (not a plain close) of the exact branch this
+    # workflow's own job creates above. Any other merge to main - manual
+    # PRs, unrelated automated PRs, etc. - must NOT trigger a rebuild here.
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.ref == 'update-aiscatcher-digest'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch deploy.yml
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
+        run: |
+          gh api "repos/${{ github.repository }}/dispatches" \
+            -f event_type=build_on_aiscatcher_update
