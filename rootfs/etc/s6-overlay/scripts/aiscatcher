@@ -135,7 +135,7 @@ if ! chk_enabled "${DISABLE_WEBSITE}"; then
         aiscatcher_command+=("LAT $FEEDER_LAT LON $FEEDER_LONG")
         if chk_enabled "${SITESHOW}"; then aiscatcher_command+=("SHARE_LOC on"); fi
     fi
-    if ! chk_enabled "${DISABLE_SHOWLASTMSG}"; then aiscatcher_command+=("MESSAGE on"); fi
+    if ! chk_enabled "${DISABLE_SHOWLASTMSG}"; then aiscatcher_command+=("MSG on"); fi
     if chk_enabled "${REALTIME}"; then aiscatcher_command+=("REALTIME on"); fi
 fi
 

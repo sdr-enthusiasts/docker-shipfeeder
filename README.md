@@ -452,7 +452,7 @@ If you want `shipfeeder` to use 2 SDRs to listen to AIS Channels AB and CD at th
 - Subsequently, you can also add separate web pages for each SDR individually. The "normal" web interface on port `80` will show the combined receivers, while the following adds new web interfaces on ports `81` for your Channels AB receiver, and on port `82` for your Channels CD receiver. You can add this to the end of the `AISCATCHER_EXTRA_OPTIONS` parameter, replacing `SDR1_SERIAL` and `SDR2_SERIAL` with the two serial IDs of the SDRs, and adjusting the other parameters as appropriate:
 
 ```yaml
-- AISCATCHER_EXTRA_OPTIONS=... -N 81 GROUPS_IN 1 STATION SDR1-SERIAL FILE /data/aiscatcher-ab.bin PLUGIN_DIR /data/plugins BACKUP 5 HISTORY 3600 STATION_LINK https://my.ais-station.com LAT xx.xxxx LON yy.yyyy SHARE_LOC on MESSAGE on REALTIME on -N 82 GROUPS_IN 2 STATION SDR2_SERIAL FILE /data/aiscatcher-cd.bin PLUGIN_DIR /data/plugins BACKUP 5 HISTORY 3600 STATION_LINK https://my.ais-station.com LAT xx.xxxx LON yy.yyyy SHARE_LOC on MESSAGE on REALTIME on
+- AISCATCHER_EXTRA_OPTIONS=... -N 81 GROUPS_IN 1 STATION SDR1-SERIAL FILE /data/aiscatcher-ab.bin PLUGIN_DIR /data/plugins BACKUP 5 HISTORY 3600 STATION_LINK https://my.ais-station.com LAT xx.xxxx LON yy.yyyy SHARE_LOC on MSG on REALTIME on -N 82 GROUPS_IN 2 STATION SDR2_SERIAL FILE /data/aiscatcher-cd.bin PLUGIN_DIR /data/plugins BACKUP 5 HISTORY 3600 STATION_LINK https://my.ais-station.com LAT xx.xxxx LON yy.yyyy SHARE_LOC on MSG on REALTIME on
 ```
 
 ## Aggregating multiple instances of the container
