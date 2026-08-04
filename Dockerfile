@@ -159,4 +159,4 @@ RUN set -x && \
 COPY rootfs/ /
 
 # Add healthcheck
-HEALTHCHECK --start-period=60s --interval=120s --timeout=100s CMD /healthcheck/healthcheck.sh
+HEALTHCHECK --start-period=60s --interval=120s --timeout=100s CMD ["/healthcheck/healthcheck.sh"]
