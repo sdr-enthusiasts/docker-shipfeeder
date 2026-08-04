@@ -244,6 +244,14 @@ if [[ -n "$MARINETRAFFIC_UDP_PORT" ]] && [[ -n "$MARINETRAFFIC_TCP_PORT" ]]; the
     "${s6wrap[@]}" echo "[WARNING] Both MARINETRAFFIC_UDP_PORT and MARINETRAFFIC_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
+# MLAT.uk:
+if [[ -n "$MLATUK_UDP_PORT" ]]; then
+    if ! grep -q ":" <<< "$MLATUK_UDP_PORT"; then MLATUK_UDP_PORT="feed.mlat.uk:$MLATUK_UDP_PORT"; fi
+    aiscatcher_command+=("-u ${MLATUK_UDP_PORT/:/ }")
+elif chk_enabled "$MLATUK_SHAREDATA"; then
+    aiscatcher_command+=("-u feed.mlat.uk 50001")
+fi
+
 # MyShipTracking:
 MYSHIPTRACKING_UDP_PORT="${MYSHIPTRACKING_UDP_PORT:-$MYSHIPTRACKER_UDP_PORT}" # bug fix - originally wrote wrongly MYSHIPTRACKER_UDP_PORT, now we need to keep this for backward compatibility
 if [[ -n "$MYSHIPTRACKING_UDP_PORT" ]]; then
