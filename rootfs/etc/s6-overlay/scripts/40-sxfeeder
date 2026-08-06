@@ -34,7 +34,7 @@ fi
 if [[ -z "${SERIAL_NUMBER}" ]]
 then
   "${s6wrap[@]}" --args echo "ERROR: ShipXplorer SHARING_KEY is defined but SERIAL_NUMBER is not set. We need both to feed ShipXplorer. If you want to disable feeding ShipXplorer, make sure that SHARING_KEY is empty as well."
-  exit 1
+  exit 78
 fi
 
 # Generate /etc/sxfeeder.ini based on environment variables
