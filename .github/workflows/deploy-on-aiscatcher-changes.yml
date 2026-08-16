@@ -17,7 +17,13 @@
 name: Deploy on aiscatcher changes
 on:
   schedule:
-    - cron: "0,15,30,45 * * * *"
+    # Was "0,15,30,45 * * * *". GitHub treats `schedule` as best-effort and
+    # sheds high-frequency crons under load: over 24 days we got 429 of 2321
+    # nominal runs (18%). The gap distribution peaked at 60-75m instead of
+    # decaying from 15m, so GitHub was throttling us to ~1/hr rather than
+    # randomly dropping ticks. Hourly matches the rate we were actually
+    # granted, so real polling latency is unchanged.
+    - cron: "23 * * * *"
   workflow_dispatch:
   pull_request:
     types: [closed]
