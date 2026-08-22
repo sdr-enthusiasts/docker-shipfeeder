@@ -206,15 +206,16 @@ if [[ -z "$OPENWATERS_TOKEN" ]] && chk_enabled "$OPENWATERS_SHAREDATA"; then
     if [[ -s /data/openwaters/token ]]; then
         OPENWATERS_TOKEN="$(cat /data/openwaters/token)"
     elif command -v openssl >/dev/null && command -v curl >/dev/null && command -v jq >/dev/null; then
-        mkdir -p /data/openwaters
-        [[ -s /data/openwaters/key.pem ]] || openssl genpkey -algorithm ed25519 -out /data/openwaters/key.pem 2>/dev/null
+        # the key and token are credentials: owner-only files
+        mkdir -p /data/openwaters && chmod 700 /data/openwaters
+        [[ -s /data/openwaters/key.pem ]] || (umask 077 && openssl genpkey -algorithm ed25519 -out /data/openwaters/key.pem 2>/dev/null)
         OW_PUB="$(openssl pkey -in /data/openwaters/key.pem -pubout -outform DER 2>/dev/null | tail -c 32 | base64 | tr '+/' '-_' | tr -d '=\n')"
-        OW_TOKEN="$(curl -fsS -m 20 -X POST "${OPENWATERS_URL}/v1/keys" -H 'Content-Type: application/json' -d "{\"pubkey\":\"${OW_PUB}\"}" 2>/dev/null | jq -r '.token // empty')"
-        if [[ -n "$OW_TOKEN" ]]; then
-            printf '%s' "$OW_TOKEN" > /data/openwaters/token && OPENWATERS_TOKEN="$OW_TOKEN"
+        OW_TOKEN="$(curl -fsS -m 20 -X POST "${OPENWATERS_URL}/v1/keys" -H 'Content-Type: application/json' -d "{\"pubkey\":\"${OW_PUB}\"}" 2>/dev/null | jq -r '.token // empty' 2>/dev/null)"
+        if [[ -n "$OW_TOKEN" ]] && (umask 077 && printf '%s' "$OW_TOKEN" > /data/openwaters/token) 2>/dev/null; then
+            OPENWATERS_TOKEN="$OW_TOKEN"
             "${s6wrap[@]}" echo "Open Waters: station token created and saved in /data/openwaters"
         else
-            "${s6wrap[@]}" echo "[WARNING] Open Waters: could not obtain a station token; feeding anonymously over UDP instead"
+            "${s6wrap[@]}" echo "[WARNING] Open Waters: could not obtain or save a station token; feeding anonymously over UDP instead"
         fi
     fi
 fi
