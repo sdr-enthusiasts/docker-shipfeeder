@@ -24,7 +24,7 @@ source /scripts/common
 export APPNAME="check-plugin-updates"
 
 #shellcheck disable=SC2076
-if chk_disabled "${PLUGIN_UPDATE_INTERVAL,,}"; then
+if ! chk_enabled "${UPDATE_PLUGINS:-false}" || chk_disabled "${PLUGIN_UPDATE_INTERVAL,,}"; then
     exec sleep infinity
 fi
 
