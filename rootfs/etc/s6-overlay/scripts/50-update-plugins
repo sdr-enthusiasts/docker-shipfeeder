@@ -23,6 +23,24 @@ source /scripts/common
 
 export APPNAME="50-plugin-updates"
 
+# Refresh bundled plugins on every start, including when remote updates are disabled.
+# Keep custom plugins and back up changed files before replacing them.
+mkdir -p /data/plugins || exit 1
+set +o noglob
+for file in /etc/AIS-catcher/plugins/*; do
+    [[ -f "$file" ]] || continue
+    destination="/data/plugins/${file##*/}"
+    if ! cmp -s "$file" "$destination"; then
+        cp --backup=numbered "$file" "$destination" || exit 1
+        # The directory no longer represents the last downloaded Git commit.
+        rm -f /data/plugins/.last_commit
+    fi
+done
+set -o noglob
+
+# Apply backup retention even when remote updates are disabled.
+find /data/plugins -name '*.~*~' -mtime +"${BACKUP_RETENTION_TIME:-7}" -exec rm {} \;
+
 #shellcheck disable=SC2076
 if chk_disabled "${PLUGIN_UPDATE_INTERVAL,,}"; then
     s6wrap --quiet --timestamps --prepend="${APPNAME}" --args echo "Plugins Updating is disabled"

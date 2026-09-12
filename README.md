@@ -227,7 +227,8 @@ If the `AISCATCHER_CHANNELS` and `AISCATCHER_DECODER_XXXX` parameters listed abo
 | `FEEDER_LAT` or `SXFEEDER_LAT` (legacy) | Used for calculating ship distances on web page | Empty |
 | `FEEDER_LONG` or `SXFEEDER_LON` (legacy) | Used for calculating ship distances on web page | Empty |
 | `DISABLE_SHOWLASTMSG` | If set to `true`, the last NMEA0182 message option won't be shown on the website. | Empty, i.e., last message option is available on website |
-| `PLUGIN_UPDATE_INTERVAL` | Optional. Set this to the interval (for example, `30` (secs) or `5m` or `6h` or `3d`) to check the AIS-Catcher github repository for updates to the JavaScript web plugins. Set to `0` or `off` to disable checking. | `6h` |
+| `UPDATE_PLUGINS` | Set to `true` to download web plugins from the AIS-Catcher GitHub repository. By default, plugins are copied from the bundled AIS-Catcher image at startup. | `false` |
+| `PLUGIN_UPDATE_INTERVAL` | When `UPDATE_PLUGINS=true`, set this to the interval (for example, `30` (secs) or `5m` or `6h` or `3d`) to check the AIS-Catcher GitHub repository for updates to the JavaScript web plugins. Set to `0` or `off` to disable remote updates, including at startup. | `6h` |
 | `REFRESHRATE` | Refresh rate of the vessel data on the web page, in msec. Larger numbers reduce web page traffic, which can become an issue if there are a large number of vessels | `2500` (msec) |
 | `DISABLE_GEOJSON` | If set to `true`, no GeoJSON info will be available at <http://my_aiscatcher/geojson>. This is normally enabled if the parameter is omitted. | Empty (GeoJSON is default enabled) |
 | `ADSB_CONNECTOR` | Connect to a `beast` or `raw1090` ADS-B data stream to show aircraft on your AIS map. Format: `ADSB_CONNECTOR=<format>,<hostname>,<port>` where `<format>` is either `beast` or `raw1090`, and the `<hostname>` and `<port>` parameters indicate where the data comes from | Empty |
@@ -429,6 +430,10 @@ You can format the text in this file using [Markdown](https://www.markdownguide.
 We recommend mapping a volume (as shown in the sample `docker-compose.yml` file in this repo) to the `/data` directory. This will ensure that AIS-Catcher data will persist across restarts and container recreation.
 
 Web Plugins for AIS-Catcher can be placed in the `/data/plugins` directory.
+
+At each container start, bundled plugins are copied from `/etc/AIS-catcher/plugins` to `/data/plugins` so they match the AIS-Catcher binary in the image. Existing files with the same names are replaced if their contents differ, with numbered backups retained. Custom plugins with other names are preserved. This also happens when `PLUGIN_UPDATE_INTERVAL` is `0` or `off`.
+
+Automatic downloads from GitHub are disabled by default. To opt in, set `UPDATE_PLUGINS=true`; `PLUGIN_UPDATE_INTERVAL` defaults to `6h`. Downloaded plugins may require a newer AIS-Catcher version than the one in your image.
 
 ## Additional Statistics Dashboard with Prometheus and Grafana
 

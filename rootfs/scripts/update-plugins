@@ -38,10 +38,9 @@ else
   rm -f /data/plugins/refreshrate.pjs
 fi
 
-if ! chk_enabled "${UPDATE_PLUGINS}"
+if ! chk_enabled "${UPDATE_PLUGINS:-false}"
 then
   "${s6wrap[@]}" --args echo "UPDATE_PLUGINS is not set to true; skipping plugin updates"
-  update_refreshrate
   exit 0
 fi
 
