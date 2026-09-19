@@ -6,7 +6,7 @@ FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 ARG TARGETPLATFORM TARGETOS TARGETARCH
 
 ENV S6_KILL_FINISH_MAXTIME=10000 \
-    UPDATE_PLUGINS=true
+    UPDATE_PLUGINS=false
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -134,6 +134,9 @@ RUN set -x && \
     # delete unnecessary qemu binaries to save lots of space
     { find /usr/bin -regex '/usr/bin/qemu-.*'  | grep -v qemu-arm | xargs rm -vf {} || true; } && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/*
+
+# Add plugins from the same image as the AIS-catcher binary.
+COPY --from=build /etc/AIS-catcher/plugins/ /etc/AIS-catcher/plugins/
 
 # add AIS-catcher and libairspyhf
 RUN \
