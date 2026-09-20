@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32
-FROM ghcr.io/jvde-github/ais-catcher:edge@sha256:ea55f2db86975e5c26871310b9adca228be11ec6ad0e244598cd001e74fe013c AS build
+FROM ghcr.io/jvde-github/ais-catcher:edge@sha256:fb3222c5b3c3cd0dfb9b873ee215bff7c0c283e4d6c55f7f791c50240a8b3895 AS build
 
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
