@@ -128,7 +128,7 @@ if ! chk_enabled "${DISABLE_WEBSITE}"; then
     if [[ -n "${BACKUP_INTERVAL}" ]]; then aiscatcher_command+=("BACKUP ${BACKUP_INTERVAL}"); fi
     if [[ -n "${STATION_HISTORY}" ]]; then aiscatcher_command+=("HISTORY ${STATION_HISTORY}"); fi
     if chk_enabled "${PROMETHEUS_ENABLE}"; then aiscatcher_command+=("PROME on"); fi
-    if [[ -n "${STATION_NAME}" ]]; then aiscatcher_command+=("STATION $STATION_NAME"); fi
+    if [[ -n "${STATION_NAME}" ]]; then aiscatcher_command+=("STATION \"$STATION_NAME\""); fi
     if [[ -n "${STATION_LINK}" ]]; then aiscatcher_command+=("STATION_LINK $STATION_LINK"); fi
     if [[ -n "$FEEDER_LAT" ]] && [[ -n "$FEEDER_LONG" ]]
     then
