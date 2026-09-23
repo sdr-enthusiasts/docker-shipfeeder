@@ -57,15 +57,13 @@ json_array() {
 FEEDER_LAT="${FEEDER_LAT:-$SXFEEDER_LAT}"
 FEEDER_LONG="${FEEDER_LONG:-$SXFEEDER_LON}"
 
-# Console verbosity (formerly -q/-v/-o) is folded into the primary receiver's screen/verbose/verbose_time JSON keys:
-receiver_console_fields=()
+# Console verbosity: the running AIS-catcher rejects "screen" inside a receiver
+# object (despite the JSON config docs), so this stays on the CLI as -o/-q -v:
 if [[ -n "$VERBOSE_LOGGING" ]]
 then
-    if [[ $VERBOSE_LOGGING =~ ^[0-5]{1}$ ]]; then
-        receiver_console_fields+=("\"screen\":${VERBOSE_LOGGING}")
-    fi
+    [[ $VERBOSE_LOGGING =~ ^[0-5]{1}$ ]] && SHOWLOGS="-o $VERBOSE_LOGGING" || SHOWLOGS=""
 else
-    receiver_console_fields+=("\"screen\":0" "\"verbose\":true" "\"verbose_time\":60")
+    SHOWLOGS="-q -v 60"
 fi
 
 # Arrays that will collect the JSON objects for each output channel:
@@ -201,6 +199,8 @@ fi
 # extra_cli_args collects the handful of settings not (yet) covered by the JSON schema.
 # They are passed on the command line together with "-C <config file>".
 extra_cli_args=()
+# shellcheck disable=SC2206
+[[ -n "$SHOWLOGS" ]] && extra_cli_args+=(${SHOWLOGS})
 
 # Add NMEA UDP inputs if needed. These stay on the CLI: each feed can carry an inline
 # channel designation (e.g. "host:port:CD") which has no JSON equivalent, and per the
@@ -409,8 +409,8 @@ fi
 add_udp_feed "127.0.0.1:34994"
 add_udp_feed "127.0.0.1:34995"
 
-# Build the primary receiver object: console verbosity (always) plus device/gain/model settings when a device serial was given:
-primary_receiver_fields=("${receiver_console_fields[@]}")
+# Build the primary receiver object: device/gain/model settings when a device serial was given:
+primary_receiver_fields=()
 if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"
     extra_cli_args+=("-c" "${AISCATCHER_CHANNELS:-AB}")
