@@ -211,6 +211,8 @@ For backwards compatibility reasons the SDR related variables all have `RTLSDR` 
 
 If the `AISCATCHER_CHANNELS` and `AISCATCHER_DECODER_XXXX` parameters listed above are set, they will overwrite/remove any equivalent parameters added to the `AISCATCHER_EXTRA_OPTIONS` parameter.
 
+Note: internally, `docker-shipfeeder` translates most of the environment variables above into an [AIS-catcher JSON configuration file](https://jvde-github.github.io/AIS-catcher-docs/usage/json-configuration/) (`/data/aiscatcher-config.json`) instead of a long command line, which `AIS-catcher` is started with using `-C`. A small number of settings (console verbosity, `AISCATCHER_CHANNELS`, `AISCATCHER_UDP_INPUTS`, `ADSB_CONNECTOR`, and `AISCATCHER_EXTRA_OPTIONS`) are still passed as regular command line parameters alongside `-C`. This is transparent to you as a user - all documented environment variables continue to work the same way.
+
 ### Website Related Parameters
 
 | Environment Variable | Purpose | Default value if omitted |

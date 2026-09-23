@@ -18,6 +18,37 @@ source /scripts/common
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>.
 #---------------------------------------------------------------------------------------------
+#
+# Most parameters are translated into an AIS-catcher JSON configuration file
+# (see https://jvde-github.github.io/AIS-catcher-docs/usage/json-configuration/)
+# instead of a long command line. A handful of settings that aren't (yet)
+# exposed in the JSON schema (console verbosity, AIS channel selection, the
+# NMEA-over-UDP input, the ADSB feed connector, and free-form extra options)
+# are still passed on the command line together with "-C <config file>".
+
+AISCATCHER_CONFIG_FILE="/data/aiscatcher-config.json"
+
+# Escape a string for safe embedding inside a JSON string value:
+json_esc() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    printf '%s' "$s"
+}
+
+# Print a quoted JSON string:
+jstr() { printf '"%s"' "$(json_esc "$1")"; }
+
+# Print a JSON boolean based on chk_enabled/chk_disabled semantics:
+jbool_enabled() { if chk_enabled "$1"; then printf "true"; else printf "false"; fi; }
+
+# Join an array of JSON object strings into a JSON array, e.g. [ {...}, {...} ]. Prints nothing (not even "[]") if the array is empty.
+json_array() {
+    local -n arr_ref="$1"
+    [[ "${#arr_ref[@]}" -eq 0 ]] && return
+    (IFS=,; printf '[%s]' "${arr_ref[*]}")
+}
 
 # Do some parameters housekeeping so both the new and the legacy params are supported:
 FEEDER_LAT="${FEEDER_LAT:-$SXFEEDER_LAT}"
@@ -31,14 +62,29 @@ else
     SHOWLOGS="-q -v 60"
 fi
 
+# Arrays that will collect the JSON objects for each output channel:
+udp_outputs=()
+tcp_outputs=()
+http_outputs=()
+mqtt_outputs=()
+
+# Add a "host:port" style feed to the udp_outputs/tcp_outputs array, with optional extra JSON fields appended:
+add_udp_feed() {
+    local hostport="$1" extra="$2"
+    udp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":$(jstr "${hostport##*:}")${extra:+,$extra}}")
+}
+add_tcp_feed() {
+    local hostport="$1" extra="$2"
+    tcp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":$(jstr "${hostport##*:}")${extra:+,$extra}}")
+}
+
 # Interpret additional feed targets, if defined
-FEEDSTRING=()
 if [[ -n "$UDP_FEEDS" ]]
 then
     readarray -d "," -t feedsarray <<< "$UDP_FEEDS"
     for feeds in "${feedsarray[@]}"
     do
-        [[ -n "$feeds" ]] && FEEDSTRING+=("-u ${feeds//:/ }")
+        [[ -n "$feeds" ]] && add_udp_feed "${feeds//$'\n'/}"
     done
 fi
 if [[ -n "$TCP_FEEDS" ]]
@@ -46,7 +92,7 @@ then
     readarray -d "," -t feedsarray <<< "$TCP_FEEDS"
     for feeds in "${feedsarray[@]}"
     do
-        [[ -n "$feeds" ]] && FEEDSTRING+=("-P ${feeds//:/ }")
+        [[ -n "$feeds" ]] && add_tcp_feed "${feeds//$'\n'/}"
     done
 fi
 
@@ -55,7 +101,13 @@ if [[ -z "$SDR_TYPE" ]]; then
     SDR_TYPE="RTLSDR"
 fi
 
+# DEVICE_JSON_KEY is the JSON receiver "input"/device-section name; DEVICE_JSON_FIELDS
+# collects the device-specific settings (as "key":value pairs) for that section.
+DEVICE_JSON_KEY=""
+DEVICE_JSON_FIELDS=""
+
 if [[ "${SDR_TYPE^^}" == "RTLSDR" ]]; then
+    DEVICE_JSON_KEY="rtlsdr"
     # get gain
     VALID_GAINS=(0.0 0.9 1.4 2.7 3.7 7.7 8.7 12.5 14.4 15.7 16.6 19.7 20.7 22.9 25.4 28.0 29.7 32.8 33.8 36.4 37.2 38.6 40.2 42.1 43.4 43.9 44.5 48.0 49.6)
     # if the gain isn't defined, default to 33.8 (middle of the scale)
@@ -87,9 +139,10 @@ if [[ "${SDR_TYPE^^}" == "RTLSDR" ]]; then
     if [[ "$(awk "BEGIN {print int($RTLSDR_DEVICE_GAIN * 10);}")" -gt "$(awk "BEGIN {print int(${VALID_GAINS[-1]} * 10);}")" ]]; then
         RTLSDR_DEVICE_GAIN="${VALID_GAINS[-1]}"
     fi
-    GAINSTRING="-gr tuner ${RTLSDR_DEVICE_GAIN}"
+    DEVICE_JSON_FIELDS="\"tuner\":$(jstr "${RTLSDR_DEVICE_GAIN,,}")"
 elif [[ "${SDR_TYPE^^}" == "AIRSPY" ]]
 then
+    DEVICE_JSON_KEY="airspy"
     RTLSDR_DEVICE_GAIN="${RTLSDR_DEVICE_GAIN:-12}"
     if (( RTLSDR_DEVICE_GAIN > 21 ))
     then
@@ -98,9 +151,10 @@ then
     then
         RTLSDR_DEVICE_GAIN=0
     fi
-    GAINSTRING="-gm linearity ${RTLSDR_DEVICE_GAIN}"
+    DEVICE_JSON_FIELDS="\"linearity\":${RTLSDR_DEVICE_GAIN}"
 elif [[ "${SDR_TYPE^^}" == "SDRPLAY" ]]
 then
+    DEVICE_JSON_KEY="sdrplay"
     RTLSDR_DEVICE_GAIN="${RTLSDR_DEVICE_GAIN:-32}"
     if (( RTLSDR_DEVICE_GAIN > 59 ))
     then
@@ -109,35 +163,38 @@ then
     then
         RTLSDR_DEVICE_GAIN=0
     fi
-    GAINSTRING="-gs GRDB ${RTLSDR_DEVICE_GAIN}"
+    DEVICE_JSON_FIELDS="\"grdb\":${RTLSDR_DEVICE_GAIN}"
 fi
 
 # check if STATION_NAME and STATION_LINK is defined. If it is not, add the ShipXplorer URL
 if [[ -z "$STATION_NAME" ]] && [[ -n "$SERIAL_NUMBER" ]]; then STATION_NAME="${SERIAL_NUMBER}"; fi
 if [[ -z "$STATION_LINK" ]] && [[ -n "$SERIAL_NUMBER" ]]; then STATION_LINK="https://www.shipxplorer.com/stations/${SERIAL_NUMBER}"; fi
 
-aiscatcher_command=()
-aiscatcher_command+=("/usr/local/bin/AIS-catcher")
-# set the web site parameters:
+# set the web site (viewer) parameters:
 if ! chk_enabled "${DISABLE_WEBSITE}"; then
-    aiscatcher_command+=("-N 80 FILE /data/aiscatcher.bin")
-    if ! chk_enabled "${DISABLE_GEOJSON}"; then aiscatcher_command+=("GEOJSON on"); fi
-    if chk_enabled "${DISABLE_SHIPSJSON_COMPRESS}"; then aiscatcher_command+=("ZLIB off"); fi
-    if [[ -d "/data/plugins" ]]; then aiscatcher_command+=("PLUGIN_DIR /data/plugins"); fi
-    if [[ -f "/data/about.md" ]]; then aiscatcher_command+=("ABOUT /data/about.md"); fi
-    if [[ -n "${BACKUP_INTERVAL}" ]]; then aiscatcher_command+=("BACKUP ${BACKUP_INTERVAL}"); fi
-    if [[ -n "${STATION_HISTORY}" ]]; then aiscatcher_command+=("HISTORY ${STATION_HISTORY}"); fi
-    if chk_enabled "${PROMETHEUS_ENABLE}"; then aiscatcher_command+=("PROME on"); fi
-    if [[ -n "${STATION_NAME}" ]]; then aiscatcher_command+=("STATION \"$STATION_NAME\""); fi
-    if [[ -n "${STATION_LINK}" ]]; then aiscatcher_command+=("STATION_LINK $STATION_LINK"); fi
+    server_fields=("\"port\":80" "\"file\":\"/data/aiscatcher.bin\"")
+    if ! chk_enabled "${DISABLE_GEOJSON}"; then server_fields+=("\"geojson\":true"); fi
+    if chk_enabled "${DISABLE_SHIPSJSON_COMPRESS}"; then server_fields+=("\"zlib\":false"); fi
+    if [[ -d "/data/plugins" ]]; then server_fields+=("\"plugin_dir\":\"/data/plugins\""); fi
+    if [[ -f "/data/about.md" ]]; then server_fields+=("\"about\":\"/data/about.md\""); fi
+    if [[ "${BACKUP_INTERVAL}" =~ ^[0-9]+$ ]]; then server_fields+=("\"backup\":${BACKUP_INTERVAL}"); fi
+    if [[ "${STATION_HISTORY}" =~ ^[0-9]+$ ]]; then server_fields+=("\"history\":${STATION_HISTORY}"); fi
+    if chk_enabled "${PROMETHEUS_ENABLE}"; then server_fields+=("\"prome\":true"); fi
+    if [[ -n "${STATION_NAME}" ]]; then server_fields+=("\"station\":$(jstr "$STATION_NAME")"); fi
+    if [[ -n "${STATION_LINK}" ]]; then server_fields+=("\"station_link\":$(jstr "$STATION_LINK")"); fi
     if [[ -n "$FEEDER_LAT" ]] && [[ -n "$FEEDER_LONG" ]]
     then
-        aiscatcher_command+=("LAT $FEEDER_LAT LON $FEEDER_LONG")
-        if chk_enabled "${SITESHOW}"; then aiscatcher_command+=("SHARE_LOC on"); fi
+        server_fields+=("\"lat\":${FEEDER_LAT}" "\"lon\":${FEEDER_LONG}")
+        if chk_enabled "${SITESHOW}"; then server_fields+=("\"share_loc\":true"); fi
     fi
-    if ! chk_enabled "${DISABLE_SHOWLASTMSG}"; then aiscatcher_command+=("MSG on"); fi
-    if chk_enabled "${REALTIME}"; then aiscatcher_command+=("REALTIME on"); fi
+    if ! chk_enabled "${DISABLE_SHOWLASTMSG}"; then server_fields+=("\"message\":true"); fi
+    if chk_enabled "${REALTIME}"; then server_fields+=("\"realtime\":true"); fi
+    server_json=$(IFS=,; printf '%s' "${server_fields[*]}")
 fi
+
+# extra_cli_args collects the handful of settings not (yet) covered by the JSON schema.
+# They are passed on the command line together with "-C <config file>".
+extra_cli_args=()
 
 # Add NMEA UDP inputs if needed:
 if [[ -n "$AISCATCHER_UDP_INPUTS" ]]; then
@@ -150,7 +207,8 @@ if [[ -n "$AISCATCHER_UDP_INPUTS" ]]; then
             if ! grep -q "\-c" <<< "$feeds"; then
                 feeds="$feeds -c AB"
             fi
-            aiscatcher_command+=("-x ${feeds}")
+            read -r -a feeds_parts <<< "$feeds"
+            extra_cli_args+=("-x" "${feeds_parts[@]}")
         fi
     done
 fi
@@ -158,28 +216,29 @@ fi
 # Add a number of well-known feeders:
 # ADSBNetwork / RadarVirtuel:
 if [[ -n "${RADARVIRTUEL_STATION_ID}" ]]; then
-    aiscatcher_command+=("-H http://ais.adsbnetwork.com:3002/ingester/insert/lourd ID $RADARVIRTUEL_STATION_ID INTERVAL 15 RESPONSE off")
+    http_outputs+=("{\"url\":\"http://ais.adsbnetwork.com:3002/ingester/insert/lourd\",\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"interval\":15,\"response\":false}")
 fi
 
 # AirFrames:
 if [[ -n "$AIRFRAMES_STATION_ID" ]]; then
-    aiscatcher_command+=("-H http://feed.airframes.io:5599 ID $AIRFRAMES_STATION_ID INTERVAL 30 RESPONSE off")
+    http_outputs+=("{\"url\":\"http://feed.airframes.io:5599\",\"id\":$(jstr "$AIRFRAMES_STATION_ID"),\"interval\":30,\"response\":false}")
 fi
 
-# AIS-Catcher:
+# AIS-Catcher (community feed sharing):
+sharing_json=""
 if [[ -n "$AISCATCHER_FEEDER_KEY" ]] || chk_enabled "$AISCATCHER_SHAREDATA"; then
-    aiscatcher_command+=("-X${AISCATCHER_FEEDER_KEY:+ }$AISCATCHER_FEEDER_KEY")
-    AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-X\s+[0-9]*\s*//g'<<< "$AISCATCHER_EXTRA_OPTIONS")" # Remove any -X from param to avoid duplication
+    sharing_json="\"sharing\":true"
+    if [[ -n "$AISCATCHER_FEEDER_KEY" ]]; then sharing_json+=",\"sharing_key\":$(jstr "$AISCATCHER_FEEDER_KEY")"; fi
 fi
 
 # AIS Friends:
 if [[ -n "$AISFRIENDS_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$AISFRIENDS_UDP_PORT"; then AISFRIENDS_UDP_PORT="ais.aisfriends.com:$AISFRIENDS_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${AISFRIENDS_UDP_PORT/:/ }")
+    add_udp_feed "$AISFRIENDS_UDP_PORT"
 fi
 if [[ -n "$AISFRIENDS_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$AISFRIENDS_TCP_PORT"; then AISFRIENDS_TCP_PORT="ais.aisfriends.com:$AISFRIENDS_TCP_PORT"; fi
-    aiscatcher_command+=("-P ${AISFRIENDS_TCP_PORT/:/ }")
+    add_tcp_feed "$AISFRIENDS_TCP_PORT"
 fi
 if [[ -n "$AISFRIENDS_UDP_PORT" ]] && [[ -n "$AISFRIENDS_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both AISFRIENDS_UDP_PORT and AISFRIENDS_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -188,11 +247,11 @@ fi
 # AISHub:
 if [[ -n "$AISHUB_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$AISHUB_UDP_PORT"; then AISHUB_UDP_PORT="data.aishub.net:$AISHUB_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${AISHUB_UDP_PORT/:/ }")
+    add_udp_feed "$AISHUB_UDP_PORT"
 fi
 if [[ -n "$AISHUB_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$AISHUB_TCP_PORT"; then AISHUB_TCP_PORT="data.aishub.net:$AISHUB_TCP_PORT"; fi
-    aiscatcher_command+=("-P ${AISHUB_TCP_PORT/:/ }")
+    add_tcp_feed "$AISHUB_TCP_PORT"
 fi
 if [[ -n "$AISHUB_UDP_PORT" ]] && [[ -n "$AISHUB_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both AISHUB_UDP_PORT and AISHUB_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -200,18 +259,18 @@ fi
 
 # aprs.fi:
 if [[ -n "${APRSFI_FEEDER_KEY:+$APRSFI_STATION_ID}" ]]; then
-    aiscatcher_command+=("-H http://aprs.fi/jsonais/post/$APRSFI_FEEDER_KEY ID $APRSFI_STATION_ID PROTOCOL aprs INTERVAL 30 RESPONSE off")
+    http_outputs+=("{\"url\":\"http://aprs.fi/jsonais/post/$(json_esc "$APRSFI_FEEDER_KEY")\",\"id\":$(jstr "$APRSFI_STATION_ID"),\"protocol\":\"aprs\",\"interval\":30,\"response\":false}")
 fi
 
 # BoatBeacon aka Pocket Mariner
 if [[ -n "$BOATBEACON_UDP_PORT" ]]; then
     if ! grep -q ":"  <<< "$BOATBEACON_UDP_PORT"; then BOATBEACON_UDP_PORT="boatbeaconapp.com:$BOATBEACON_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${BOATBEACON_UDP_PORT/:/ }")
+    add_udp_feed "$BOATBEACON_UDP_PORT"
 elif [[ -n "$BOATBEACON_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$BOATBEACON_TCP_PORT"; then BOATBEACON_TCP_PORT="data.aishub.net:$BOATBEACON_TCP_PORT"; fi
-    aiscatcher_command+=("-P ${BOATBEACON_TCP_PORT/:/ }")
+    add_tcp_feed "$BOATBEACON_TCP_PORT"
 elif chk_enabled "$BOATBEACON_SHAREDATA"; then
-    aiscatcher_command+=("-u boatbeaconapp.com 5322")
+    add_udp_feed "boatbeaconapp.com:5322"
 fi
 
 if [[ -n "$BOATBEACON_UDP_PORT" ]] && [[ -n "$BOATBEACON_TCP_PORT" ]]; then
@@ -221,11 +280,11 @@ fi
 # HPRadar:
 if [[ -n "$HPRADAR_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$HPRADAR_UDP_PORT"; then HPRADAR_UDP_PORT="aisfeed.hpradar.com:$HPRADAR_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${HPRADAR_UDP_PORT/:/ } JSON on")
+    add_udp_feed "$HPRADAR_UDP_PORT" "\"msgformat\":\"JSON_NMEA\""
 fi
 if [[ -n "$HPRADAR_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$HPRADAR_TCP_PORT"; then HPRADAR_TCP_PORT="data.aishub.net:$HPRADAR_TCP_PORT"; fi
-    aiscatcher_command+=("-P ${HPRADAR_TCP_PORT/:/ }")
+    add_tcp_feed "$HPRADAR_TCP_PORT"
 fi
 if [[ -n "$HPRADAR_UDP_PORT" ]] && [[ -n "$HPRADAR_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both HPRADAR_UDP_PORT and HPRADAR_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -234,11 +293,11 @@ fi
 # MarineTraffic:
 if [[ -n "$MARINETRAFFIC_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$MARINETRAFFIC_UDP_PORT"; then MARINETRAFFIC_UDP_PORT="5.9.207.224:$MARINETRAFFIC_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${MARINETRAFFIC_UDP_PORT/:/ }")
+    add_udp_feed "$MARINETRAFFIC_UDP_PORT"
 fi
 if [[ -n "$MARINETRAFFIC_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$MARINETRAFFIC_TCP_PORT"; then MARINETRAFFIC_TCP_PORT="5.9.207.224:$MARINETRAFFIC_TCP_PORT"; fi
-    aiscatcher_command+=("-P ${MARINETRAFFIC_TCP_PORT/:/ }")
+    add_tcp_feed "$MARINETRAFFIC_TCP_PORT"
 fi
 if [[ -n "$MARINETRAFFIC_UDP_PORT" ]] && [[ -n "$MARINETRAFFIC_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both MARINETRAFFIC_UDP_PORT and MARINETRAFFIC_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -247,20 +306,20 @@ fi
 # MLAT.uk:
 if [[ -n "$MLATUK_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$MLATUK_UDP_PORT"; then MLATUK_UDP_PORT="feed.mlat.uk:$MLATUK_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${MLATUK_UDP_PORT/:/ }")
+    add_udp_feed "$MLATUK_UDP_PORT"
 elif chk_enabled "$MLATUK_SHAREDATA"; then
-    aiscatcher_command+=("-u feed.mlat.uk 50001")
+    add_udp_feed "feed.mlat.uk:50001"
 fi
 
 # MyShipTracking:
 MYSHIPTRACKING_UDP_PORT="${MYSHIPTRACKING_UDP_PORT:-$MYSHIPTRACKER_UDP_PORT}" # bug fix - originally wrote wrongly MYSHIPTRACKER_UDP_PORT, now we need to keep this for backward compatibility
 if [[ -n "$MYSHIPTRACKING_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$MYSHIPTRACKING_UDP_PORT"; then MYSHIPTRACKING_UDP_PORT="178.162.215.175:$MYSHIPTRACKING_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${MYSHIPTRACKING_UDP_PORT/:/ }")
+    add_udp_feed "$MYSHIPTRACKING_UDP_PORT"
 fi
 if [[ -n "$MYSHIPTRACKING_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$MYSHIPTRACKING_TCP_PORT"; then MYSHIPTRACKING_TCP_PORT="178.162.215.175:$MYSHIPTRACKING_TCP_PORT"; fi
-    aiscatcher_command+=("-P ${MYSHIPTRACKING_TCP_PORT/:/ }")
+    add_tcp_feed "$MYSHIPTRACKING_TCP_PORT"
 fi
 if [[ -n "$MYSHIPTRACKING_UDP_PORT" ]] && [[ -n "$MYSHIPTRACKING_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both MYSHIPTRACKING_UDP_PORT and MYSHIPTRACKING_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -268,17 +327,17 @@ fi
 
 # SDRMap:
 if [[ -n "${SDRMAP_PASSWORD:+$SDRMAP_STATION_ID}" ]]; then
-    aiscatcher_command+=("-H https://ais.feed.sdrmap.org/ USERPWD ${SDRMAP_STATION_ID}:${SDRMAP_PASSWORD} GZIP on INTERVAL 15 RESPONSE off")
+    http_outputs+=("{\"url\":\"https://ais.feed.sdrmap.org/\",\"userpwd\":$(jstr "${SDRMAP_STATION_ID}:${SDRMAP_PASSWORD}"),\"gzip\":true,\"interval\":15,\"response\":false}")
 fi
 
 # ShippingExplorer:
 if [[ -n "$SHIPPINGEXPLORER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPPINGEXPLORER_UDP_PORT"; then SHIPPINGEXPLORER_UDP_PORT="144.76.54.111:$SHIPPINGEXPLORER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${SHIPPINGEXPLORER_UDP_PORT/:/ }")
+    add_udp_feed "$SHIPPINGEXPLORER_UDP_PORT"
 fi
 if [[ -n "$SHIPPINGEXPLORER_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPPINGEXPLORER_TCP_PORT"; then SHIPPINGEXPLORER_TCP_PORT="178.162.215.175:$SHIPPINGEXPLORER_TCP_PORT"; fi
-    aiscatcher_command+=("-P ${SHIPPINGEXPLORER_TCP_PORT/:/ }")
+    add_tcp_feed "$SHIPPINGEXPLORER_TCP_PORT"
 fi
 if [[ -n "$SHIPPINGEXPLORER_UDP_PORT" ]] && [[ -n "$SHIPPINGEXPLORER_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both SHIPPINGEXPLORER_UDP_PORT and SHIPPINGEXPLORER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -287,13 +346,13 @@ fi
 # ShipFinder:
 if [[ -n "$SHIPFINDER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPFINDER_UDP_PORT"; then SHIPFINDER_UDP_PORT="ais.shipfinder.co.uk:$SHIPFINDER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${SHIPFINDER_UDP_PORT/:/ }")
+    add_udp_feed "$SHIPFINDER_UDP_PORT"
 elif chk_enabled "$SHIPFINDER_SHAREDATA"; then
-    aiscatcher_command+=("-u ais.shipfinder.co.uk 4001")
+    add_udp_feed "ais.shipfinder.co.uk:4001"
 fi
 if [[ -n "$SHIPFINDER_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPFINDER_TCP_PORT"; then SHIPFINDER_TCP_PORT="178.162.215.175:$SHIPFINDER_TCP_PORT"; fi
-    aiscatcher_command+=("-P ${SHIPFINDER_TCP_PORT/:/ }")
+    add_tcp_feed "$SHIPFINDER_TCP_PORT"
 fi
 if [[ -n "$SHIPFINDER_UDP_PORT" ]] && [[ -n "$SHIPFINDER_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both SHIPFINDER_UDP_PORT and SHIPFINDER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -305,7 +364,7 @@ fi
 # ShipXplorer UDP feed (can be used as an alternative for feeding with sxfeeder):
 if [[ -n "$SHIPXPLORER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPXPLORER_UDP_PORT"; then SHIPXPLORER_UDP_PORT="hub.shipxplorer.com:$SHIPXPLORER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${SHIPXPLORER_UDP_PORT/:/ }")
+    add_udp_feed "$SHIPXPLORER_UDP_PORT"
 fi
 if [[ -n "${SHARING_KEY:-${SX_SHARING_KEY:-${SHIPXPLORER_SHARING_KEY}}}${SERIAL_NUMBER:-${SX_SERIAL_NUMBER:-${SHIPXPLORER_SERIAL_NUMBER}}}" ]] && [[ -n "$SHIPXPLORER_UDP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both [SHIPXPLORER_]SHARING_KEY/[SHIPXPLORER_]SERIAL_NUMBER and SHIPXPLORER_UDP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -314,11 +373,11 @@ fi
 # VesselFinder:
 if [[ -n "$VESSELFINDER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELFINDER_UDP_PORT"; then VESSELFINDER_UDP_PORT="ais.vesselfinder.com:$VESSELFINDER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${VESSELFINDER_UDP_PORT/:/ }")
+    add_udp_feed "$VESSELFINDER_UDP_PORT"
 fi
 if [[ -n "$VESSELFINDER_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELFINDER_TCP_PORT"; then VESSELFINDER_TCP_PORT="178.162.215.175:$VESSELFINDER_TCP_PORT"; fi
-    aiscatcher_command+=("-P $VESSELFINDER_TCP_PORT/:/ }")
+    add_tcp_feed "$VESSELFINDER_TCP_PORT"
 fi
 if [[ -n "$VESSELFINDER_UDP_PORT" ]] && [[ -n "$VESSELFINDER_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both VESSELFINDER_UDP_PORT and VESSELFINDER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -327,103 +386,117 @@ fi
 # VesselTracker:
 if [[ -n "$VESSELTRACKER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELTRACKER_UDP_PORT"; then VESSELTRACKER_UDP_PORT="83.220.137.136:$VESSELTRACKER_UDP_PORT"; fi
-    aiscatcher_command+=("-u ${VESSELTRACKER_UDP_PORT/:/ }")
+    add_udp_feed "$VESSELTRACKER_UDP_PORT"
 fi
 if [[ -n "$VESSELTRACKER_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELTRACKER_TCP_PORT"; then VESSELTRACKER_TCP_PORT="83.220.137.136:$VESSELTRACKER_TCP_PORT"; fi
-    aiscatcher_command+=("-P ${VESSELTRACKER_TCP_PORT/:/ }")
+    add_tcp_feed "$VESSELTRACKER_TCP_PORT"
 fi
 if [[ -n "$VESSELTRACKER_UDP_PORT" ]] && [[ -n "$VESSELTRACKER_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both VESSELTRACKER_UDP_PORT and VESSELTRACKER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
-aiscatcher_command+=("${FEEDSTRING[*]}")
-aiscatcher_command+=("-u 127.0.0.1 34994")
-aiscatcher_command+=("-u 127.0.0.1 34995")
-aiscatcher_command+=("$SHOWLOGS")
+# Local feeds for sxfeeder (always added):
+add_udp_feed "127.0.0.1:34994"
+add_udp_feed "127.0.0.1:34995"
+
+# Build the receiver object (device, gain, model settings) - only if a device serial was given:
+receiver_json=""
 if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
-    AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"; aiscatcher_command+=("-c ${AISCATCHER_CHANNELS:-AB}")
-    #AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-c\s+[a-dA-D ]+//g' <<< "$AISCATCHER_EXTRA_OPTIONS")"   # remove any -c items from param to avoid duplication
-    aiscatcher_command+=("-d ${RTLSDR_DEVICE_SERIAL}")
-    aiscatcher_command+=("${GAINSTRING}")
+    AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"
+    extra_cli_args+=("-c" "${AISCATCHER_CHANNELS:-AB}")
+
     if [[ "${SDR_TYPE^^}" == "RTLSDR" ]]; then
         if ! chk_disabled "${RTLSDR_DEVICE_RTLAGC}"; then
-            aiscatcher_command+=("rtlagc ON")
+            DEVICE_JSON_FIELDS+=",\"rtlagc\":true"
         else
-            aiscatcher_command+=("rtlagc OFF")
+            DEVICE_JSON_FIELDS+=",\"rtlagc\":false"
         fi
     elif [[ "${SDR_TYPE^^}" == "SDRPLAY" ]]; then
         if ! chk_disabled "${RTLSDR_DEVICE_RTLAGC}"; then
-            aiscatcher_command+=("agc ON")
+            DEVICE_JSON_FIELDS+=",\"agc\":true"
         else
-            aiscatcher_command+=("agc OFF")
+            DEVICE_JSON_FIELDS+=",\"agc\":false"
         fi
     fi
     if [[ "${SDR_TYPE^^}" == "AIRSPY" || "${SDR_TYPE^^}" == "RTLSDR" ]]; then
-        if chk_enabled "${RTLSDR_DEVICE_BIASTEE}"; then
-            aiscatcher_command+=("BIASTEE on")
-        else
-            aiscatcher_command+=("BIASTEE off")
-        fi
+        DEVICE_JSON_FIELDS+=",\"biastee\":$(jbool_enabled "${RTLSDR_DEVICE_BIASTEE}")"
     fi
     if [[ -n "${RTLSDR_DEVICE_PPM}" ]]; then
-        aiscatcher_command+=("-p ${RTLSDR_DEVICE_PPM}")
-        #AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-p\s+[0-9]+\s*//g'<<< "$AISCATCHER_EXTRA_OPTIONS")"   # remove any -p items from param to avoid duplication
+        DEVICE_JSON_FIELDS+=",\"freqoffset\":${RTLSDR_DEVICE_PPM}"
     fi
     if [[ -n "${RTLSDR_DEVICE_BANDWIDTH}" ]]; then
-        aiscatcher_command+=("-a ${RTLSDR_DEVICE_BANDWIDTH}")
-        #AISCATCHER_EXTRA_OPTIONS="$(sed -E 's/-a\s+[0-9]+[A-Za-z]{1}\s*//g'<<< "$AISCATCHER_EXTRA_OPTIONS")"   # remove any -a items from param to avoid duplication
+        DEVICE_JSON_FIELDS+=",\"bandwidth\":$(jstr "$RTLSDR_DEVICE_BANDWIDTH")"
     elif ! grep -qoE '\-a\s+[0-9]+[A-Za-z]{1}' <<< "$AISCATCHER_EXTRA_OPTIONS"; then
-        aiscatcher_command+=("-a 192K")
+        DEVICE_JSON_FIELDS+=",\"bandwidth\":\"192K\""
     fi
     if [[ -n "${AISCATCHER_DECODER_MODEL}" ]]; then
-        aiscatcher_command+=("-m ${AISCATCHER_DECODER_MODEL}")
+        extra_cli_args+=("-m" "${AISCATCHER_DECODER_MODEL}")
     fi
-    if [[ -n "$AISCATCHER_DECODER_AFC_WIDE$AISCATCHER_DECODER_FP_DS$AISCATCHER_DECODER_PS_EMA$AISCATCHER_DECODER_SOXR$AISCATCHER_DECODER_SRC$AISCATCHER_DECODER_DROOP" ]]; then
-        aiscatcher_command+=("-go")
-        if chk_enabled "$AISCATCHER_DECODER_AFC_WIDE" || \
-           { [[ -z "$AISCATCHER_DECODER_AFC_WIDE" ]] && ! grep -qi 'AFC_WIDE' <<< "$AISCATCHER_EXTRA_OPTIONS"; }; then
-                aiscatcher_command+=("AFC_WIDE on")
-        fi
-        if chk_disabled "$AISCATCHER_DECODER_AFC_WIDE"; then aiscatcher_command+=("AFC_WIDE off"); fi
-        if chk_enabled "$AISCATCHER_DECODER_FP_DS"; then aiscatcher_command+=("FP_DS on"); fi
-        if chk_disabled "$AISCATCHER_DECODER_FP_DS"; then aiscatcher_command+=("FP_DS off"); fi
-        if chk_enabled "$AISCATCHER_DECODER_PS_EMA"; then aiscatcher_command+=("PS_EMA on"); fi
-        if chk_disabled "$AISCATCHER_DECODER_PS_EMA"; then aiscatcher_command+=("PS_EMA off"); fi
-        if chk_enabled "$AISCATCHER_DECODER_SOXR"; then aiscatcher_command+=("SOXR on"); fi
-        if chk_disabled "$AISCATCHER_DECODER_SOXR"; then aiscatcher_command+=("SOXR off"); fi
-        if chk_enabled "$AISCATCHER_DECODER_SRC"; then aiscatcher_command+=("SRC on"); fi
-        if chk_disabled "$AISCATCHER_DECODER_SRC"; then aiscatcher_command+=("SRC off"); fi
-        if chk_enabled "$AISCATCHER_DECODER_DROOP"; then aiscatcher_command+=("DROOP on"); fi
-        if chk_disabled "$AISCATCHER_DECODER_DROOP"; then aiscatcher_command+=("DROOP off"); fi
-    elif [[ -z "$AISCATCHER_DECODER_AFC_WIDE" ]] && ! grep -qi 'AFC_WIDE' <<< "$AISCATCHER_EXTRA_OPTIONS"; then
-        aiscatcher_command+=("-go AFC_WIDE on")
+
+    model_fields=()
+    if chk_enabled "$AISCATCHER_DECODER_AFC_WIDE" || \
+       { [[ -z "$AISCATCHER_DECODER_AFC_WIDE" ]] && ! grep -qi 'AFC_WIDE' <<< "$AISCATCHER_EXTRA_OPTIONS"; }; then
+            model_fields+=("\"afc_wide\":true")
     fi
+    if chk_disabled "$AISCATCHER_DECODER_AFC_WIDE"; then model_fields+=("\"afc_wide\":false"); fi
+    if chk_enabled "$AISCATCHER_DECODER_FP_DS"; then model_fields+=("\"fp_ds\":true"); fi
+    if chk_disabled "$AISCATCHER_DECODER_FP_DS"; then model_fields+=("\"fp_ds\":false"); fi
+    if chk_enabled "$AISCATCHER_DECODER_PS_EMA"; then model_fields+=("\"ps_ema\":true"); fi
+    if chk_disabled "$AISCATCHER_DECODER_PS_EMA"; then model_fields+=("\"ps_ema\":false"); fi
+    if chk_enabled "$AISCATCHER_DECODER_SOXR"; then model_fields+=("\"soxr\":true"); fi
+    if chk_disabled "$AISCATCHER_DECODER_SOXR"; then model_fields+=("\"soxr\":false"); fi
+    if chk_enabled "$AISCATCHER_DECODER_SRC"; then model_fields+=("\"src\":true"); fi
+    if chk_disabled "$AISCATCHER_DECODER_SRC"; then model_fields+=("\"src\":false"); fi
+    if chk_enabled "$AISCATCHER_DECODER_DROOP"; then model_fields+=("\"droop\":true"); fi
+    if chk_disabled "$AISCATCHER_DECODER_DROOP"; then model_fields+=("\"droop\":false"); fi
+
+    receiver_json="{\"input\":$(jstr "${DEVICE_JSON_KEY,,}"),\"serial\":$(jstr "$RTLSDR_DEVICE_SERIAL"),\"${DEVICE_JSON_KEY,,}\":{${DEVICE_JSON_FIELDS}}"
+    if [[ "${#model_fields[@]}" -gt 0 ]]; then
+        receiver_json+=",\"model\":{$(IFS=,; printf '%s' "${model_fields[*]}")}"
+    fi
+    receiver_json+="}"
 fi
 
 if [[ -n "${AISCATCHER_MQTT_URL}" ]]; then
-    aiscatcher_command+=("-Q ${AISCATCHER_MQTT_URL}")
-    if [[ -n "${AISCATCHER_MQTT_CLIENT_ID}" ]]; then aiscatcher_command+=("CLIENT_ID ${AISCATCHER_MQTT_CLIENT_ID}"); fi
-    if [[ -n "${AISCATCHER_MQTT_QOS}" ]]; then aiscatcher_command+=("QOS ${AISCATCHER_MQTT_QOS}"); fi
-    if [[ -n "${AISCATCHER_MQTT_TOPIC}" ]]; then aiscatcher_command+=("TOPIC ${AISCATCHER_MQTT_TOPIC}"); fi
-    aiscatcher_command+=("MSGFORMAT ${AISCATCHER_MQTT_MSGFORMAT:-JSON_FULL}")
+    mqtt_fields=("\"url\":$(jstr "$AISCATCHER_MQTT_URL")" "\"msgformat\":$(jstr "${AISCATCHER_MQTT_MSGFORMAT:-JSON_FULL}")")
+    if [[ -n "${AISCATCHER_MQTT_CLIENT_ID}" ]]; then mqtt_fields+=("\"client_id\":$(jstr "$AISCATCHER_MQTT_CLIENT_ID")"); fi
+    if [[ -n "${AISCATCHER_MQTT_QOS}" ]]; then mqtt_fields+=("\"qos\":${AISCATCHER_MQTT_QOS}"); fi
+    if [[ -n "${AISCATCHER_MQTT_TOPIC}" ]]; then mqtt_fields+=("\"topic\":$(jstr "$AISCATCHER_MQTT_TOPIC")"); fi
+    mqtt_outputs+=("{$(IFS=,; printf '%s' "${mqtt_fields[*]}")}")
 fi
 
 if [[ -n "$ADSB_CONNECTOR" ]]; then
     readarray -d, -t connector <<< "$ADSB_CONNECTOR"
-    aiscatcher_command+=("-t ${connector[0]//$'\n'/} ${connector[1]//$'\n'/} ${connector[2]//$'\n'/}")
+    extra_cli_args+=("-t" "${connector[0]//$'\n'/}" "${connector[1]//$'\n'/}" "${connector[2]//$'\n'/}")
     if [[ -n "$FEEDER_LAT" ]] && [[ -n "$FEEDER_LONG" ]]; then
-        aiscatcher_command+=("-Z $FEEDER_LAT $FEEDER_LONG")
+        extra_cli_args+=("-Z" "$FEEDER_LAT" "$FEEDER_LONG")
     fi
 fi
 
-aiscatcher_command+=("$AISCATCHER_EXTRA_OPTIONS")
+# Assemble the final JSON configuration document:
+config_json="{\"config\":\"aiscatcher\",\"version\":1"
+[[ -n "$sharing_json" ]] && config_json+=",${sharing_json}"
+[[ -n "$receiver_json" ]] && config_json+=",\"receiver\":[${receiver_json}]"
+[[ -n "$server_json" ]] && config_json+=",\"server\":[{${server_json}}]"
+udp_json="$(json_array udp_outputs)"; [[ -n "$udp_json" ]] && config_json+=",\"udp\":${udp_json}"
+tcp_json="$(json_array tcp_outputs)"; [[ -n "$tcp_json" ]] && config_json+=",\"tcp\":${tcp_json}"
+http_json="$(json_array http_outputs)"; [[ -n "$http_json" ]] && config_json+=",\"http\":${http_json}"
+mqtt_json="$(json_array mqtt_outputs)"; [[ -n "$mqtt_json" ]] && config_json+=",\"mqtt\":${mqtt_json}"
+config_json+="}"
 
-# shellcheck disable=SC2068
-aiscommand="$(echo ${aiscatcher_command[@]} | xargs)"
+mkdir -p "$(dirname "$AISCATCHER_CONFIG_FILE")"
+printf '%s\n' "$config_json" > "$AISCATCHER_CONFIG_FILE"
 
-"${s6wrap[@]}" echo "Starting: ${aiscommand}"
+# shellcheck disable=SC2206
+extra_options_array=(${AISCATCHER_EXTRA_OPTIONS})
+# shellcheck disable=SC2206
+showlogs_array=(${SHOWLOGS})
 
-# shellcheck disable=SC2048
-# shellcheck disable=SC2086
-exec "${s6wrap[@]}" ${aiscommand}
+aiscatcher_command=("/usr/local/bin/AIS-catcher" "-C" "$AISCATCHER_CONFIG_FILE" "${showlogs_array[@]}" "${extra_cli_args[@]}" "${extra_options_array[@]}")
+
+"${s6wrap[@]}" echo "Using AIS-catcher configuration file: $AISCATCHER_CONFIG_FILE"
+"${s6wrap[@]}" echo "$(cat "$AISCATCHER_CONFIG_FILE")"
+"${s6wrap[@]}" echo "Starting: ${aiscatcher_command[*]}"
+
+exec "${s6wrap[@]}" "${aiscatcher_command[@]}"
