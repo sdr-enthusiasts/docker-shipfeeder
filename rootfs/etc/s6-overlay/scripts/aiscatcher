@@ -462,8 +462,8 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
 
     primary_receiver_fields+=("\"input\":$(jstr "${DEVICE_JSON_KEY,,}")" "\"serial\":$(jstr "$RTLSDR_DEVICE_SERIAL")" "\"${DEVICE_JSON_KEY,,}\":{${DEVICE_JSON_FIELDS}}")
     if [[ "${#model_fields[@]}" -gt 0 ]]; then
-        # "model" is deprecated in favor of an "engines" array:
-        primary_receiver_fields+=("\"engines\":[{$(IFS=,; printf '%s' "${model_fields[*]}")}]")
+        # "model" is deprecated in favor of an "engines" array, with settings nested under "settings":
+        primary_receiver_fields+=("\"engines\":[{\"settings\":{$(IFS=,; printf '%s' "${model_fields[*]}")}}]")
     fi
 fi
 receiver_entries=("{$(IFS=,; printf '%s' "${primary_receiver_fields[*]}")}")
