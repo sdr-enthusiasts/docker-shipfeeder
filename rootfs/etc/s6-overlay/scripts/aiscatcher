@@ -21,10 +21,13 @@ source /scripts/common
 #
 # Most parameters are translated into an AIS-catcher JSON configuration file
 # (see https://jvde-github.github.io/AIS-catcher-docs/usage/json-configuration/)
-# instead of a long command line. A handful of settings that aren't (yet)
-# exposed in the JSON schema (console verbosity, AIS channel selection, the
-# NMEA-over-UDP input, the ADSB feed connector, and free-form extra options)
-# are still passed on the command line together with "-C <config file>".
+# instead of a long command line. A few settings aren't part of the documented
+# JSON schema and are still passed on the command line together with "-C <config file>":
+#   -c        AIS channel selection (AB/CD) - CLI/legacy only, no documented JSON key
+#   -x        NMEA-over-UDP input, which carries an inline per-feed channel designation
+#   -t/-Z     ADSB connector + own station location - -Z relies on being positioned
+#             right after a CLI-defined receiver, so both stay on the command line
+#   (free-form) AISCATCHER_EXTRA_OPTIONS
 
 AISCATCHER_CONFIG_FILE="/data/aiscatcher-config.json"
 
@@ -54,12 +57,15 @@ json_array() {
 FEEDER_LAT="${FEEDER_LAT:-$SXFEEDER_LAT}"
 FEEDER_LONG="${FEEDER_LONG:-$SXFEEDER_LON}"
 
-# check if logging is verbose:
+# Console verbosity (formerly -q/-v/-o) is folded into the primary receiver's screen/verbose/verbose_time JSON keys:
+receiver_console_fields=()
 if [[ -n "$VERBOSE_LOGGING" ]]
 then
-    [[ $VERBOSE_LOGGING =~ ^[0-5]{1}$ ]] && SHOWLOGS="-o $VERBOSE_LOGGING" || SHOWLOGS=""
+    if [[ $VERBOSE_LOGGING =~ ^[0-5]{1}$ ]]; then
+        receiver_console_fields+=("\"screen\":${VERBOSE_LOGGING}")
+    fi
 else
-    SHOWLOGS="-q -v 60"
+    receiver_console_fields+=("\"screen\":0" "\"verbose\":true" "\"verbose_time\":60")
 fi
 
 # Arrays that will collect the JSON objects for each output channel:
@@ -196,7 +202,10 @@ fi
 # They are passed on the command line together with "-C <config file>".
 extra_cli_args=()
 
-# Add NMEA UDP inputs if needed:
+# Add NMEA UDP inputs if needed. These stay on the CLI: each feed can carry an inline
+# channel designation (e.g. "host:port:CD") which has no JSON equivalent, and per the
+# AIS-catcher docs, -c does not retune already-decoded NMEA inputs like this one anyway -
+# it only relabels the channel written into the output.
 if [[ -n "$AISCATCHER_UDP_INPUTS" ]]; then
     readarray -d "," -t feedsarray <<< "$AISCATCHER_UDP_INPUTS"
     for feeds in "${feedsarray[@]}"
@@ -400,8 +409,8 @@ fi
 add_udp_feed "127.0.0.1:34994"
 add_udp_feed "127.0.0.1:34995"
 
-# Build the receiver object (device, gain, model settings) - only if a device serial was given:
-receiver_json=""
+# Build the primary receiver object: console verbosity (always) plus device/gain/model settings when a device serial was given:
+primary_receiver_fields=("${receiver_console_fields[@]}")
 if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"
     extra_cli_args+=("-c" "${AISCATCHER_CHANNELS:-AB}")
@@ -451,12 +460,13 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     if chk_enabled "$AISCATCHER_DECODER_DROOP"; then model_fields+=("\"droop\":true"); fi
     if chk_disabled "$AISCATCHER_DECODER_DROOP"; then model_fields+=("\"droop\":false"); fi
 
-    receiver_json="{\"input\":$(jstr "${DEVICE_JSON_KEY,,}"),\"serial\":$(jstr "$RTLSDR_DEVICE_SERIAL"),\"${DEVICE_JSON_KEY,,}\":{${DEVICE_JSON_FIELDS}}"
+    primary_receiver_fields+=("\"input\":$(jstr "${DEVICE_JSON_KEY,,}")" "\"serial\":$(jstr "$RTLSDR_DEVICE_SERIAL")" "\"${DEVICE_JSON_KEY,,}\":{${DEVICE_JSON_FIELDS}}")
     if [[ "${#model_fields[@]}" -gt 0 ]]; then
-        receiver_json+=",\"model\":{$(IFS=,; printf '%s' "${model_fields[*]}")}"
+        # "model" is deprecated in favor of an "engines" array:
+        primary_receiver_fields+=("\"engines\":[{$(IFS=,; printf '%s' "${model_fields[*]}")}]")
     fi
-    receiver_json+="}"
 fi
+receiver_entries=("{$(IFS=,; printf '%s' "${primary_receiver_fields[*]}")}")
 
 if [[ -n "${AISCATCHER_MQTT_URL}" ]]; then
     mqtt_fields=("\"url\":$(jstr "$AISCATCHER_MQTT_URL")" "\"msgformat\":$(jstr "${AISCATCHER_MQTT_MSGFORMAT:-JSON_FULL}")")
@@ -466,6 +476,9 @@ if [[ -n "${AISCATCHER_MQTT_URL}" ]]; then
     mqtt_outputs+=("{$(IFS=,; printf '%s' "${mqtt_fields[*]}")}")
 fi
 
+# ADSB connector stays on the CLI: -Z (own station lat/lon for range display) is only
+# documented as a positional argument that must immediately follow a CLI-defined
+# receiver, so -t and -Z are kept together rather than moving -t alone into JSON.
 if [[ -n "$ADSB_CONNECTOR" ]]; then
     readarray -d, -t connector <<< "$ADSB_CONNECTOR"
     extra_cli_args+=("-t" "${connector[0]//$'\n'/}" "${connector[1]//$'\n'/}" "${connector[2]//$'\n'/}")
@@ -477,7 +490,7 @@ fi
 # Assemble the final JSON configuration document:
 config_json="{\"config\":\"aiscatcher\",\"version\":1"
 [[ -n "$sharing_json" ]] && config_json+=",${sharing_json}"
-[[ -n "$receiver_json" ]] && config_json+=",\"receiver\":[${receiver_json}]"
+config_json+=",\"receiver\":[$(IFS=,; printf '%s' "${receiver_entries[*]}")]"
 [[ -n "$server_json" ]] && config_json+=",\"server\":[{${server_json}}]"
 udp_json="$(json_array udp_outputs)"; [[ -n "$udp_json" ]] && config_json+=",\"udp\":${udp_json}"
 tcp_json="$(json_array tcp_outputs)"; [[ -n "$tcp_json" ]] && config_json+=",\"tcp\":${tcp_json}"
@@ -490,13 +503,10 @@ printf '%s\n' "$config_json" > "$AISCATCHER_CONFIG_FILE"
 
 # shellcheck disable=SC2206
 extra_options_array=(${AISCATCHER_EXTRA_OPTIONS})
-# shellcheck disable=SC2206
-showlogs_array=(${SHOWLOGS})
 
-aiscatcher_command=("/usr/local/bin/AIS-catcher" "-C" "$AISCATCHER_CONFIG_FILE" "${showlogs_array[@]}" "${extra_cli_args[@]}" "${extra_options_array[@]}")
+aiscatcher_command=("/usr/local/bin/AIS-catcher" "-C" "$AISCATCHER_CONFIG_FILE" "${extra_cli_args[@]}" "${extra_options_array[@]}")
 
 "${s6wrap[@]}" echo "Using AIS-catcher configuration file: $AISCATCHER_CONFIG_FILE"
-"${s6wrap[@]}" echo "$(cat "$AISCATCHER_CONFIG_FILE")"
 "${s6wrap[@]}" echo "Starting: ${aiscatcher_command[*]}"
 
 exec "${s6wrap[@]}" "${aiscatcher_command[@]}"
