@@ -20,14 +20,10 @@ source /scripts/common
 #---------------------------------------------------------------------------------------------
 #
 # Most parameters are translated into an AIS-catcher JSON configuration file
-# (see https://jvde-github.github.io/AIS-catcher-docs/usage/json-configuration/)
-# instead of a long command line. A few settings aren't part of the documented
-# JSON schema and are still passed on the command line together with "-C <config file>":
-#   -c        AIS channel selection (AB/CD) - CLI/legacy only, no documented JSON key
-#   -x        NMEA-over-UDP input, which carries an inline per-feed channel designation
-#   -t/-Z     ADSB connector + own station location - -Z relies on being positioned
-#             right after a CLI-defined receiver, so both stay on the command line
-#   (free-form) AISCATCHER_EXTRA_OPTIONS
+# (see https://jvde-github.github.io/AIS-catcher-docs/references/config-keys/,
+# confirmed against the AIS-catcher author). Only -Z (own station lat/lon for the
+# ADSB receiver's range display) has no documented JSON key and stays on the CLI,
+# together with AISCATCHER_EXTRA_OPTIONS (free-form passthrough).
 
 AISCATCHER_CONFIG_FILE="/data/aiscatcher-config.json"
 
@@ -46,6 +42,18 @@ jstr() { printf '"%s"' "$(json_esc "$1")"; }
 # Print a JSON boolean based on chk_enabled/chk_disabled semantics:
 jbool_enabled() { if chk_enabled "$1"; then printf "true"; else printf "false"; fi; }
 
+# Convert a CLI-style "192K"/"3M" shorthand to a plain integer (Hz):
+to_hz() {
+    local v="${1^^}"
+    if [[ "$v" =~ ^([0-9]+)K$ ]]; then
+        printf '%d' "$(( 10#${BASH_REMATCH[1]} * 1000 ))"
+    elif [[ "$v" =~ ^([0-9]+)M$ ]]; then
+        printf '%d' "$(( 10#${BASH_REMATCH[1]} * 1000000 ))"
+    else
+        printf '%s' "$1"
+    fi
+}
+
 # Join an array of JSON object strings into a JSON array, e.g. [ {...}, {...} ]. Prints nothing (not even "[]") if the array is empty.
 json_array() {
     local -n arr_ref="$1"
@@ -57,29 +65,34 @@ json_array() {
 FEEDER_LAT="${FEEDER_LAT:-$SXFEEDER_LAT}"
 FEEDER_LONG="${FEEDER_LONG:-$SXFEEDER_LON}"
 
-# Console verbosity: the running AIS-catcher rejects "screen" inside a receiver
-# object (despite the JSON config docs), so this stays on the CLI as -o/-q -v:
+# Console verbosity: "screen"/"verbose_time" are root-level keys, "verbose" is per-receiver:
+root_screen=""
+root_verbose_time=""
+receiver_verbose="false"
 if [[ -n "$VERBOSE_LOGGING" ]]
 then
-    [[ $VERBOSE_LOGGING =~ ^[0-5]{1}$ ]] && SHOWLOGS="-o $VERBOSE_LOGGING" || SHOWLOGS=""
+    [[ $VERBOSE_LOGGING =~ ^[0-5]{1}$ ]] && root_screen="$VERBOSE_LOGGING"
 else
-    SHOWLOGS="-q -v 60"
+    root_screen="0"
+    root_verbose_time="60"
+    receiver_verbose="true"
 fi
 
-# Arrays that will collect the JSON objects for each output channel:
+# Arrays that will collect the JSON objects for each output channel, and any extra receivers (UDPSERVER/RTLTCP):
 udp_outputs=()
 tcp_outputs=()
 http_outputs=()
 mqtt_outputs=()
+additional_receiver_entries=()
 
 # Add a "host:port" style feed to the udp_outputs/tcp_outputs array, with optional extra JSON fields appended:
 add_udp_feed() {
     local hostport="$1" extra="$2"
-    udp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":$(jstr "${hostport##*:}")${extra:+,$extra}}")
+    udp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:}${extra:+,$extra}}")
 }
 add_tcp_feed() {
     local hostport="$1" extra="$2"
-    tcp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":$(jstr "${hostport##*:}")${extra:+,$extra}}")
+    tcp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:}${extra:+,$extra}}")
 }
 
 # Interpret additional feed targets, if defined
@@ -199,26 +212,18 @@ fi
 # extra_cli_args collects the handful of settings not (yet) covered by the JSON schema.
 # They are passed on the command line together with "-C <config file>".
 extra_cli_args=()
-# shellcheck disable=SC2206
-[[ -n "$SHOWLOGS" ]] && extra_cli_args+=(${SHOWLOGS})
 
-# Add NMEA UDP inputs if needed. These stay on the CLI: each feed can carry an inline
-# channel designation (e.g. "host:port:CD") which has no JSON equivalent, and per the
-# AIS-catcher docs, -c does not retune already-decoded NMEA inputs like this one anyway -
-# it only relabels the channel written into the output.
+# NMEA UDP inputs become additional UDPSERVER receivers. Per the AIS-catcher schema,
+# "channel"/"nmea_channel" only apply to SDR inputs, so any inline channel suffix
+# (e.g. "host:port:CD") can no longer be represented and is dropped.
 if [[ -n "$AISCATCHER_UDP_INPUTS" ]]; then
     readarray -d "," -t feedsarray <<< "$AISCATCHER_UDP_INPUTS"
     for feeds in "${feedsarray[@]}"
     do
-        if [[ -n "$feeds" ]]; then
-            feeds="${feeds/:/ }"
-            feeds="${feeds/:/ -c }"
-            if ! grep -q "\-c" <<< "$feeds"; then
-                feeds="$feeds -c AB"
-            fi
-            read -r -a feeds_parts <<< "$feeds"
-            extra_cli_args+=("-x" "${feeds_parts[@]}")
-        fi
+        feeds="${feeds//$'\n'/}"
+        [[ -z "$feeds" ]] && continue
+        IFS=":" read -r udp_host udp_port _ <<< "$feeds"
+        [[ -n "$udp_port" ]] && additional_receiver_entries+=("{\"input\":\"UDPSERVER\",\"udpserver\":{\"server\":$(jstr "$udp_host"),\"port\":${udp_port}}}")
     done
 fi
 
@@ -409,11 +414,13 @@ fi
 add_udp_feed "127.0.0.1:34994"
 add_udp_feed "127.0.0.1:34995"
 
-# Build the primary receiver object: device/gain/model settings when a device serial was given:
-primary_receiver_fields=()
+# Build the primary receiver object: console verbosity (always) plus device/gain/model/channel settings when a device serial was given:
+primary_receiver_fields=("\"verbose\":${receiver_verbose}")
 if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"
-    extra_cli_args+=("-c" "${AISCATCHER_CHANNELS:-AB}")
+    read -r chan_primary chan_relabel <<< "${AISCATCHER_CHANNELS:-AB}"
+    primary_receiver_fields+=("\"channel\":$(jstr "${chan_primary:-AB}")")
+    [[ -n "$chan_relabel" ]] && primary_receiver_fields+=("\"nmea_channel\":$(jstr "$chan_relabel")")
 
     if [[ "${SDR_TYPE^^}" == "RTLSDR" ]]; then
         if ! chk_disabled "${RTLSDR_DEVICE_RTLAGC}"; then
@@ -435,9 +442,9 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
         DEVICE_JSON_FIELDS+=",\"freqoffset\":${RTLSDR_DEVICE_PPM}"
     fi
     if [[ -n "${RTLSDR_DEVICE_BANDWIDTH}" ]]; then
-        DEVICE_JSON_FIELDS+=",\"bandwidth\":$(jstr "$RTLSDR_DEVICE_BANDWIDTH")"
+        DEVICE_JSON_FIELDS+=",\"bandwidth\":$(to_hz "$RTLSDR_DEVICE_BANDWIDTH")"
     elif ! grep -qoE '\-a\s+[0-9]+[A-Za-z]{1}' <<< "$AISCATCHER_EXTRA_OPTIONS"; then
-        DEVICE_JSON_FIELDS+=",\"bandwidth\":\"192K\""
+        DEVICE_JSON_FIELDS+=",\"bandwidth\":192000"
     fi
     if [[ -n "${AISCATCHER_DECODER_MODEL}" ]]; then
         extra_cli_args+=("-m" "${AISCATCHER_DECODER_MODEL}")
@@ -476,12 +483,14 @@ if [[ -n "${AISCATCHER_MQTT_URL}" ]]; then
     mqtt_outputs+=("{$(IFS=,; printf '%s' "${mqtt_fields[*]}")}")
 fi
 
-# ADSB connector stays on the CLI: -Z (own station lat/lon for range display) is only
-# documented as a positional argument that must immediately follow a CLI-defined
-# receiver, so -t and -Z are kept together rather than moving -t alone into JSON.
+# ADSB connector becomes an additional RTLTCP receiver (beast/basestation protocol).
+# -Z (own station lat/lon for range display) has no documented JSON key and stays on the CLI:
 if [[ -n "$ADSB_CONNECTOR" ]]; then
     readarray -d, -t connector <<< "$ADSB_CONNECTOR"
-    extra_cli_args+=("-t" "${connector[0]//$'\n'/}" "${connector[1]//$'\n'/}" "${connector[2]//$'\n'/}")
+    adsb_protocol="${connector[0]//$'\n'/}"
+    adsb_host="${connector[1]//$'\n'/}"
+    adsb_port="${connector[2]//$'\n'/}"
+    additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}}}")
     if [[ -n "$FEEDER_LAT" ]] && [[ -n "$FEEDER_LONG" ]]; then
         extra_cli_args+=("-Z" "$FEEDER_LAT" "$FEEDER_LONG")
     fi
@@ -490,6 +499,9 @@ fi
 # Assemble the final JSON configuration document:
 config_json="{\"config\":\"aiscatcher\",\"version\":1"
 [[ -n "$sharing_json" ]] && config_json+=",${sharing_json}"
+[[ -n "$root_screen" ]] && config_json+=",\"screen\":$(jstr "$root_screen")"
+[[ -n "$root_verbose_time" ]] && config_json+=",\"verbose_time\":${root_verbose_time}"
+receiver_entries+=("${additional_receiver_entries[@]}")
 config_json+=",\"receiver\":[$(IFS=,; printf '%s' "${receiver_entries[*]}")]"
 [[ -n "$server_json" ]] && config_json+=",\"server\":[{${server_json}}]"
 udp_json="$(json_array udp_outputs)"; [[ -n "$udp_json" ]] && config_json+=",\"udp\":${udp_json}"
