@@ -446,7 +446,12 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     elif ! grep -qoE '\-a\s+[0-9]+[A-Za-z]{1}' <<< "$AISCATCHER_EXTRA_OPTIONS"; then
         DEVICE_JSON_FIELDS+=",\"bandwidth\":192000"
     fi
-    if [[ -n "${AISCATCHER_DECODER_MODEL}" ]]; then
+    # AISCATCHER_DECODER_MODEL=4 (Challenger) maps to the "v1_high" engine type; "2" is
+    # already the implicit default, so only other values fall back to -m on the CLI:
+    engine_fields=()
+    if [[ "${AISCATCHER_DECODER_MODEL}" == "4" ]]; then
+        engine_fields+=("\"type\":\"v1_high\"")
+    elif [[ -n "${AISCATCHER_DECODER_MODEL}" ]] && [[ "${AISCATCHER_DECODER_MODEL}" != "2" ]]; then
         extra_cli_args+=("-m" "${AISCATCHER_DECODER_MODEL}")
     fi
 
@@ -470,7 +475,10 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     primary_receiver_fields+=("\"input\":$(jstr "${DEVICE_JSON_KEY,,}")" "\"serial\":$(jstr "$RTLSDR_DEVICE_SERIAL")" "\"${DEVICE_JSON_KEY,,}\":{${DEVICE_JSON_FIELDS}}")
     if [[ "${#model_fields[@]}" -gt 0 ]]; then
         # "model" is deprecated in favor of an "engines" array, with settings nested under "settings":
-        primary_receiver_fields+=("\"engines\":[{\"settings\":{$(IFS=,; printf '%s' "${model_fields[*]}")}}]")
+        engine_fields+=("\"settings\":{$(IFS=,; printf '%s' "${model_fields[*]}")}")
+    fi
+    if [[ "${#engine_fields[@]}" -gt 0 ]]; then
+        primary_receiver_fields+=("\"engines\":[{$(IFS=,; printf '%s' "${engine_fields[*]}")}]")
     fi
 fi
 receiver_entries=("{$(IFS=,; printf '%s' "${primary_receiver_fields[*]}")}")
