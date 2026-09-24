@@ -446,13 +446,21 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     elif ! grep -qoE '\-a\s+[0-9]+[A-Za-z]{1}' <<< "$AISCATCHER_EXTRA_OPTIONS"; then
         DEVICE_JSON_FIELDS+=",\"bandwidth\":192000"
     fi
-    # AISCATCHER_DECODER_MODEL=4 (Challenger) maps to the "v1_high" engine type; "2" is
-    # already the implicit default, so only other values fall back to -m on the CLI:
+    # AISCATCHER_DECODER_MODEL=auto, v1_base, v1_high, and v2_base. = no -m/-m  2/-m 4/-m 11 
     engine_fields=()
-    if [[ "${AISCATCHER_DECODER_MODEL}" == "4" ]]; then
+    if [[ "${AISCATCHER_DECODER_MODEL}" == "2" ]]; then
+        engine_fields+=("\"type\":\"v1_base\"")
+    elif [[ "${AISCATCHER_DECODER_MODEL}" == "4" ]]; then
         engine_fields+=("\"type\":\"v1_high\"")
-    elif [[ -n "${AISCATCHER_DECODER_MODEL}" ]] && [[ "${AISCATCHER_DECODER_MODEL}" != "2" ]]; then
-        extra_cli_args+=("-m" "${AISCATCHER_DECODER_MODEL}")
+    elif [[ "${AISCATCHER_DECODER_MODEL}" == "11" ]]; then
+        engine_fields+=("\"type\":\"v2_base\"")
+    elif [[ -z "${AISCATCHER_DECODER_MODEL}" ]]; then
+        engine_fields+=("\"type\":\"auto\"")
+    elif [[ -n "${AISCATCHER_DECODER_MODEL}" && ! "$AISCATCHER_DECODER_MODEL" =~ ^[0-9]+$ ]]; then
+        engine_fields+=("\"type\":\"${AISCATCHER_DECODER_MODEL}\"")
+    else
+        engine_fields+=("\"type\":\"auto\"")
+        "${s6wrap[@]}" echo "Invalid AISCATCHER_DECODER_MODEL: $AISCATCHER_DECODER_MODEL. Reverting to receiver type \"auto\""
     fi
 
     model_fields=()
