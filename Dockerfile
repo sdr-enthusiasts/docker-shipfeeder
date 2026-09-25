@@ -157,7 +157,6 @@ RUN set -x && \
     branch="##BRANCH##" && \
     { [[ "${branch:0:1}" == "#" ]] && branch="main" || true; } && \
     commit="$(curl -s https://api.github.com/repos/sdr-enthusiasts/docker-shipfeeder/commits/$branch | jq -r '.sha[0:7]')" && \
-    cd docker-shipfeeder && \
     echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$commit_$branch" > "/.CONTAINER_VERSION" && \
     popd && \
     rm -rf /tmp/*
