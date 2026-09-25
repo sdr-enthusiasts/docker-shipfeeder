@@ -67,8 +67,8 @@ RUN set -x && \
     #
     # install shipfeeder packages
     gpg --keyserver keyserver.ubuntu.com --recv-keys 1D043681  && \
-    gpg --export --armor 1D043681 | gpg --dearmor -o /etc/apt/keyrings/flightradar24.gpg   && \
-    echo "deb [signed-by=/etc/apt/keyrings/flightradar24.gpg] https://apt.rb24.com/ bookworm main" | tee /etc/apt/sources.list.d/fr24feed.list  && \
+    gpg --export --armor 1D043681 | gpg --dearmor -o /etc/apt/keyrings/shipexplorer.gpg   && \
+    echo "deb [signed-by=/etc/apt/keyrings/shipexplorer.gpg] https://apt.rb24.com/ bookworm main" | tee /etc/apt/sources.list.d/shipexplorer.list  && \
     #
     SX_PACKAGE_NAME="sxfeeder" && \
     if [ "$TARGETPLATFORM" != "linux/arm/v7" ]; then \
@@ -104,7 +104,10 @@ RUN set -x && \
     apt-get install -q -o Dpkg::Options::="--force-confnew" -y --no-install-recommends  --no-install-suggests --allow-unauthenticated \
     "${SX_PACKAGES[@]}" && \
     cd /tmp/ && \
-    apt-get download "${SX_PACKAGE_NAME}" && \
+    # let's curl the trixie package directly instead of using apt-get download
+    if ! curl -sSL "https://apt.rb24.com/pool/main/s/sxfeeder/sxfeeder_1.0.3+deb13trixie_armhf.deb" -o sxfeeder_1.0.3+deb13trixie_armhf.deb; then \
+        apt-get download "${SX_PACKAGE_NAME}"; \
+    fi && \
     mkdir -p /tmp/sxfeeder && \
     dpkg --fsys-tarfile sxfeeder*.deb | tar -C /tmp/sxfeeder -x && \
     cp /tmp/sxfeeder/usr/bin/sxfeeder /usr/bin/sxfeeder && \

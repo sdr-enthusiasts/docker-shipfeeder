@@ -426,6 +426,7 @@ You can format the text in this file using [Markdown](https://www.markdownguide.
 ## Logging
 
 - All processes are logged to the container's stdout, and can be viewed with `docker logs [-f] container`.
+- Your parameters are passed to the `aiscatcher` receiver component of the container as a JSON file. You can inspect this JSON file with this command: `docker exec -it shipfeeder cat /run/aiscatcher/config.json`. Note that this JSON file contains your feeder keys and credentials, so be careful exposing this data to others.
 
 ## AIS-Catcher Web Plugin Support and AIS-Catcher Persistency
 
