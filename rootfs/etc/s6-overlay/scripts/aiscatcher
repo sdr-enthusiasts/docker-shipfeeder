@@ -4,7 +4,7 @@
 source /scripts/common
 
 #---------------------------------------------------------------------------------------------
-# Copyright (C) 2022-2025, Ramon F. Kolb (kx1t)
+# Copyright (C) 2022-2026, Ramon F. Kolb (kx1t)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -488,6 +488,10 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     if [[ "${#engine_fields[@]}" -gt 0 ]]; then
         primary_receiver_fields+=("\"engines\":[{$(IFS=,; printf '%s' "${engine_fields[*]}")}]")
     fi
+    if [[ -n "$FEEDER_LAT" && -n "$FEEDER_LONG" ]]; then
+        primary_receiver_fields+=("\"lat\":$(jstr "$FEEDER_LAT")" "\"long\":$(jstr "$FEEDER_LONG")")
+    fi
+
 fi
 receiver_entries=("{$(IFS=,; printf '%s' "${primary_receiver_fields[*]}")}")
 
@@ -506,10 +510,7 @@ if [[ -n "$ADSB_CONNECTOR" ]]; then
     adsb_protocol="${connector[0]//$'\n'/}"
     adsb_host="${connector[1]//$'\n'/}"
     adsb_port="${connector[2]//$'\n'/}"
-    additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}}}")
-    if [[ -n "$FEEDER_LAT" ]] && [[ -n "$FEEDER_LONG" ]]; then
-        extra_cli_args+=("-Z" "$FEEDER_LAT" "$FEEDER_LONG")
-    fi
+    additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port},\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG")}}")
 fi
 
 # Assemble the final JSON configuration document:
