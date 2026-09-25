@@ -510,7 +510,11 @@ if [[ -n "$ADSB_CONNECTOR" ]]; then
     adsb_protocol="${connector[0]//$'\n'/}"
     adsb_host="${connector[1]//$'\n'/}"
     adsb_port="${connector[2]//$'\n'/}"
-    additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port},\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG")}}")
+    if [[ -n "$FEEDER_LAT" && -n "$FEEDER_LONG" ]]; then
+        additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}},\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG")}")
+    else
+        additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}}}")
+    fi
 fi
 
 # Assemble the final JSON configuration document:
@@ -530,7 +534,7 @@ config_json+="}"
 mkdir -p "$(dirname "$AISCATCHER_CONFIG_FILE")"
 touch "$AISCATCHER_CONFIG_FILE"
 chmod a=rw,go= "$AISCATCHER_CONFIG_FILE"
-printf '%s\n' "$config_json" > "$AISCATCHER_CONFIG_FILE"
+printf '%s\n' "$config_json" | jq . > "$AISCATCHER_CONFIG_FILE"
 
 # shellcheck disable=SC2206
 extra_options_array=(${AISCATCHER_EXTRA_OPTIONS})
