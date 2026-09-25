@@ -42,7 +42,6 @@ RUN set -x && \
     KEPT_PACKAGES+=(libssl3); \
     fi && \
     KEPT_PACKAGES+=(tcpdump) && \
-    KEPT_PACKAGES+=(git) && \
     KEPT_PACKAGES+=(nano) && \
     KEPT_PACKAGES+=(libpqxx-dev) && \
     KEPT_PACKAGES+=(lsb-release) && \
@@ -50,6 +49,7 @@ RUN set -x && \
     TEMP_PACKAGES+=(make) && \
     TEMP_PACKAGES+=(gcc) && \
     TEMP_PACKAGES+=(g++) && \
+    TEMP_PACKAGES+=(git) && \
     TEMP_PACKAGES+=(cmake) && \
     TEMP_PACKAGES+=(pkg-config) && \
     TEMP_PACKAGES+=(libusb-1.0.0-dev) && \
@@ -156,9 +156,9 @@ RUN set -x && \
     pushd /tmp && \
     branch="##BRANCH##" && \
     { [[ "${branch:0:1}" == "#" ]] && branch="main" || true; } && \
-    git clone --depth=1 -b "$branch" https://github.com/sdr-enthusiasts/docker-shipfeeder.git && \
+    commit="$(curl -s https://api.github.com/repos/sdr-enthusiasts/docker-shipfeeder/commits/$branch | jq -r '.sha[0:7]')" && \
     cd docker-shipfeeder && \
-    echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(git rev-parse --short HEAD)_$(git branch --show-current)" > "/.CONTAINER_VERSION" && \
+    echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$commit_$branch" > "/.CONTAINER_VERSION" && \
     popd && \
     rm -rf /tmp/*
 
