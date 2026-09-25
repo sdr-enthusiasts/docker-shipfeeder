@@ -489,7 +489,7 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
         primary_receiver_fields+=("\"engines\":[{$(IFS=,; printf '%s' "${engine_fields[*]}")}]")
     fi
     if [[ -n "$FEEDER_LAT" && -n "$FEEDER_LONG" ]]; then
-        primary_receiver_fields+=("\"lat\":$(jstr "$FEEDER_LAT")" "\"long\":$(jstr "$FEEDER_LONG")")
+        primary_receiver_fields+=("\"lat\":$(jstr "$FEEDER_LAT")" "\"lon\":$(jstr "$FEEDER_LONG")")
     fi
 
 fi
