@@ -25,7 +25,7 @@ source /scripts/common
 # ADSB receiver's range display) has no documented JSON key and stays on the CLI,
 # together with AISCATCHER_EXTRA_OPTIONS (free-form passthrough).
 
-AISCATCHER_CONFIG_FILE="/data/aiscatcher-config.json"
+AISCATCHER_CONFIG_FILE="/run/aiscatcher/config.json"
 
 # Escape a string for safe embedding inside a JSON string value:
 json_esc() {
@@ -528,6 +528,8 @@ mqtt_json="$(json_array mqtt_outputs)"; [[ -n "$mqtt_json" ]] && config_json+=",
 config_json+="}"
 
 mkdir -p "$(dirname "$AISCATCHER_CONFIG_FILE")"
+touch "$AISCATCHER_CONFIG_FILE"
+chmod a=rw,go= "$AISCATCHER_CONFIG_FILE"
 printf '%s\n' "$config_json" > "$AISCATCHER_CONFIG_FILE"
 
 # shellcheck disable=SC2206
