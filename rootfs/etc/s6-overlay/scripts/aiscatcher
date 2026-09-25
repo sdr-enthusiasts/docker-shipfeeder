@@ -64,6 +64,8 @@ json_array() {
 # Do some parameters housekeeping so both the new and the legacy params are supported:
 FEEDER_LAT="${FEEDER_LAT:-$SXFEEDER_LAT}"
 FEEDER_LONG="${FEEDER_LONG:-$SXFEEDER_LON}"
+SX_SHARING_KEY="${SHARING_KEY:-${SX_SHARING_KEY:-${SHIPXPLORER_SHARING_KEY}}}"
+SX_SERIAL_NUMBER="${SERIAL_NUMBER:-${SX_SERIAL_NUMBER:-${SHIPXPLORER_SERIAL_NUMBER}}}"
 
 # Console verbosity: "screen"/"verbose_time" are root-level keys, "verbose" is per-receiver:
 root_screen=""
@@ -184,8 +186,8 @@ then
 fi
 
 # check if STATION_NAME and STATION_LINK is defined. If it is not, add the ShipXplorer URL
-if [[ -z "$STATION_NAME" ]] && [[ -n "$SERIAL_NUMBER" ]]; then STATION_NAME="${SERIAL_NUMBER}"; fi
-if [[ -z "$STATION_LINK" ]] && [[ -n "$SERIAL_NUMBER" ]]; then STATION_LINK="https://www.shipxplorer.com/stations/${SERIAL_NUMBER}"; fi
+if [[ -z "$STATION_NAME" ]] && [[ -n "$SX_SERIAL_NUMBER" ]]; then STATION_NAME="${SX_SERIAL_NUMBER}"; fi
+if [[ -z "$STATION_LINK" ]] && [[ -n "$SX_SERIAL_NUMBER" ]]; then STATION_LINK="https://www.shipxplorer.com/stations/${SX_SERIAL_NUMBER}"; fi
 
 # set the web site (viewer) parameters:
 if ! chk_enabled "${DISABLE_WEBSITE}"; then
@@ -380,7 +382,7 @@ if [[ -n "$SHIPXPLORER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPXPLORER_UDP_PORT"; then SHIPXPLORER_UDP_PORT="hub.shipxplorer.com:$SHIPXPLORER_UDP_PORT"; fi
     add_udp_feed "$SHIPXPLORER_UDP_PORT"
 fi
-if [[ -n "${SHARING_KEY:-${SX_SHARING_KEY:-${SHIPXPLORER_SHARING_KEY}}}${SERIAL_NUMBER:-${SX_SERIAL_NUMBER:-${SHIPXPLORER_SERIAL_NUMBER}}}" ]] && [[ -n "$SHIPXPLORER_UDP_PORT" ]]; then
+if [[ -n "${SX_SHARING_KEY}${SX_SERIAL_NUMBER}" && -n "$SHIPXPLORER_UDP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both [SHIPXPLORER_]SHARING_KEY/[SHIPXPLORER_]SERIAL_NUMBER and SHIPXPLORER_UDP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
