@@ -222,7 +222,7 @@ fi
 if [[ -n "$OPENWATERS_TOKEN" ]]; then
     aiscatcher_command+=("-H ${OPENWATERS_URL}/v1/receive USERPWD x:${OPENWATERS_TOKEN} GZIP on INTERVAL 15")
 elif chk_enabled "$OPENWATERS_SHAREDATA"; then
-    aiscatcher_command+=("-u ${OPENWATERS_UDP_HOST:-ais.openwaters.io} ${OPENWATERS_UDP_PORT:-10110}")
+    aiscatcher_command+=("-u ${OPENWATERS_UDP_HOST:-udp.ais.openwaters.io} ${OPENWATERS_UDP_PORT:-10110}")
 fi
 
 # aprs.fi:
