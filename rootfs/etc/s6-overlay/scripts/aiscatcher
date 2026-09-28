@@ -198,9 +198,9 @@ if [[ -n "$AISHUB_UDP_PORT" ]] && [[ -n "$AISHUB_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both AISHUB_UDP_PORT and AISHUB_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
-# Open Waters (ais.openwaters.io, runs aiscast). OPENWATERS_TOKEN feeds over HTTPS under that token.
+# Open Waters (ais.openwaters.io, runs aiscast). OPENWATERS_TOKEN feeds over MQTT under that token.
 # OPENWATERS_SHAREDATA=true without a token makes a station key and token once (kept in /data/openwaters so the
-# station keeps its identity across restarts) and feeds over HTTPS; if that fails it feeds anonymously over UDP.
+# station keeps its identity across restarts) and feeds over MQTT; if that fails it feeds anonymously over UDP.
 OPENWATERS_URL="${OPENWATERS_URL:-https://ais.openwaters.io}"
 if [[ -z "$OPENWATERS_TOKEN" ]] && chk_enabled "$OPENWATERS_SHAREDATA"; then
     if [[ -s /data/openwaters/token ]]; then
@@ -220,7 +220,12 @@ if [[ -z "$OPENWATERS_TOKEN" ]] && chk_enabled "$OPENWATERS_SHAREDATA"; then
     fi
 fi
 if [[ -n "$OPENWATERS_TOKEN" ]]; then
-    aiscatcher_command+=("-H ${OPENWATERS_URL}/v1/receive USERPWD x:${OPENWATERS_TOKEN} GZIP on INTERVAL 15")
+    # MQTT over WebSocket on the server's stream address: each message goes out as it is decoded, where -H
+    # batches on an interval. AIS-catcher needs the port spelled out in the URL.
+    OW_HOSTPORT="${OPENWATERS_URL#*://}"; OW_HOSTPORT="${OW_HOSTPORT%%/*}"
+    if [[ "$OPENWATERS_URL" == https://* ]]; then OW_SCHEME="wssmqtt"; OW_PORT="443"; else OW_SCHEME="wsmqtt"; OW_PORT="80"; fi
+    if ! grep -q ":" <<< "$OW_HOSTPORT"; then OW_HOSTPORT="${OW_HOSTPORT}:${OW_PORT}"; fi
+    aiscatcher_command+=("-Q ${OW_SCHEME}://x:${OPENWATERS_TOKEN}@${OW_HOSTPORT}/v1/stream MSGFORMAT NMEA")
 elif chk_enabled "$OPENWATERS_SHAREDATA"; then
     aiscatcher_command+=("-u ${OPENWATERS_UDP_HOST:-udp.ais.openwaters.io} ${OPENWATERS_UDP_PORT:-10110}")
 fi
