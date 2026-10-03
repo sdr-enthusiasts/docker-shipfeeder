@@ -47,6 +47,8 @@ RUN set -x && \
     KEPT_PACKAGES+=(libpqxx-dev) && \
     KEPT_PACKAGES+=(lsb-release) && \
     KEPT_PACKAGES+=(sqlite3) && \
+    # openssl CLI: Ed25519 key for the Open Waters station token
+    KEPT_PACKAGES+=(openssl) && \
     TEMP_PACKAGES+=(make) && \
     TEMP_PACKAGES+=(gcc) && \
     TEMP_PACKAGES+=(g++) && \
