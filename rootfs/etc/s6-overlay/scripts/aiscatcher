@@ -210,12 +210,22 @@ if [[ -z "$OPENWATERS_TOKEN" ]] && chk_enabled "$OPENWATERS_SHAREDATA"; then
         mkdir -p /data/openwaters && chmod 700 /data/openwaters
         [[ -s /data/openwaters/key.pem ]] || (umask 077 && openssl genpkey -algorithm ed25519 -out /data/openwaters/key.pem 2>/dev/null)
         OW_PUB="$(openssl pkey -in /data/openwaters/key.pem -pubout -outform DER 2>/dev/null | tail -c 32 | base64 | tr '+/' '-_' | tr -d '=\n')"
-        OW_TOKEN="$(curl -fsS -m 20 -X POST "${OPENWATERS_URL}/v1/keys" -H 'Content-Type: application/json' -d "{\"pubkey\":\"${OW_PUB}\"}" 2>/dev/null | jq -r '.token // empty' 2>/dev/null)"
+        # the request is signed with the key, so nobody else can mint a token for this station: six lines
+        # (aiscast-key, pubkey, ts, bind_ip, name, vessel_name) with no newline at the end
+        OW_TS="$(date +%s)"
+        printf 'aiscast-key\n%s\n%s\n0\n\n' "$OW_PUB" "$OW_TS" > /tmp/openwaters-mint
+        OW_SIG="$(openssl pkeyutl -sign -inkey /data/openwaters/key.pem -rawin -in /tmp/openwaters-mint 2>/dev/null | base64 | tr '+/' '-_' | tr -d '=\n')"
+        rm -f /tmp/openwaters-mint
+        OW_RESP="$(curl --fail-with-body -sS -m 20 -X POST "${OPENWATERS_URL}/v1/keys" -H 'Content-Type: application/json' -d "{\"pubkey\":\"${OW_PUB}\",\"ts\":${OW_TS},\"sig\":\"${OW_SIG}\"}" 2>&1)"
+        OW_TOKEN="$(jq -r '.token // empty' <<< "$OW_RESP" 2>/dev/null)"
         if [[ -n "$OW_TOKEN" ]] && (umask 077 && printf '%s' "$OW_TOKEN" > /data/openwaters/token) 2>/dev/null; then
             OPENWATERS_TOKEN="$OW_TOKEN"
             "${s6wrap[@]}" echo "Open Waters: station token created and saved in /data/openwaters"
+        elif [[ -n "$OW_TOKEN" ]]; then
+            "${s6wrap[@]}" echo "[WARNING] Open Waters: could not save the station token in /data/openwaters; feeding anonymously over UDP instead"
         else
-            "${s6wrap[@]}" echo "[WARNING] Open Waters: could not obtain or save a station token; feeding anonymously over UDP instead"
+            OW_RESP="${OW_RESP//$'\n'/ }"
+            "${s6wrap[@]}" echo "[WARNING] Open Waters: could not obtain a station token (${OW_RESP:0:200}); feeding anonymously over UDP instead"
         fi
     fi
 fi
