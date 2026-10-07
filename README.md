@@ -111,6 +111,7 @@ services:
       - AISHUB_UDP_PORT=${AISHUB_UDP_PORT}
       - APRSFI_FEEDER_KEY=${APRSFI_FEEDER_KEY}
       - BOATBEACON_SHAREDATA=${BOATBEACON_SHAREDATA}
+      - GANGWAY_SHAREDATA=${GANGWAY_SHAREDATA}
       - HPRADAR_UDP_PORT=${HPRADAR_UDP_PORT}
       - MARINETRAFFIC_UDP_PORT=${MARINETRAFFIC_UDP_PORT}
       - MYSHIPTRACKING_UDP_PORT=${MYSHIPTRACKING_UDP_PORT}
@@ -164,6 +165,7 @@ AISHUB_UDP_PORT=xxxxx
 APRSFI_FEEDER_KEY=xxxxxxx
 APRSFI_STATION_ID=MYCALL
 BOATBEACON_SHAREDATA=true
+GANGWAY_SHAREDATA=true
 HPRADAR_UDP_PORT=xxxxx
 MARINETRAFFIC_UDP_PORT=xxxxx
 MYSHIPTRACKING_UDP_PORT=xxxxx
@@ -250,6 +252,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | AISHub | `AISHUB_UDP_PORT` | [data.aishub.net](http://data.aishub.net) | UDP | [https://www.aishub.net/join-us](https://www.aishub.net/join-us) |
  | [APRS.fi](http://APRS.fi) | `APRSFI_FEEDER_KEY`<br>`APRSFI_STATION_ID` | [http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY](http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY) | HTTP | Get AIS Password (`APRSFI_FEEDER_KEY`) at [https://aprs.fi/?c=account](https://aprs.fi/?c=account). Use your Ham Radio callsign for `APRSFI_STATION_ID`. Both fields are mandatory. |
  | BoatBeacon (aka Pocket Mariner) | `BOATBEACON_SHAREDATA=true` or<br/> `BOATBEACON_UDP_PORT` or<br/> `BOATBEACON_TCP_PORT` | [boatbeaconapp.com:5322](http://boatbeaconapp.com:5322) | UDP / TCP | [https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/](https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/) - set `BOATBEACON_SHAREDATA=true` to feed without any key or assigned port, or set your assigned UDP or TCP port in the respective parameter |
+ | Gangway AIS | `GANGWAY_SHAREDATA=true` | [ais.gangway.app:10110](https://ais.gangway.app/ais/feed/) | UDP | [https://ais.gangway.app/ais/feed/](https://ais.gangway.app/ais/feed/) - set `GANGWAY_SHAREDATA=true` to feed; no key or assigned port needed. Station page and stats on the feed page. |
  | HPRadar | `HPRADAR_UDP_PORT` | [aisfeed.hpradar.com](http://aisfeed.hpradar.com) | UDP | |
  | MarineTraffic | `MARINETRAFFIC_UDP_PORT` or<br/>`MARINETRAFFIC_TCP_PORT` | 5.9.207.224 | UDP / TCP | [https://www.marinetraffic.com/en/join-us/cover-your-area](https://www.marinetraffic.com/en/join-us/cover-your-area) Please use either the UDP option or the TCP option as instructed by MarineTraffic, but don't use both! |
  | MLAT.uk | `MLATUK_SHAREDATA=true` | feed.mlat.uk:50001 | UDP | [https://shipfinder.co/about/coverage/](https://www.mlat.uk/contribute#ais) |

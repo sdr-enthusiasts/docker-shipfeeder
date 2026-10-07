@@ -218,6 +218,11 @@ if [[ -n "$BOATBEACON_UDP_PORT" ]] && [[ -n "$BOATBEACON_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both BOATBEACON_UDP_PORT and BOATBEACON_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
+# Gangway AIS: fixed UDP destination, no key or assigned port
+if chk_enabled "$GANGWAY_SHAREDATA"; then
+    aiscatcher_command+=("-u ais.gangway.app 10110")
+fi
+
 # HPRadar:
 if [[ -n "$HPRADAR_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$HPRADAR_UDP_PORT"; then HPRADAR_UDP_PORT="aisfeed.hpradar.com:$HPRADAR_UDP_PORT"; fi
