@@ -131,7 +131,9 @@ services:
       - 90:80
       - 9988:9988/udp
     device_cgroup_rules:
-      - 'c 189:* rwm'
+      - 'c 189:* rwm' # USB
+      - 'c 188:* rwm' # serial over USB
+      - 'c 204:* rwm' # serial over GPIO
     tmpfs:
       - /tmp
     volumes:
