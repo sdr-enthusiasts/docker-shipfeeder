@@ -213,6 +213,8 @@ For backwards compatibility reasons the SDR related variables all have `RTLSDR` 
 
 If the `AISCATCHER_CHANNELS` and `AISCATCHER_DECODER_XXXX` parameters listed above are set, they will overwrite/remove any equivalent parameters added to the `AISCATCHER_EXTRA_OPTIONS` parameter.
 
+Note: internally, `docker-shipfeeder` translates most of the environment variables above into an [AIS-catcher JSON configuration file](https://jvde-github.github.io/AIS-catcher-docs/usage/json-configuration/) (`/data/aiscatcher-config.json`) instead of a long command line, which `AIS-catcher` is started with using `-C`. A small number of settings (console verbosity, `AISCATCHER_CHANNELS`, `AISCATCHER_UDP_INPUTS`, `ADSB_CONNECTOR`, and `AISCATCHER_EXTRA_OPTIONS`) are still passed as regular command line parameters alongside `-C`. This is transparent to you as a user - all documented environment variables continue to work the same way.
+
 ### Website Related Parameters
 
 | Environment Variable | Purpose | Default value if omitted |
@@ -252,6 +254,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | BoatBeacon (aka Pocket Mariner) | `BOATBEACON_SHAREDATA=true` or<br/> `BOATBEACON_UDP_PORT` or<br/> `BOATBEACON_TCP_PORT` | [boatbeaconapp.com:5322](http://boatbeaconapp.com:5322) | UDP / TCP | [https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/](https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/) - set `BOATBEACON_SHAREDATA=true` to feed without any key or assigned port, or set your assigned UDP or TCP port in the respective parameter |
  | HPRadar | `HPRADAR_UDP_PORT` | [aisfeed.hpradar.com](http://aisfeed.hpradar.com) | UDP | |
  | MarineTraffic | `MARINETRAFFIC_UDP_PORT` or<br/>`MARINETRAFFIC_TCP_PORT` | 5.9.207.224 | UDP / TCP | [https://www.marinetraffic.com/en/join-us/cover-your-area](https://www.marinetraffic.com/en/join-us/cover-your-area) Please use either the UDP option or the TCP option as instructed by MarineTraffic, but don't use both! |
+ | Marine Receiver Network | `MRNETWORK_UDP_PORT` | ingest.mrnetwork.co.uk | UDP | Register an account and station at <https://mrnetwork.co.uk/register> and get your UDP port in your registration email |
  | MLAT.uk | `MLATUK_SHAREDATA=true` | feed.mlat.uk:50001 | UDP | [https://shipfinder.co/about/coverage/](https://www.mlat.uk/contribute#ais) |
  | MyShipTracking | `MYSHIPTRACKING_UDP_PORT` or<br/>`MYSHIPTRACKING_TCP_PORT` | 178.162.215.175 | UDP / TCP | [https://www.myshiptracking.com/help-center/contributors/add-your-station](https://www.myshiptracking.com/help-center/contributors/add-your-station) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
  | SDRMap | `SDRMAP_STATION_ID`<br />`SDRMAP_PASSWORD` | [https://ais.feed.sdrmap.org/](https://ais.feed.sdrmap.org/) | HTTP | See here for instructions to get your STATION_ID and PASSWORD: <https://github.com/sdrmap/docs/wiki/2.1-Feeding#request-api-credentials> |
@@ -426,6 +429,7 @@ You can format the text in this file using [Markdown](https://www.markdownguide.
 ## Logging
 
 - All processes are logged to the container's stdout, and can be viewed with `docker logs [-f] container`.
+- Your parameters are passed to the `aiscatcher` receiver component of the container as a JSON file. You can inspect this JSON file with this command: `docker exec -it shipfeeder cat /run/aiscatcher/config.json`. Note that this JSON file contains your feeder keys and credentials, so be careful exposing this data to others.
 
 ## AIS-Catcher Web Plugin Support and AIS-Catcher Persistency
 
