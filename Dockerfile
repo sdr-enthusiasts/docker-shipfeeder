@@ -1,6 +1,31 @@
 # syntax=docker/dockerfile:1@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32
 FROM ghcr.io/jvde-github/ais-catcher:edge AS build
 
+# Build libhydrasdr (HydraSDR RFOne host library) in a dedicated stage.
+# This changes rarely, so it stays cached even when the main image layers are rebuilt.
+FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base AS build-hydrasdr
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN set -x && \
+    apt-get update && \
+    apt-get install -q -y --no-install-recommends --no-install-suggests \
+    git \
+    make \
+    gcc \
+    g++ \
+    cmake \
+    pkg-config \
+    libusb-1.0.0-dev \
+    && \
+    git clone https://github.com/hydrasdr/rfone_host.git --depth 1 /tmp/rfone_host && \
+    mkdir -p /tmp/rfone_host/libhydrasdr/build && \
+    pushd /tmp/rfone_host/libhydrasdr/build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr && \
+    make -j"$(nproc)" && \
+    make install DESTDIR=/tmp/hydrasdr-install && \
+    popd
+
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
 ARG TARGETPLATFORM TARGETOS TARGETARCH
@@ -46,13 +71,8 @@ RUN set -x && \
     KEPT_PACKAGES+=(libpqxx-dev) && \
     KEPT_PACKAGES+=(lsb-release) && \
     KEPT_PACKAGES+=(sqlite3) && \
-    TEMP_PACKAGES+=(make) && \
-    TEMP_PACKAGES+=(gcc) && \
-    TEMP_PACKAGES+=(g++) && \
-    TEMP_PACKAGES+=(git) && \
-    TEMP_PACKAGES+=(cmake) && \
-    TEMP_PACKAGES+=(pkg-config) && \
-    TEMP_PACKAGES+=(libusb-1.0.0-dev) && \
+    # build tools for hydrasdr (make/gcc/g++/git/cmake/pkg-config/libusb-1.0.0-dev)
+    # are no longer needed here - hydrasdr is built in the build-hydrasdr stage
     #packages for getting keys
     TEMP_PACKAGES+=(dirmngr) && \
     TEMP_PACKAGES+=(gnupg) && \
@@ -115,15 +135,6 @@ RUN set -x && \
     if [ "${TARGETARCH:0:3}" != "arm" ]; then sed -i -e 's#/proc/cpuinfo#/proc_cpuinfo#' /usr/bin/sxfeeder; fi && \
     # check that the executable works
     { qemu-arm-static /usr/bin/sxfeeder --version || /usr/bin/sxfeeder --version; } && \
-    cd /tmp/ && \
-    git clone https://github.com/hydrasdr/rfone_host.git --depth 1 && \
-    cd rfone_host/libhydrasdr && \
-    mkdir build && \
-    cd build && \
-    cmake .. -DCMAKE_INSTALL_PREFIX=/usr && \
-    make && \
-    make install && \
-    ldconfig && \
     #
     # Do some other stuff
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
@@ -140,6 +151,10 @@ RUN set -x && \
 
 # Add plugins from the same image as the AIS-catcher binary.
 COPY --from=build /etc/AIS-catcher/plugins/ /etc/AIS-catcher/plugins/
+
+# Add libhydrasdr built in the dedicated stage above.
+# The ldconfig in the AIS-catcher layer below also picks up these libraries.
+COPY --from=build-hydrasdr /tmp/hydrasdr-install/ /
 
 # add AIS-catcher and libairspyhf
 RUN \

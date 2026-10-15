@@ -321,11 +321,11 @@ fi
 
 #Maritime Receiver Network (MRNetwork)
 if [[ -n "$MRNETWORK_UDP_PORT" ]]; then
-    if ! grep -q ":" <<< "$MRNETWORK_UDP_PORT"; then MRNETWORK_UDP_PORT="ingest.mrnetwork.com:$MRNETWORK_UDP_PORT"; fi
+    if ! grep -q ":" <<< "$MRNETWORK_UDP_PORT"; then MRNETWORK_UDP_PORT="ingest.mrnetwork.co.uk:$MRNETWORK_UDP_PORT"; fi
     add_udp_feed "$MRNETWORK_UDP_PORT"
 fi
 if [[ -n "$MRNETWORK_TCP_PORT" ]]; then
-    if ! grep -q ":" <<< "$MRNETWORK_TCP_PORT"; then MRNETWORK_TCP_PORT="ingest.mrnetwork.com:$MRNETWORK_TCP_PORT"; fi
+    if ! grep -q ":" <<< "$MRNETWORK_TCP_PORT"; then MRNETWORK_TCP_PORT="ingest.mrnetwork.co.uk:$MRNETWORK_TCP_PORT"; fi
     add_tcp_feed "$MRNETWORK_TCP_PORT"
 fi
 if [[ -n "$MRNETWORK_UDP_PORT" ]] && [[ -n "$MRNETWORK_TCP_PORT" ]]; then
