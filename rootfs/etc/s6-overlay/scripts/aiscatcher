@@ -319,13 +319,19 @@ if [[ -n "$MARINETRAFFIC_UDP_PORT" ]] && [[ -n "$MARINETRAFFIC_TCP_PORT" ]]; the
     "${s6wrap[@]}" echo "[WARNING] Both MARINETRAFFIC_UDP_PORT and MARINETRAFFIC_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
-# MLAT.uk:
-if [[ -n "$MLATUK_UDP_PORT" ]]; then
-    if ! grep -q ":" <<< "$MLATUK_UDP_PORT"; then MLATUK_UDP_PORT="feed.mlat.uk:$MLATUK_UDP_PORT"; fi
-    add_udp_feed "$MLATUK_UDP_PORT"
-elif chk_enabled "$MLATUK_SHAREDATA"; then
-    add_udp_feed "feed.mlat.uk:50001"
+#Maritime Receiver Network (MRNetwork)
+if [[ -n "$MRNETWORK_UDP_PORT" ]]; then
+    if ! grep -q ":" <<< "$MRNETWORK_UDP_PORT"; then MRNETWORK_UDP_PORT="ingest.mrnetwork.com:$MRNETWORK_UDP_PORT"; fi
+    add_udp_feed "$MRNETWORK_UDP_PORT"
 fi
+if [[ -n "$MRNETWORK_TCP_PORT" ]]; then
+    if ! grep -q ":" <<< "$MRNETWORK_TCP_PORT"; then MRNETWORK_TCP_PORT="ingest.mrnetwork.com:$MRNETWORK_TCP_PORT"; fi
+    add_tcp_feed "$MRNETWORK_TCP_PORT"
+fi
+if [[ -n "$MRNETWORK_UDP_PORT" ]] && [[ -n "$MRNETWORK_TCP_PORT" ]]; then
+    "${s6wrap[@]}" echo "[WARNING] Both MRNETWORK_UDP_PORT and MRNETWORK_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+fi
+
 
 # MyShipTracking:
 MYSHIPTRACKING_UDP_PORT="${MYSHIPTRACKING_UDP_PORT:-$MYSHIPTRACKER_UDP_PORT}" # bug fix - originally wrote wrongly MYSHIPTRACKER_UDP_PORT, now we need to keep this for backward compatibility
