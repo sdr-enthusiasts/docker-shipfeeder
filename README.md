@@ -116,6 +116,8 @@ services:
       - HPRADAR_UDP_PORT=${HPRADAR_UDP_PORT}
       - MARINETRAFFIC_UDP_PORT=${MARINETRAFFIC_UDP_PORT}
       - MYSHIPTRACKING_UDP_PORT=${MYSHIPTRACKING_UDP_PORT}
+      - OPENWATERS_SHAREDATA=${OPENWATERS_SHAREDATA}
+      - OPENWATERS_FEEDER_KEY=${OPENWATERS_FEEDER_KEY}
       - RADARVIRTUEL_FEEDER_KEY=${RADARVIRTUEL_FEEDER_KEY}
       - RADARVIRTUEL_STATION_ID=${RADARVIRTUEL_STATION_ID}
       - SDRMAP_STATION_ID=${SDRMAP_STATION_ID}
@@ -171,6 +173,8 @@ GANGWAY_SHAREDATA=true
 HPRADAR_UDP_PORT=xxxxx
 MARINETRAFFIC_UDP_PORT=xxxxx
 MYSHIPTRACKING_UDP_PORT=xxxxx
+OPENWATERS_SHAREDATA=true
+OPENWATERS_FEEDER_KEY=
 RADARVIRTUEL_FEEDER_KEY=xxxxxxxxx
 RADARVIRTUEL_STATION_ID=xx
 SDRMAP_STATION_ID=xxxxxx
@@ -263,6 +267,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | Marine Receiver Network | `MRNETWORK_UDP_PORT` | ingest.mrnetwork.co.uk | UDP | Register an account and station at <https://mrnetwork.co.uk/register> and get your UDP port in your registration email |
  | MLAT.uk | `MLATUK_SHAREDATA=true` | feed.mlat.uk:50001 | UDP | [https://shipfinder.co/about/coverage/](https://www.mlat.uk/contribute#ais) |
  | MyShipTracking | `MYSHIPTRACKING_UDP_PORT` or<br/>`MYSHIPTRACKING_TCP_PORT` | 178.162.215.175 | UDP / TCP | [https://www.myshiptracking.com/help-center/contributors/add-your-station](https://www.myshiptracking.com/help-center/contributors/add-your-station) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
+ | [Open Waters](https://openwaters.io/ais/) | `OPENWATERS_SHAREDATA=true` or<br/>`OPENWATERS_FEEDER_KEY` | ais.openwaters.io (MQTT)<br/>udp.ais.openwaters.io:10110 (UDP) | MQTT over WebSocket (UDP fallback) | No sign-up needed. Setting either parameter enables feeding. The container creates a station key once, obtains a free token signed by that key (printed in the log on first use - save it for future deployments), stores both in `/data/openwater-creds`, and feeds over MQTT in real time. If no token can be obtained (e.g., offline at startup) it falls back to anonymous UDP feeding with a warning in the log. Optionally set `OPENWATERS_FEEDER_KEY` to import a token from a previous deployment; this takes precedence and enables feeding even without `OPENWATERS_SHAREDATA`. To request a new token, delete the `/data/openwater-creds` file and restart the container |
  | SDRMap | `SDRMAP_STATION_ID`<br />`SDRMAP_PASSWORD` | [https://ais.feed.sdrmap.org/](https://ais.feed.sdrmap.org/) | HTTP | See here for instructions to get your STATION_ID and PASSWORD: <https://github.com/sdrmap/docs/wiki/2.1-Feeding#request-api-credentials> |
  | ShipFinder | `SHIPFINDER_SHAREDATA=true` | [ais.shipfinder.co.uk:4001](http://ais.shipfinder.co.uk:4001/) | UDP | [https://shipfinder.co/about/coverage/](https://shipfinder.co/about/coverage/) |
  | ShippingExplorer | `SHIPPINGEXPLORER_UDP_PORT` or<br/>`SHIPPINGEXPLORER_TCP_PORT` | 144.76.54.111 | UDP or TCP | Request UDP port at [https://www.shippingexplorer.net/en/contact](https://www.shippingexplorer.net/en/contact) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |

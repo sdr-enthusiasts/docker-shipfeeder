@@ -348,6 +348,41 @@ if [[ -n "$MRNETWORK_UDP_PORT" ]] && [[ -n "$MRNETWORK_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both MRNETWORK_UDP_PORT and MRNETWORK_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
+# Open Waters (ais.openwaters.io). Feeding is enabled by OPENWATERS_SHAREDATA=true or by setting
+# OPENWATERS_FEEDER_KEY. An explicitly set key always wins and feeds over MQTT in real time. Otherwise a
+# station token is obtained (or reused) and used for MQTT; if no token can be obtained it feeds anonymously
+# over UDP. OPENWATERS_FEEDER_KEY is optional and only needed to import a token from a previous deployment.
+if [[ -n "$OPENWATERS_FEEDER_KEY" ]] || chk_enabled "$OPENWATERS_SHAREDATA"; then
+    OPENWATERS_URL="${OPENWATERS_URL:-https://ais.openwaters.io}"
+    openwaters_token=""
+    if [[ -n "$OPENWATERS_FEEDER_KEY" ]]; then
+        # explicit key takes precedence over any stored or newly minted token:
+        openwaters_token="$OPENWATERS_FEEDER_KEY"
+        # persist it for future runs (best effort; the helper handles its own logging):
+        /scripts/openwaters-get-token "$OPENWATERS_URL" >/dev/null || true
+    else
+        # The helper logs via s6wrap (which mixes into its stdout); the bare token is always the last line on success:
+        ow_helper_rc=0
+        ow_helper_out="$(/scripts/openwaters-get-token "$OPENWATERS_URL")" || ow_helper_rc=$?
+        if [[ "$ow_helper_rc" -eq 0 ]]; then
+            openwaters_token="${ow_helper_out##*$'\n'}"
+            ow_helper_out="$(head -n -1 <<< "$ow_helper_out")"
+        fi
+        # relay the helper's log lines to the container log (strip the helper's own s6wrap prefix to avoid double timestamps):
+        while read -r ow_line; do [[ -n "$ow_line" ]] && "${s6wrap[@]}" echo "$(sed -E 's/^\[[0-9]{4}[^]]*\]\[[^]]*\] //' <<< "$ow_line")"; done <<< "$ow_helper_out"
+    fi
+    if [[ -n "$openwaters_token" ]]; then
+        # MQTT over WebSocket: each message goes out as it is decoded. AIS-catcher needs the port spelled out in the URL.
+        ow_hostport="${OPENWATERS_URL#*://}"; ow_hostport="${ow_hostport%%/*}"
+        if [[ "$OPENWATERS_URL" == https://* ]]; then ow_scheme="wssmqtt"; ow_port="443"; else ow_scheme="wsmqtt"; ow_port="80"; fi
+        if ! grep -q ":" <<< "$ow_hostport"; then ow_hostport="${ow_hostport}:${ow_port}"; fi
+        mqtt_outputs+=("{\"url\":$(jstr "${ow_scheme}://x:${openwaters_token}@${ow_hostport}/v1/stream"),\"msgformat\":\"NMEA\"}")
+    else
+        "${s6wrap[@]}" echo "[WARNING] Open Waters: could not obtain a station token; feeding anonymously over UDP instead"
+        add_udp_feed "${OPENWATERS_UDP_HOST:-udp.ais.openwaters.io}:${OPENWATERS_UDP_PORT:-10110}"
+    fi
+fi
+
 
 # MyShipTracking:
 MYSHIPTRACKING_UDP_PORT="${MYSHIPTRACKING_UDP_PORT:-$MYSHIPTRACKER_UDP_PORT}" # bug fix - originally wrote wrongly MYSHIPTRACKER_UDP_PORT, now we need to keep this for backward compatibility
