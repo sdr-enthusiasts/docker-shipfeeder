@@ -109,6 +109,7 @@ services:
       - AISCATCHER_FEEDER_KEY=${AISCATCHER_FEEDER_KEY}
       - AISFRIENDS_UDP_PORT=${AISFRIENDS_UDP_PORT}
       - AISHUB_UDP_PORT=${AISHUB_UDP_PORT}
+      - AISTRAIL_FEEDER_KEY=${AISTRAIL_FEEDER_KEY}
       - APRSFI_FEEDER_KEY=${APRSFI_FEEDER_KEY}
       - BOATBEACON_SHAREDATA=${BOATBEACON_SHAREDATA}
       - GANGWAY_SHAREDATA=${GANGWAY_SHAREDATA}
@@ -162,6 +163,7 @@ AIRFRAMES_STATION_ID=XX-XXXXXXX-AIS
 AISCATCHER_FEEDER_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 AISFRIENDS_UDP_PORT=xxxxx
 AISHUB_UDP_PORT=xxxxx
+AISTRAIL_FEEDER_KEY=xxxxxxx
 APRSFI_FEEDER_KEY=xxxxxxx
 APRSFI_STATION_ID=MYCALL
 BOATBEACON_SHAREDATA=true
@@ -252,6 +254,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | AIS-Catcher | `AISCATCHER_SHAREDATA=true`<br>`AISCATCHER_FEEDER_KEY` | | Other | See [Exchanging data with `aiscatcher.org`](#exchanging-data-with-aiscatcherorg) [https://aiscatcher.org/#join](https://aiscatcher.org/#join). In the future, AISCatcher may provide you with an optional UUID that you can set in `AISCATCHER_FEEDER_KEY` |
  | AIS Friends | `AISFRIENDS_UDP_PORT` | `ais.aisfriends.com` | UDP | Sign up at [AIS Friends](https://www.aisfriends.com/register) to receive a dedicated UDP port by email |
  | AISHub | `AISHUB_UDP_PORT` | [data.aishub.net](http://data.aishub.net) | UDP | [https://www.aishub.net/join-us](https://www.aishub.net/join-us) |
+ | AIS Trail | `AISTRAIL_FEEDER_KEY` or<br/>`AISTRAIL_UDP_PORT` | [https://api.aistrail.com/feed](https://api.aistrail.com/feed) or<br/>feed.aistrail.com | HTTP / UDP | Register your station at [https://app.aistrail.com/stations/new](https://app.aistrail.com/stations/new) (no account required). Set `AISTRAIL_FEEDER_KEY` to your station key to feed over HTTPS (recommended), or set `AISTRAIL_UDP_PORT` to your assigned UDP port. Please use either HTTP or UDP, but not both! |
  | [APRS.fi](http://APRS.fi) | `APRSFI_FEEDER_KEY`<br>`APRSFI_STATION_ID` | [http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY](http://aprs.fi/jsonais/post/$APRS_FEEDER_KEY) | HTTP | Get AIS Password (`APRSFI_FEEDER_KEY`) at [https://aprs.fi/?c=account](https://aprs.fi/?c=account). Use your Ham Radio callsign for `APRSFI_STATION_ID`. Both fields are mandatory. |
  | BoatBeacon (aka Pocket Mariner) | `BOATBEACON_SHAREDATA=true` or<br/> `BOATBEACON_UDP_PORT` or<br/> `BOATBEACON_TCP_PORT` | [boatbeaconapp.com:5322](http://boatbeaconapp.com:5322) | UDP / TCP | [https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/](https://pocketmariner.com/ais-ship-tracking/cover-your-area/set-up-and-ais-shore-station/) - set `BOATBEACON_SHAREDATA=true` to feed without any key or assigned port, or set your assigned UDP or TCP port in the respective parameter |
  | Gangway AIS | `GANGWAY_SHAREDATA=true` | [ais.gangway.app:10110](https://ais.gangway.app/ais/feed/) | UDP | [https://ais.gangway.app/ais/feed/](https://ais.gangway.app/ais/feed/) - set `GANGWAY_SHAREDATA=true` to feed; no key or assigned port needed. Station page and stats on the feed page. |

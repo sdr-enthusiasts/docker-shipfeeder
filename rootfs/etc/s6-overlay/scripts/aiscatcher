@@ -273,6 +273,18 @@ if [[ -n "$AISHUB_UDP_PORT" ]] && [[ -n "$AISHUB_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both AISHUB_UDP_PORT and AISHUB_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
+# AIS Trail:
+if [[ -n "$AISTRAIL_FEEDER_KEY" ]]; then
+    http_outputs+=("{\"url\":\"https://api.aistrail.com/feed\",\"userpwd\":$(jstr "station:${AISTRAIL_FEEDER_KEY}"),\"gzip\":true,\"interval\":10,\"response\":false}")
+fi
+if [[ -n "$AISTRAIL_UDP_PORT" ]]; then
+    if ! grep -q ":" <<< "$AISTRAIL_UDP_PORT"; then AISTRAIL_UDP_PORT="feed.aistrail.com:$AISTRAIL_UDP_PORT"; fi
+    add_udp_feed "$AISTRAIL_UDP_PORT"
+fi
+if [[ -n "$AISTRAIL_FEEDER_KEY" ]] && [[ -n "$AISTRAIL_UDP_PORT" ]]; then
+    "${s6wrap[@]}" echo "[WARNING] Both AISTRAIL_FEEDER_KEY and AISTRAIL_UDP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
+fi
+
 # aprs.fi:
 if [[ -n "${APRSFI_FEEDER_KEY:+$APRSFI_STATION_ID}" ]]; then
     http_outputs+=("{\"url\":\"http://aprs.fi/jsonais/post/$(json_esc "$APRSFI_FEEDER_KEY")\",\"id\":$(jstr "$APRSFI_STATION_ID"),\"protocol\":\"aprs\",\"interval\":30,\"response\":false}")
