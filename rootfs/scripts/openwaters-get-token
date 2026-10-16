@@ -16,40 +16,53 @@
 # If not, see <https://www.gnu.org/licenses/>.
 #---------------------------------------------------------------------------------------------
 #
-# Obtain (or reuse) an Open Waters station token for AIS-catcher MQTT feeding.
-# Credentials are kept in a single file, /data/openwater-creds, with simple
-# "key=value" lines so it can be moved between deployments.
+# Obtain (or reuse) an Open Waters station token for AIS-catcher MQTT feeding, and
+# (optionally) register the station name (OPENWATERS_STATION_ID) with the server.
+# Credentials and the registered name are kept in a single file, /data/openwater-creds,
+# with simple "key=value" lines so it can be moved between deployments.
 #
 # Usage: openwaters-get-token [server-url] [creds-file]
 #   Prints the token as the last (bare) line on stdout and returns 0 on success.
-#   Log and error messages are written to the container log via s6wrap.
-#   On failure, returns 1.
-#   If a token is already stored in the creds file (or was imported there from
-#   the OPENWATERS_FEEDER_KEY environment variable), it is printed without
-#   contacting the server.
+#   On failure, prints a short reason on stderr and returns 1.
+#   - A stored token is reused as long as it is valid; a fresh mint only happens when
+#     there is no token yet or OPENWATERS_STATION_ID has changed since it was last
+#     registered (stored as station_name in the creds file). The request is signed
+#     with the station key, and re-minting keeps the same station identity (sub), so
+#     the previously issued token keeps working.
 
 source /scripts/common
 
 OPENWATERS_URL="${1:-https://ais.openwaters.io}"
 CREDS_FILE="${2:-/data/openwater-creds}"
+STATION_NAME="${OPENWATERS_STATION_ID:-}"
+
+creds_get() { sed -n "s/^$2=//p" "$1" 2>/dev/null | head -n1; }
+creds_set() { # creds_set <file> <key> <value> : replace-or-append a key=value line
+    local f="$1" k="$2" v="$3"
+    sed -i "/^${k}=/d" "$f" 2>/dev/null || true
+    printf '%s=%s\n' "$k" "$v" >> "$f"
+}
 
 # If the user provided a token from a previous deployment, store it so it is used from now on.
-# An existing token is only overwritten if it's the same one (idempotent import):
-if [[ -n "$OPENWATERS_FEEDER_KEY" ]] && [[ "$(sed -n 's/^token=//p' "$CREDS_FILE" 2>/dev/null | head -n1)" != "$OPENWATERS_FEEDER_KEY" ]]; then
-    if mkdir -p "$(dirname "$CREDS_FILE")" 2>/dev/null && (umask 077 && { sed -i '/^token=/d' "$CREDS_FILE" 2>/dev/null; printf 'token=%s\n' "$OPENWATERS_FEEDER_KEY" >> "$CREDS_FILE"; }) 2>/dev/null; then
+# An existing token is only overwritten if it's a different one (idempotent import):
+if [[ -n "$OPENWATERS_FEEDER_KEY" ]] && [[ "$(creds_get "$CREDS_FILE" token)" != "$OPENWATERS_FEEDER_KEY" ]]; then
+    if mkdir -p "$(dirname "$CREDS_FILE")" 2>/dev/null && (umask 077 && creds_set "$CREDS_FILE" token "$OPENWATERS_FEEDER_KEY") 2>/dev/null; then
         "${s6wrap[@]}" echo "Open Waters: imported OPENWATERS_FEEDER_KEY into $CREDS_FILE"
     else
         "${s6wrap[@]}" echo "[WARNING] Open Waters: could not write $CREDS_FILE; using OPENWATERS_FEEDER_KEY for this session only"
     fi
 fi
 
-# Prefer a previously stored token:
-if [[ -f "$CREDS_FILE" ]]; then
-    stored_token="$(sed -n 's/^token=//p' "$CREDS_FILE" 2>/dev/null | head -n1)"
-    if [[ -n "$stored_token" ]]; then
-        printf '%s' "$stored_token"
-        exit 0
-    fi
+stored_token="$(creds_get "$CREDS_FILE" token)"
+registered_name="$(creds_get "$CREDS_FILE" station_name)"
+name_changed="false"
+[[ "$STATION_NAME" != "$registered_name" ]] && name_changed="true"
+
+# Reuse the stored token as long as it is valid, unless the station name must be (re)registered.
+# (We mint with a name only when we hold the private key; an imported token has none here.)
+if [[ -n "$stored_token" ]] && { [[ "$name_changed" == "false" ]] || ! grep -q "^key=" "$CREDS_FILE" 2>/dev/null; }; then
+    printf '%s' "$stored_token"
+    exit 0
 fi
 
 # We need these tools to create the Ed25519 station key and mint a token:
@@ -105,10 +118,13 @@ fi
 
 # The token request is signed with the station key, so nobody else can mint a
 # token for this station. The signed payload is six lines (aiscast-key, pubkey,
-# ts, bind_ip, name, vessel_name) with no newline at the end:
+# ts, bind_ip, name, vessel_name) with no newline at the end. We always sign, so
+# the key is locked to signed mints and the name (if any) is accepted:
 ow_ts="$(date +%s)"
 ow_req_file="$(mktemp)" || { rm -f "$ow_key_file"; exit 1; }
-printf 'aiscast-key\n%s\n%s\n0\n\n' "$ow_pub" "$ow_ts" > "$ow_req_file"
+# Signature payload is the 6 fields newline-joined with NO trailing newline
+# (aiscast-key \n pubkey \n ts \n bind_ip \n name \n vessel_name):
+printf 'aiscast-key\n%s\n%s\n0\n%s\n%s' "$ow_pub" "$ow_ts" "$STATION_NAME" "" > "$ow_req_file"
 ow_sig="$(openssl pkeyutl -sign -inkey "$ow_key_file" -rawin -in "$ow_req_file" 2>/dev/null | base64 | tr '+/' '-_' | tr -d '=\n')"
 rm -f "$ow_key_file" "$ow_req_file"
 
@@ -117,8 +133,16 @@ if [[ -z "$ow_sig" ]]; then
     exit 1
 fi
 
-ow_resp="$(curl --fail-with-body -sS -m 20 -X POST "${OPENWATERS_URL}/v1/keys" -H 'Content-Type: application/json' -d "{\"pubkey\":\"${ow_pub}\",\"ts\":${ow_ts},\"sig\":\"${ow_sig}\"}" 2>&1)" || true
+ow_body="{\"pubkey\":\"${ow_pub}\",\"ts\":${ow_ts},\"sig\":\"${ow_sig}\"}"
+[[ -n "$STATION_NAME" ]] && ow_body="{\"pubkey\":\"${ow_pub}\",\"ts\":${ow_ts},\"name\":$(jq -Rn --arg v "$STATION_NAME" '$v'),\"sig\":\"${ow_sig}\"}"
+ow_resp="$(curl --fail-with-body -sS -m 20 -X POST "${OPENWATERS_URL}/v1/keys" -H 'Content-Type: application/json' -d "$ow_body" 2>&1)" || true
 ow_token="$(jq -r '.token // empty' <<< "$ow_resp" 2>/dev/null)" || true
+
+# A refused name never blocks the token; report why:
+ow_name_error="$(jq -r '.name_error // empty' <<< "$ow_resp" 2>/dev/null)" || true
+if [[ -n "$ow_name_error" ]]; then
+    "${s6wrap[@]}" echo "[WARNING] Open Waters: station name '$STATION_NAME' was not accepted ($ow_name_error)"
+fi
 
 if [[ -z "$ow_token" ]]; then
     ow_resp="${ow_resp//$'\n'/ }"
@@ -126,14 +150,16 @@ if [[ -z "$ow_token" ]]; then
     exit 1
 fi
 
-# Store the token next to the key:
-{ sed -i '/^token=/d' "$CREDS_FILE" 2>/dev/null || true; }
-if ! (umask 077 && printf 'token=%s\n' "$ow_token" >> "$CREDS_FILE") 2>/dev/null; then
+# Store the token next to the key (and remember the name we registered):
+if ! (umask 077 && { creds_set "$CREDS_FILE" token "$ow_token"; creds_set "$CREDS_FILE" station_name "$STATION_NAME"; }) 2>/dev/null; then
     "${s6wrap[@]}" echo "[WARNING] Open Waters: could not save the token in $CREDS_FILE"
     exit 1
 fi
 
-"${s6wrap[@]}" echo "Open Waters: station token created and saved in $CREDS_FILE"
-"${s6wrap[@]}" echo "Open Waters: your station token is: ${ow_token}"
-"${s6wrap[@]}" echo "Open Waters: save this token (e.g., as OPENWATERS_FEEDER_KEY) to reuse this station identity in future deployments"
+if [[ -z "$stored_token" ]]; then
+    "${s6wrap[@]}" echo "Open Waters: station token created and saved in $CREDS_FILE"
+    "${s6wrap[@]}" echo "Open Waters: your station token is: ${ow_token}"
+    "${s6wrap[@]}" echo "Open Waters: save this token (e.g., as OPENWATERS_FEEDER_KEY) to reuse this station identity in future deployments"
+fi
+[[ -n "$STATION_NAME" && -z "$ow_name_error" ]] && "${s6wrap[@]}" echo "Open Waters: registered station name '$STATION_NAME'"
 printf '%s' "$ow_token"

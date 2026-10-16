@@ -352,6 +352,7 @@ fi
 # OPENWATERS_FEEDER_KEY. An explicitly set key always wins and feeds over MQTT in real time. Otherwise a
 # station token is obtained (or reused) and used for MQTT; if no token can be obtained it feeds anonymously
 # over UDP. OPENWATERS_FEEDER_KEY is optional and only needed to import a token from a previous deployment.
+# OPENWATERS_STATION_ID optionally registers a display name for the station on the Open Waters map.
 if [[ -n "$OPENWATERS_FEEDER_KEY" ]] || chk_enabled "$OPENWATERS_SHAREDATA"; then
     OPENWATERS_URL="${OPENWATERS_URL:-https://ais.openwaters.io}"
     openwaters_token=""
@@ -372,6 +373,9 @@ if [[ -n "$OPENWATERS_FEEDER_KEY" ]] || chk_enabled "$OPENWATERS_SHAREDATA"; the
         while read -r ow_line; do [[ -n "$ow_line" ]] && "${s6wrap[@]}" echo "$(sed -E 's/^\[[0-9]{4}[^]]*\]\[[^]]*\] //' <<< "$ow_line")"; done <<< "$ow_helper_out"
     fi
     if [[ -n "$openwaters_token" ]]; then
+        # Print the token here (not in the helper, whose stdout is captured) so it reaches the container log:
+        "${s6wrap[@]}" echo "Open Waters: feeding with station token ${openwaters_token}"
+        "${s6wrap[@]}" echo "Open Waters: save this token (e.g., as OPENWATERS_FEEDER_KEY) to reuse this station identity in future deployments"
         # MQTT over WebSocket: each message goes out as it is decoded. AIS-catcher needs the port spelled out in the URL.
         ow_hostport="${OPENWATERS_URL#*://}"; ow_hostport="${ow_hostport%%/*}"
         if [[ "$OPENWATERS_URL" == https://* ]]; then ow_scheme="wssmqtt"; ow_port="443"; else ow_scheme="wsmqtt"; ow_port="80"; fi
