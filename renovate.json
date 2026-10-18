@@ -20,6 +20,7 @@
       "automerge": true
     },
     {
+      "description": "Never pin or update sdr-enthusiasts images (e.g. docker-baseimage:base); they must track the floating tag.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["/^ghcr\\.io/sdr-enthusiasts/.*$/"],
       "enabled": false
