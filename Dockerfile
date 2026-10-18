@@ -20,11 +20,11 @@ RUN set -x && \
     && \
     git clone https://github.com/hydrasdr/rfone_host.git --depth 1 /tmp/rfone_host && \
     mkdir -p /tmp/rfone_host/libhydrasdr/build && \
-    pushd /tmp/rfone_host/libhydrasdr/build && \
+    pushd /tmp/rfone_host/libhydrasdr/build || exit 1 && \
     cmake .. -DCMAKE_INSTALL_PREFIX=/usr && \
     make -j"$(nproc)" && \
     make install DESTDIR=/tmp/hydrasdr-install && \
-    popd
+    popd || exit 1
 
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
@@ -168,7 +168,7 @@ RUN \
     true
 
 # Add Container Version
-# hadolint ignore=DL3003
+# hadolint ignore=DL3003,SC2154
 RUN set -x && \
     pushd /tmp && \
     branch="##BRANCH##" && \

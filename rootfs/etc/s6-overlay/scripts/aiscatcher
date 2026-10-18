@@ -509,7 +509,7 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     elif ! grep -qoE '\-a\s+[0-9]+[A-Za-z]{1}' <<< "$AISCATCHER_EXTRA_OPTIONS"; then
         DEVICE_JSON_FIELDS+=",\"bandwidth\":192000"
     fi
-    # AISCATCHER_DECODER_MODEL=auto, v1_base, v1_high, and v2_base. = no -m/-m  2/-m 4/-m 11 
+    # AISCATCHER_DECODER_MODEL=auto, v1_base, v1_high, and v2_base. = no -m/-m  2/-m 4/-m 11
     engine_fields=()
     if [[ "${AISCATCHER_DECODER_MODEL}" == "2" ]]; then
         engine_fields+=("\"type\":\"v1_base\"")
