@@ -64,10 +64,10 @@ RUN set -x && \
     KEPT_PACKAGES+=(libzmq5) && \
     KEPT_PACKAGES+=(libsoxr0) && \
     # KEPT_PACKAGES+=(libcurl4) && \
-    if [[ "$codename" == "trixie" ]]; then \
-    KEPT_PACKAGES+=(libssl3t64); \
-    else \
+    if [[ "$codename" == "bookworm" ]]; then \
     KEPT_PACKAGES+=(libssl3); \
+    else \
+    KEPT_PACKAGES+=(libssl3t64); \
     fi && \
     KEPT_PACKAGES+=(tcpdump) && \
     KEPT_PACKAGES+=(nano) && \
@@ -102,23 +102,23 @@ RUN set -x && \
     SX_PACKAGES+=(libc6:armhf) && \
     SX_PACKAGES+=(libjansson4:armhf) && \
     SX_PACKAGES+=(libprotobuf-c1:armhf) && \
-    if [[ "$codename" == "trixie" ]]; then \
-    SX_PACKAGES+=(libglib2.0-0t64:armhf); \
-    SX_PACKAGES+=(libcurl4t64:armhf); \
-    else \
+    if [[ "$codename" == "bookworm" ]]; then \
     SX_PACKAGES+=(libglib2.0-0:armhf); \
     SX_PACKAGES+=(libcurl4:armhf); \
+    else \
+    SX_PACKAGES+=(libglib2.0-0t64:armhf); \
+    SX_PACKAGES+=(libcurl4t64:armhf); \
     fi; \
     else \
     SX_PACKAGES+=(libc6); \
     SX_PACKAGES+=(libjansson4); \
     SX_PACKAGES+=(libprotobuf-c1); \
-    if [[ "$codename" == "trixie" ]]; then \
-    SX_PACKAGES+=(libglib2.0-0t64); \
-    SX_PACKAGES+=(libcurl4t64); \
-    else \
+    if [[ "$codename" == "bookworm" ]]; then \
     SX_PACKAGES+=(libglib2.0-0); \
     SX_PACKAGES+=(libcurl4); \
+    else \
+    SX_PACKAGES+=(libglib2.0-0t64); \
+    SX_PACKAGES+=(libcurl4t64); \
     fi; \
     fi && \
     #
@@ -138,6 +138,9 @@ RUN set -x && \
     cp /tmp/sxfeeder/usr/bin/sxfeeder /usr/bin/sxfeeder && \
     # work around qemu providing its own /proc/cpuinfo which causes an issue with sxfeeder not finding the serial
     if [ "${TARGETARCH:0:3}" != "arm" ]; then sed -i -e 's#/proc/cpuinfo#/proc_cpuinfo#' /usr/bin/sxfeeder; fi && \
+    # qemu 11 (forky) made qemu-user-static transitional: qemu-user ships the static
+    # binary as qemu-arm. Keep the qemu-arm-static name the runtime scripts call.
+    if [ ! -e /usr/bin/qemu-arm-static ] && [ -e /usr/bin/qemu-arm ]; then ln -s qemu-arm /usr/bin/qemu-arm-static; fi && \
     # check that the executable works
     { qemu-arm-static /usr/bin/sxfeeder --version || /usr/bin/sxfeeder --version; } && \
     #
