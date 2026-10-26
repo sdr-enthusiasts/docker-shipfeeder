@@ -232,7 +232,7 @@ fi
 # Add a number of well-known feeders:
 # ADSBNetwork / RadarVirtuel:
 if [[ -n "${RADARVIRTUEL_STATION_ID}" ]]; then
-    http_outputs+=("{\"url\":\"http://ais.adsbnetwork.com:3002/ingester/insert/lourd\",\"ID\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"LAT\":\"$FEEDER_LAT\",\"LON\":\"$FEEDER_LONG\",\"INTERVAL\":15,\"RESPONSE\":false}")
+    http_outputs+=("{\"url\":\"http://ais.adsbnetwork.com:3002/ingester/insert/lourd\",\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"lat\":\"$FEEDER_LAT\",\"lon\":\"$FEEDER_LONG\",\"interval\":15,\"response\":false}")
 fi
 
 # AirFrames:
