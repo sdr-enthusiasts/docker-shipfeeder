@@ -233,9 +233,9 @@ fi
 # ADSBNetwork / RadarVirtuel:
 if [[ -n "${RADARVIRTUEL_STATION_ID}" ]]; then
     if [[ -z "$FEEDER_LAT" ]] || [[ -z "$FEEDER_LONG" ]]; then
-           http_outputs+=("{\"url\":\"http://ais.adsbnetwork.com:3002/ingester/insert/lourd\",\"id\":\"$(jstr "$RADARVIRTUEL_STATION_ID")\",\"interval\":15,\"response\":false}")
+           http_outputs+=("{\"url\":\"http://ais.adsbnetwork.com:3002/ingester/insert/lourd\",\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"interval\":15,\"response\":false}")
     else
-        http_outputs+=("{\"url\":\"http://ais.adsbnetwork.com:3002/ingester/insert/lourd\",\"id\":\"$(jstr "$RADARVIRTUEL_STATION_ID")\",\"lat\":\"$FEEDER_LAT\",\"lon\":\"$FEEDER_LONG\",\"interval\":15,\"response\":false}")
+        http_outputs+=("{\"url\":\"http://ais.adsbnetwork.com:3002/ingester/insert/lourd\",\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"lat\":\"$FEEDER_LAT\",\"lon\":\"$FEEDER_LONG\",\"interval\":15,\"response\":false}")
     fi 
 fi
 
