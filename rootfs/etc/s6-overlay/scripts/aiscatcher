@@ -443,7 +443,7 @@ if [[ -n "$OPENWATERS_FEEDER_KEY" ]] || chk_enabled "$OPENWATERS_SHAREDATA"; the
         ow_hostport="${OPENWATERS_URL#*://}"; ow_hostport="${ow_hostport%%/*}"
         if [[ "$OPENWATERS_URL" == https://* ]]; then ow_scheme="wssmqtt"; ow_port="443"; else ow_scheme="wsmqtt"; ow_port="80"; fi
         if ! grep -q ":" <<< "$ow_hostport"; then ow_hostport="${ow_hostport}:${ow_port}"; fi
-        add_mqtt_feed "${ow_scheme}://x:${openwaters_token}@${ow_hostport}/v1/stream" '\"msgformat\":\"NMEA\"' "Open Waters" "https://openwaters.io/ais/"
+        add_mqtt_feed "${ow_scheme}://x:${openwaters_token}@${ow_hostport}/v1/stream" '"msgformat":"NMEA"' "Open Waters" "https://openwaters.io/ais/"
     else
         "${s6wrap[@]}" echo "[WARNING] Open Waters: could not obtain a station token; feeding anonymously over UDP instead"
         add_udp_feed "${OPENWATERS_UDP_HOST:-udp.ais.openwaters.io}:${OPENWATERS_UDP_PORT:-10110}"
