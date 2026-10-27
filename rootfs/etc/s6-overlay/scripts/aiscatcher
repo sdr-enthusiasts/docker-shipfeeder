@@ -547,9 +547,10 @@ fi
 add_udp_feed "127.0.0.1:34994"
 add_udp_feed "127.0.0.1:34995"
 
-# Build the primary receiver object: console verbosity (always) plus device/gain/model/channel settings when a device serial was given:
-primary_receiver_fields=("\"verbose\":${receiver_verbose}")
+# Build the primary SDR receiver only when a physical device was configured.
+receiver_entries=()
 if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
+    primary_receiver_fields=("\"verbose\":${receiver_verbose}")
     AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"
     read -r chan_primary chan_relabel <<< "${AISCATCHER_CHANNELS:-AB}"
     primary_receiver_fields+=("\"channel\":$(jstr "${chan_primary:-AB}")")
@@ -625,8 +626,8 @@ if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
         primary_receiver_fields+=("\"lat\":$(jstr "$FEEDER_LAT")" "\"lon\":$(jstr "$FEEDER_LONG")")
     fi
 
+    receiver_entries+=("{$(IFS=,; printf '%s' "${primary_receiver_fields[*]}")}")
 fi
-receiver_entries=("{$(IFS=,; printf '%s' "${primary_receiver_fields[*]}")}")
 
 if [[ -n "${AISCATCHER_MQTT_URL}" ]]; then
     mqtt_fields=("\"msgformat\":$(jstr "${AISCATCHER_MQTT_MSGFORMAT:-JSON_FULL}")")
@@ -658,7 +659,7 @@ config_json="{\"config\":\"aiscatcher\",\"version\":1"
 [[ -n "$root_screen" ]] && config_json+=",\"screen\":$(jstr "$root_screen")"
 [[ -n "$root_verbose_time" ]] && config_json+=",\"verbose_time\":${root_verbose_time}"
 receiver_entries+=("${additional_receiver_entries[@]}")
-config_json+=",\"receiver\":[$(IFS=,; printf '%s' "${receiver_entries[*]}")]"
+if [[ "${#receiver_entries[@]}" -gt 0 ]]; then config_json+=",\"receiver\":[$(IFS=,; printf '%s' "${receiver_entries[*]}")]"; fi
 [[ -n "$server_json" ]] && config_json+=",\"server\":[{${server_json}}]"
 udp_json="$(json_array udp_outputs)"; [[ -n "$udp_json" ]] && config_json+=",\"udp\":${udp_json}"
 tcp_json="$(json_array tcp_outputs)"; [[ -n "$tcp_json" ]] && config_json+=",\"tcp\":${tcp_json}"
