@@ -472,6 +472,11 @@ if [[ -n "${SDRMAP_PASSWORD:+$SDRMAP_STATION_ID}" ]]; then
     add_http_feed "https://ais.feed.sdrmap.org/" "\"userpwd\":$(jstr "${SDRMAP_STATION_ID}:${SDRMAP_PASSWORD}"),\"gzip\":true,\"interval\":15,\"response\":false" "SDRMap" "https://sdrmap.org/"
 fi
 
+# Skydex (AIS):
+if [[ -n "$SKYDEX_FEEDER_KEY" ]]; then
+    add_http_feed "https://${SKYDEX_FEEDER_KEY}@skydex.online/api/ais/feed" '"gzip":true,"interval":15,"response":false' "Skydex" "https://skydex.online/feed"
+fi
+
 # ShippingExplorer:
 if [[ -n "$SHIPPINGEXPLORER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPPINGEXPLORER_UDP_PORT"; then SHIPPINGEXPLORER_UDP_PORT="144.76.54.111:$SHIPPINGEXPLORER_UDP_PORT"; fi
