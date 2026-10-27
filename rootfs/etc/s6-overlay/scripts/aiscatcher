@@ -137,11 +137,13 @@ connection_metadata() {
 # Add a "host:port" style feed to the udp_outputs/tcp_outputs array, with optional extra JSON fields appended:
 add_udp_feed() {
     local hostport="$1" extra="$2" metadata
+    [[ -n "${hostport%%:*}" && -n "${hostport##*:}" ]] || return 0
     metadata="$(connection_metadata udp "$hostport")"
     udp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra}}")
 }
 add_tcp_feed() {
     local hostport="$1" extra="$2" metadata
+    [[ -n "${hostport%%:*}" && -n "${hostport##*:}" ]] || return 0
     metadata="$(connection_metadata tcp "$hostport")"
     tcp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra}}")
 }
@@ -284,7 +286,7 @@ if [[ -n "$AISCATCHER_UDP_INPUTS" ]]; then
         feeds="${feeds//$'\n'/}"
         [[ -z "$feeds" ]] && continue
         IFS=":" read -r udp_host udp_port _ <<< "$feeds"
-        [[ -n "$udp_port" ]] && additional_receiver_entries+=("{\"input\":\"UDPSERVER\",\"udpserver\":{\"server\":$(jstr "$udp_host"),\"port\":${udp_port}}}")
+        [[ -n "$udp_host" && -n "$udp_port" ]] && additional_receiver_entries+=("{\"input\":\"UDPSERVER\",\"udpserver\":{\"server\":$(jstr "$udp_host"),\"port\":${udp_port}}}")
     done
 fi
 
@@ -636,10 +638,12 @@ if [[ -n "$ADSB_CONNECTOR" ]]; then
     adsb_protocol="${connector[0]//$'\n'/}"
     adsb_host="${connector[1]//$'\n'/}"
     adsb_port="${connector[2]//$'\n'/}"
-    if [[ -n "$FEEDER_LAT" && -n "$FEEDER_LONG" ]]; then
-        additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}},\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG")}")
-    else
-        additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}}}")
+    if [[ -n "$adsb_protocol" && -n "$adsb_host" && -n "$adsb_port" ]]; then
+        if [[ -n "$FEEDER_LAT" && -n "$FEEDER_LONG" ]]; then
+            additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}},\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG")}")
+        else
+            additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}}}")
+        fi
     fi
 fi
 
