@@ -386,6 +386,8 @@ You can now map this file into your container:
 
 If you want to feed and additional AIS aggregator that uses a hostname/UDP port that is not listed above, then simply add a comma separated list of hostnames/ip addresses and UDP ports to the `UDP_FEEDS` parameter. Format: `UDP_FEEDS=domain1.com:port1[:params],domain2,com:port2[:params],...`
 
+Each generated `udp`, `tcp`, `http`, and `mqtt` connection in `/run/aiscatcher/config.json` includes `description` and `link` fields. Known aggregators use their service name and public page; other destinations get a generic protocol/endpoint description and a link derived from the connection address. HTTP links point to the endpoint's origin, and MQTT links omit credentials. No additional environment variables are required.
+
 For example:
 
 ```yaml
@@ -415,6 +417,8 @@ Note: if you want to feed multiple HTTP aggregators, you can simply append each 
 ```yaml
 - AISCATCHER_EXTRA_OPTIONS=-H http://5.6.7.8/test/post/aBcDeFgHiJkL ID MYSTATION PROTOCOL aprs INTERVAL 30 RESPONSE off -H http://1.2.3.4/test ID my_station_name INTERVAL 30 RESPONSE off JSON on
 ```
+
+HTTP outputs created from the built-in aggregator settings receive the same generated `description` and `link` fields in the JSON configuration.
 
 ### Sending AIS data to a MQTT broker
 

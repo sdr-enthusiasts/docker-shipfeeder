@@ -87,14 +87,73 @@ http_outputs=()
 mqtt_outputs=()
 additional_receiver_entries=()
 
+# Add human-readable metadata for an output connection. Unknown destinations get
+# a protocol-specific description and a link to the configured endpoint.
+connection_metadata() {
+    local protocol="$1" target="$2" description="${3:-}" link="${4:-}"
+    local host="${target%%:*}" authority scheme label="$target"
+
+    if [[ -z "$link" ]]; then
+        if [[ "$protocol" == "http" ]]; then
+            scheme="${target%%://*}"
+            authority="${target#*://}"
+            authority="${authority%%/*}"
+            authority="${authority%%\?*}"
+            authority="${authority%%\#*}"
+            label="$authority"
+            link="${scheme}://${authority}"
+        elif [[ "$protocol" == "mqtt" ]]; then
+            authority="${target#*://}"
+            authority="${authority%%/*}"
+            authority="${authority##*@}"
+            authority="${authority%%\?*}"
+            label="$authority"
+            link="${target%%://*}://${authority}"
+        else
+            link="${protocol}://${target}"
+        fi
+    fi
+    if [[ -z "$description" ]]; then description="${protocol^^} feed to ${label}"; fi
+
+    if [[ "$protocol" == "udp" || "$protocol" == "tcp" ]]; then
+        case "${host,,}" in
+            ais.aisfriends.com) description="AIS Friends"; link="https://www.aisfriends.com/" ;;
+            data.aishub.net) description="AISHub"; link="https://www.aishub.net/" ;;
+            feed.aistrail.com) description="AIS Trail"; link="https://aistrail.com/" ;;
+            boatbeaconapp.com) description="BoatBeacon"; link="https://pocketmariner.com/" ;;
+            ais.gangway.app) description="Gangway AIS"; link="https://ais.gangway.app/ais/feed/" ;;
+            aisfeed.hpradar.com) description="HPRadar"; link="https://hpradar.com/" ;;
+            ingest.mrnetwork.co.uk) description="Marine Receiver Network"; link="https://mrnetwork.co.uk/" ;;
+            udp.ais.openwaters.io) description="Open Waters"; link="https://openwaters.io/ais/" ;;
+            ais.shipfinder.co.uk) description="ShipFinder"; link="https://shipfinder.co/" ;;
+            hub.shipxplorer.com) description="ShipXplorer"; link="https://www.shipxplorer.com/" ;;
+            ais.vesselfinder.com) description="VesselFinder"; link="https://www.vesselfinder.com/" ;;
+        esac
+    fi
+
+    printf '\"description\":%s,\"link\":%s' "$(jstr "$description")" "$(jstr "$link")"
+}
+
 # Add a "host:port" style feed to the udp_outputs/tcp_outputs array, with optional extra JSON fields appended:
 add_udp_feed() {
-    local hostport="$1" extra="$2"
-    udp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:}${extra:+,$extra}}")
+    local hostport="$1" extra="$2" metadata
+    metadata="$(connection_metadata udp "$hostport")"
+    udp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra}}")
 }
 add_tcp_feed() {
-    local hostport="$1" extra="$2"
-    tcp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:}${extra:+,$extra}}")
+    local hostport="$1" extra="$2" metadata
+    metadata="$(connection_metadata tcp "$hostport")"
+    tcp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra}}")
+}
+add_http_feed() {
+    local url="$1" extra="${2:-}" metadata
+    metadata="$(connection_metadata http "$url" "${3:-}" "${4:-}")"
+    http_outputs+=("{\"url\":$(jstr "$url")${extra:+,$extra},${metadata}}")
+}
+add_mqtt_feed() {
+    local url="$1" extra="${2:-}" metadata
+    metadata="$(connection_metadata mqtt "$url" "${3:-}" "${4:-}")"
+    mqtt_outputs+=("{\"url\":$(jstr "$url")${extra:+,$extra},${metadata}}")
 }
 
 # Interpret additional feed targets, if defined
@@ -233,15 +292,15 @@ fi
 # ADSBNetwork / RadarVirtuel:
 if [[ -n "${RADARVIRTUEL_STATION_ID}" ]]; then
     if [[ -z "$FEEDER_LAT" ]] || [[ -z "$FEEDER_LONG" ]]; then
-           http_outputs+=("{\"url\":\"http://ais.adsbnetwork.com:3002/ingester/insert/lourd\",\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"interval\":15,\"response\":false}")
+        add_http_feed "http://ais.adsbnetwork.com:3002/ingester/insert/lourd" "\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"interval\":15,\"response\":false" "RadarVirtuel" "https://ais.adsbnetwork.com/"
     else
-        http_outputs+=("{\"url\":\"http://ais.adsbnetwork.com:3002/ingester/insert/lourd\",\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"lat\":\"$FEEDER_LAT\",\"lon\":\"$FEEDER_LONG\",\"interval\":15,\"response\":false}")
+        add_http_feed "http://ais.adsbnetwork.com:3002/ingester/insert/lourd" "\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG"),\"interval\":15,\"response\":false" "RadarVirtuel" "https://ais.adsbnetwork.com/"
     fi 
 fi
 
 # AirFrames:
 if [[ -n "$AIRFRAMES_STATION_ID" ]]; then
-    http_outputs+=("{\"url\":\"http://feed.airframes.io:5599\",\"id\":$(jstr "$AIRFRAMES_STATION_ID"),\"interval\":30,\"response\":false}")
+    add_http_feed "http://feed.airframes.io:5599" "\"id\":$(jstr "$AIRFRAMES_STATION_ID"),\"interval\":30,\"response\":false" "Airframes" "https://airframes.io/"
 fi
 
 # AIS-Catcher (community feed sharing):
@@ -279,7 +338,7 @@ fi
 
 # AIS Trail:
 if [[ -n "$AISTRAIL_FEEDER_KEY" ]]; then
-    http_outputs+=("{\"url\":\"https://api.aistrail.com/feed\",\"userpwd\":$(jstr "station:${AISTRAIL_FEEDER_KEY}"),\"gzip\":true,\"interval\":10,\"response\":false}")
+    add_http_feed "https://api.aistrail.com/feed" "\"userpwd\":$(jstr "station:${AISTRAIL_FEEDER_KEY}"),\"gzip\":true,\"interval\":10,\"response\":false" "AIS Trail" "https://aistrail.com/"
 fi
 if [[ -n "$AISTRAIL_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$AISTRAIL_UDP_PORT"; then AISTRAIL_UDP_PORT="feed.aistrail.com:$AISTRAIL_UDP_PORT"; fi
@@ -291,7 +350,7 @@ fi
 
 # aprs.fi:
 if [[ -n "${APRSFI_FEEDER_KEY:+$APRSFI_STATION_ID}" ]]; then
-    http_outputs+=("{\"url\":\"http://aprs.fi/jsonais/post/$(json_esc "$APRSFI_FEEDER_KEY")\",\"id\":$(jstr "$APRSFI_STATION_ID"),\"protocol\":\"aprs\",\"interval\":30,\"response\":false}")
+    add_http_feed "http://aprs.fi/jsonais/post/${APRSFI_FEEDER_KEY}" "\"id\":$(jstr "$APRSFI_STATION_ID"),\"protocol\":\"aprs\",\"interval\":30,\"response\":false" "APRS.fi" "http://aprs.fi/"
 fi
 
 # BoatBeacon aka Pocket Mariner
@@ -384,7 +443,7 @@ if [[ -n "$OPENWATERS_FEEDER_KEY" ]] || chk_enabled "$OPENWATERS_SHAREDATA"; the
         ow_hostport="${OPENWATERS_URL#*://}"; ow_hostport="${ow_hostport%%/*}"
         if [[ "$OPENWATERS_URL" == https://* ]]; then ow_scheme="wssmqtt"; ow_port="443"; else ow_scheme="wsmqtt"; ow_port="80"; fi
         if ! grep -q ":" <<< "$ow_hostport"; then ow_hostport="${ow_hostport}:${ow_port}"; fi
-        mqtt_outputs+=("{\"url\":$(jstr "${ow_scheme}://x:${openwaters_token}@${ow_hostport}/v1/stream"),\"msgformat\":\"NMEA\"}")
+        add_mqtt_feed "${ow_scheme}://x:${openwaters_token}@${ow_hostport}/v1/stream" '\"msgformat\":\"NMEA\"' "Open Waters" "https://openwaters.io/ais/"
     else
         "${s6wrap[@]}" echo "[WARNING] Open Waters: could not obtain a station token; feeding anonymously over UDP instead"
         add_udp_feed "${OPENWATERS_UDP_HOST:-udp.ais.openwaters.io}:${OPENWATERS_UDP_PORT:-10110}"
@@ -408,7 +467,7 @@ fi
 
 # SDRMap:
 if [[ -n "${SDRMAP_PASSWORD:+$SDRMAP_STATION_ID}" ]]; then
-    http_outputs+=("{\"url\":\"https://ais.feed.sdrmap.org/\",\"userpwd\":$(jstr "${SDRMAP_STATION_ID}:${SDRMAP_PASSWORD}"),\"gzip\":true,\"interval\":15,\"response\":false}")
+    add_http_feed "https://ais.feed.sdrmap.org/" "\"userpwd\":$(jstr "${SDRMAP_STATION_ID}:${SDRMAP_PASSWORD}"),\"gzip\":true,\"interval\":15,\"response\":false" "SDRMap" "https://sdrmap.org/"
 fi
 
 # ShippingExplorer:
@@ -563,11 +622,11 @@ fi
 receiver_entries=("{$(IFS=,; printf '%s' "${primary_receiver_fields[*]}")}")
 
 if [[ -n "${AISCATCHER_MQTT_URL}" ]]; then
-    mqtt_fields=("\"url\":$(jstr "$AISCATCHER_MQTT_URL")" "\"msgformat\":$(jstr "${AISCATCHER_MQTT_MSGFORMAT:-JSON_FULL}")")
+    mqtt_fields=("\"msgformat\":$(jstr "${AISCATCHER_MQTT_MSGFORMAT:-JSON_FULL}")")
     if [[ -n "${AISCATCHER_MQTT_CLIENT_ID}" ]]; then mqtt_fields+=("\"client_id\":$(jstr "$AISCATCHER_MQTT_CLIENT_ID")"); fi
     if [[ -n "${AISCATCHER_MQTT_QOS}" ]]; then mqtt_fields+=("\"qos\":${AISCATCHER_MQTT_QOS}"); fi
     if [[ -n "${AISCATCHER_MQTT_TOPIC}" ]]; then mqtt_fields+=("\"topic\":$(jstr "$AISCATCHER_MQTT_TOPIC")"); fi
-    mqtt_outputs+=("{$(IFS=,; printf '%s' "${mqtt_fields[*]}")}")
+    add_mqtt_feed "$AISCATCHER_MQTT_URL" "$(IFS=,; printf '%s' "${mqtt_fields[*]}")"
 fi
 
 # ADSB connector becomes an additional RTLTCP receiver (beast/basestation protocol).
