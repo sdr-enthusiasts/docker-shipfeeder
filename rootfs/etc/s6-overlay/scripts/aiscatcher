@@ -298,7 +298,7 @@ if [[ -n "${RADARVIRTUEL_STATION_ID}" ]]; then
         add_http_feed "http://ais.adsbnetwork.com:3002/ingester/insert/lourd" "\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"interval\":15,\"response\":false" "RadarVirtuel" "https://ais.adsbnetwork.com/"
     else
         add_http_feed "http://ais.adsbnetwork.com:3002/ingester/insert/lourd" "\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG"),\"interval\":15,\"response\":false" "RadarVirtuel" "https://ais.adsbnetwork.com/"
-    fi 
+    fi
 fi
 
 # ADSBItalia (HTTP by station ID; hidden: ADSBITALIA_STATION_ID=UDP feeds via UDP):
