@@ -105,6 +105,7 @@ services:
       - RTLSDR_DEVICE_BANDWIDTH=${RTLSDR_DEVICE_BANDWIDTH}
       - AISCATCHER_DECODER_AFC_WIDE=${AISCATCHER_DECODER_AFC_WIDE}
 #     aggregrators-related parameters
+      - ADSBITALIA_STATION_ID=${ADSBITALIA_STATION_ID}
       - AIRFRAMES_STATION_ID=${AIRFRAMES_STATION_ID}
       - AISCATCHER_FEEDER_KEY=${AISCATCHER_FEEDER_KEY}
       - AISFRIENDS_UDP_PORT=${AISFRIENDS_UDP_PORT}
@@ -162,6 +163,7 @@ STATION_NAME=My&nbsp;Station&nbsp;Name
 #
 # keys and params for aggregators:
 # If you aren't feeding a specific aggregator, leave the value EMPTY or remove the parameter
+ADSBITALIA_STATION_ID=xxxxx
 AIRFRAMES_STATION_ID=XX-XXXXXXX-AIS
 AISCATCHER_FEEDER_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 AISFRIENDS_UDP_PORT=xxxxx
@@ -256,6 +258,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | Name | Parameter | Default IP/DNS/URL | Feeding protocol:<br>UDP/TCP/HTTP/Other | How to register for a key or ID |
  | ---- | --------- | ------------------ | --------------------------------------- | ------------------------------- |
  | ADSB-Network (RadarVirtuel) | `RADARVIRTUEL_STATION_ID` | https://ais.adsbnetwork.com/ingester/insert/lourd | HTTP | Use your station ID from your RadarVirtuel ADSB deployment for `RADARVIRTUEL_STATION_ID`. If you don't have a RadarVirtuel ADSB deployment, then Email <support@adsbnetwork.com> with your request to join. If you receive an `ais-catcher` string like this: `-H http://ais.adsbnetwork.com/ingester/insert/lourd ID ABCD1 INTERVAL 15 LAT llll LON oooo RESPONSE off`, then simply set `RADARVIRTUEL_STATION_ID` to `ABCD1` and ignore the rest |
+ | ADSBItalia | `ADSBITALIA_STATION_ID` | [https://adsbitalia.it/api/ais](https://adsbitalia.it/api/ais) | HTTP | No signup needed. `ADSBITALIA_STATION_ID` is a self-chosen station name. Map: [adsbitalia.it/marine](https://adsbitalia.it/marine/) |
  | Airframes | `AIRFRAMES_STATION_ID` | [http://feed.airframes.io:5599](http://feed.airframes.io:5599) | HTTP | No signup needed. `AIRFRAMES_STATION_ID` is a self-chosen ID that has the form of `II-STATIONNAME-AIS`, where `II` are the initials of the owner's name, and `STATIONNAME` is a self-chosen station name (A-Z, 0-9 only please) |
  | AIS-Catcher | `AISCATCHER_SHAREDATA=true`<br>`AISCATCHER_FEEDER_KEY` | | Other | See [Exchanging data with `aiscatcher.org`](#exchanging-data-with-aiscatcherorg) [https://aiscatcher.org/#join](https://aiscatcher.org/#join). In the future, AISCatcher may provide you with an optional UUID that you can set in `AISCATCHER_FEEDER_KEY` |
  | AIS Friends | `AISFRIENDS_UDP_PORT` | `ais.aisfriends.com` | UDP | Sign up at [AIS Friends](https://www.aisfriends.com/register) to receive a dedicated UDP port by email |
