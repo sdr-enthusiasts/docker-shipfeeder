@@ -311,7 +311,7 @@ if [[ -n "$ADSBITALIA_STATION_ID" ]]; then
         [[ "$ADSBITALIA_EXTERNAL_IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || ADSBITALIA_EXTERNAL_IP=""
         add_udp_feed "feed.adsbitalia.it:${ADSBITALIA_UDP_PORT:-10110}"
     else
-        add_http_feed "https://feed.adsbitalia.it/api/ais" "\"id\":$(jstr "$ADSBITALIA_STATION_ID"),\"gzip\":true,\"ssl_verify\":false,\"interval\":30,\"response\":false" "ADSBItalia" "https://adsbitalia.it/api/ais?id=${ADSBITALIA_STATION_ID}"
+        add_http_feed "https://feed.adsbitalia.it/api/ais" "\"id\":$(jstr "$ADSBITALIA_STATION_ID"),\"gzip\":true,\"interval\":30,\"response\":false" "ADSBItalia" "https://adsbitalia.it/api/ais?id=${ADSBITALIA_STATION_ID}"
     fi
 fi
 
