@@ -2,7 +2,7 @@
 # DO NOT remove the @sha256 digest from the ais-catcher image below.
 # .github/workflows/deploy-on-aiscatcher-changes.yml parses it to detect upstream
 # changes and opens the bump PR that triggers a rebuild. The Lint workflow fails if it is missing.
-FROM ghcr.io/jvde-github/ais-catcher:edge@sha256:c1b1b9bba15a37ec87b8087f58e2c5981e92c84ac69402713890bf73b30e1cf1 AS build
+FROM ghcr.io/jvde-github/ais-catcher:edge@sha256:38c3446bcbed70cb96a0c46e7d8e93e519a5aabe3387d1159c28099b91606768 AS build
 
 # Build libhydrasdr (HydraSDR RFOne host library) in a dedicated stage.
 # This changes rarely, so it stays cached even when the main image layers are rebuilt.
