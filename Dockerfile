@@ -130,7 +130,7 @@ RUN set -x && \
     "${SX_PACKAGES[@]}" && \
     cd /tmp/ && \
     # let's curl the trixie package directly instead of using apt-get download
-    if ! curl -sSL "https://apt.rb24.com/pool/main/s/sxfeeder/sxfeeder_1.0.3+deb13trixie_armhf.deb" -o sxfeeder_1.0.3+deb13trixie_armhf.deb; then \
+    if ! curl --fail -sSL "https://apt.rb24.com/pool/main/s/sxfeeder/sxfeeder_1.0.3+deb13trixie_armhf.deb" -o sxfeeder_1.0.3+deb13trixie_armhf.deb; then \
         apt-get download "${SX_PACKAGE_NAME}"; \
     fi && \
     mkdir -p /tmp/sxfeeder && \
@@ -179,8 +179,9 @@ RUN set -x && \
     pushd /tmp && \
     branch="##BRANCH##" && \
     { [[ "${branch:0:1}" == "#" ]] && branch="main" || true; } && \
-    commit="$(curl -s https://api.github.com/repos/sdr-enthusiasts/docker-shipfeeder/commits/$branch | jq -r '.sha[0:7]')" && \
-    echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$commit_$branch" > "/.CONTAINER_VERSION" && \
+    commit="$(curl --fail --silent --show-error --location --retry 3 "https://api.github.com/repos/sdr-enthusiasts/docker-shipfeeder/commits/$branch" | jq -r '.sha[0:7]')" && \
+    [[ -n "$commit" && "$commit" != "null" ]] && \
+    echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_${commit}_$branch" > "/.CONTAINER_VERSION" && \
     popd && \
     rm -rf /tmp/*
 
