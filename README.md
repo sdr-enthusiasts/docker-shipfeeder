@@ -237,7 +237,7 @@ Note: internally, `docker-shipfeeder` translates most of the environment variabl
 | `STATION_NAME` | Station name displayed on stat web page | Empty |
 | `STATION_LINK` | URL displayed on stat web page | Empty |
 | `STATION_HISTORY` | The number of seconds of history that will be shown in plots on the website | `3600` |
-| `BACKUP_INTERVAL` | How often a file with data statistics (`aiscatcher.bin`) will be written to disk, in minutes. In order to make this backup persistent, make sure to map the `/data` directory to a volume. See example in [docker-compose.yml](docker-compose.yml). | `2880` (=2 days) |
+| `BACKUP_INTERVAL` | How often a file with data statistics (`aiscatcher.bin`) will be written to disk, in minutes. In order to make this backup persistent, make sure to map the `/data` directory to a volume. See example in `docker-compose.yml`. | `2880` (=2 days) |
 | `BACKUP_RETENTION_TIME` | Time (in days) to keep backups of `aiscatcher.bin` and plugins. Note - this only affects the backups of these files and not the active `aiscatcher.bin` or active plugins. | `30` (days) |
 | `SITESHOW` | If set to anything non-empty, it will show the station location as a dot on the map | Empty |
 | `FEEDER_LAT` or `SXFEEDER_LAT` (legacy) | Used for calculating ship distances on web page | Empty |

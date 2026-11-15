@@ -1,0 +1,12 @@
+# Feed ingest endpoints listed in the aggregator table. They accept
+# feeder submissions (POST/UDP, often authenticated), not page views, so
+# they answer a link check with 401/404/405 or no HTTP at all.
+^https://ais\.adsbnetwork\.com/ingester/
+^https://api\.aistrail\.com/feed
+^https://ais\.feed\.sdrmap\.org
+^https://skydex\.online/api/ais/feed
+^http://ais\.shipfinder\.co\.uk:4001
+
+# Marine Receiver Network registration page: refuses connections as of
+# 2026-11-15. Kept in the README; re-check and remove this entry later.
+^https://mrnetwork\.co\.uk/register
