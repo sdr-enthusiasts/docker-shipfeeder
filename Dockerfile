@@ -174,12 +174,13 @@ RUN \
     true
 
 # Add Container Version
+ARG VERSION_SHA
 # hadolint ignore=DL3003,SC2154
 RUN set -x && \
     pushd /tmp && \
     branch="##BRANCH##" && \
     { [[ "${branch:0:1}" == "#" ]] && branch="main" || true; } && \
-    commit="$(curl --fail --silent --show-error --location --retry 3 "https://api.github.com/repos/sdr-enthusiasts/docker-shipfeeder/commits/$branch" | jq -r '.sha[0:7]')" && \
+    commit="${VERSION_SHA:-local}" && commit="${commit:0:7}" && \
     [[ -n "$commit" && "$commit" != "null" ]] && \
     echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_${commit}_$branch" > "/.CONTAINER_VERSION" && \
     popd && \
