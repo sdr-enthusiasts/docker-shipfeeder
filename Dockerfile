@@ -74,6 +74,7 @@ RUN set -x && \
     KEPT_PACKAGES+=(libpqxx-dev) && \
     KEPT_PACKAGES+=(lsb-release) && \
     KEPT_PACKAGES+=(sqlite3) && \
+    KEPT_PACKAGES+=(util-linux) && \
     # openssl CLI: signs the Open Waters station token request (Ed25519)
     KEPT_PACKAGES+=(openssl) && \
     # build tools for hydrasdr (make/gcc/g++/git/cmake/pkg-config/libusb-1.0.0-dev)
