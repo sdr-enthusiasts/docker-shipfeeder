@@ -117,6 +117,7 @@ connection_metadata() {
 
     if [[ "$protocol" == "udp" || "$protocol" == "tcp" ]]; then
         case "${host,,}" in
+            ingest.aiscommons.org) description="AIS Commons"; link="https://aiscommons.org/" ;;
             ais.aisfriends.com) description="AIS Friends"; link="https://www.aisfriends.com/" ;;
             feed.adsbitalia.it) description="ADSBItalia"; link="https://adsbitalia.it/marine/"; [[ -n "$ADSBITALIA_EXTERNAL_IP" ]] && link="https://adsbitalia.it/api/ais?id=${ADSBITALIA_EXTERNAL_IP}" ;;
             data.aishub.net) description="AISHub"; link="https://www.aishub.net/" ;;
@@ -325,6 +326,14 @@ sharing_json=""
 if [[ -n "$AISCATCHER_FEEDER_KEY" ]] || chk_enabled "$AISCATCHER_SHAREDATA"; then
     sharing_json="\"sharing\":true"
     if [[ -n "$AISCATCHER_FEEDER_KEY" ]]; then sharing_json+=",\"sharing_key\":$(jstr "$AISCATCHER_FEEDER_KEY")"; fi
+fi
+
+# AIS Commons: assigned UDP port per registered station (JSON_NMEA), or the open port without an account (plain NMEA)
+if [[ -n "$AISCOMMONS_UDP_PORT" ]]; then
+    if ! grep -q ":" <<< "$AISCOMMONS_UDP_PORT"; then AISCOMMONS_UDP_PORT="ingest.aiscommons.org:$AISCOMMONS_UDP_PORT"; fi
+    add_udp_feed "$AISCOMMONS_UDP_PORT" "\"msgformat\":\"JSON_NMEA\""
+elif chk_enabled "$AISCOMMONS_SHAREDATA"; then
+    add_udp_feed "ingest.aiscommons.org:10110"
 fi
 
 # AIS Friends:

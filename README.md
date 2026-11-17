@@ -108,6 +108,8 @@ services:
       - ADSBITALIA_STATION_ID=${ADSBITALIA_STATION_ID}
       - AIRFRAMES_STATION_ID=${AIRFRAMES_STATION_ID}
       - AISCATCHER_FEEDER_KEY=${AISCATCHER_FEEDER_KEY}
+      - AISCOMMONS_UDP_PORT=${AISCOMMONS_UDP_PORT}
+      - AISCOMMONS_SHAREDATA=${AISCOMMONS_SHAREDATA}
       - AISFRIENDS_UDP_PORT=${AISFRIENDS_UDP_PORT}
       - AISHUB_UDP_PORT=${AISHUB_UDP_PORT}
       - AISTRAIL_FEEDER_KEY=${AISTRAIL_FEEDER_KEY}
@@ -166,6 +168,8 @@ STATION_NAME=My&nbsp;Station&nbsp;Name
 ADSBITALIA_STATION_ID=xxxxx
 AIRFRAMES_STATION_ID=XX-XXXXXXX-AIS
 AISCATCHER_FEEDER_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+AISCOMMONS_UDP_PORT=xxxxx
+AISCOMMONS_SHAREDATA=
 AISFRIENDS_UDP_PORT=xxxxx
 AISHUB_UDP_PORT=xxxxx
 AISTRAIL_FEEDER_KEY=xxxxxxx
@@ -261,6 +265,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | ADSBItalia | `ADSBITALIA_STATION_ID` | [https://adsbitalia.it/api/ais](https://adsbitalia.it/api/ais) | HTTP | No signup needed. `ADSBITALIA_STATION_ID` is a self-chosen station name. Map: [adsbitalia.it/marine](https://adsbitalia.it/marine/) |
  | Airframes | `AIRFRAMES_STATION_ID` | [http://feed.airframes.io:5599](http://feed.airframes.io:5599) | HTTP | No signup needed. `AIRFRAMES_STATION_ID` is a self-chosen ID that has the form of `II-STATIONNAME-AIS`, where `II` are the initials of the owner's name, and `STATIONNAME` is a self-chosen station name (A-Z, 0-9 only please) |
  | AIS-Catcher | `AISCATCHER_SHAREDATA=true`<br>`AISCATCHER_FEEDER_KEY` | | Other | See [Exchanging data with `aiscatcher.org`](#exchanging-data-with-aiscatcherorg) [https://aiscatcher.org/#join](https://aiscatcher.org/#join). In the future, AISCatcher may provide you with an optional UUID that you can set in `AISCATCHER_FEEDER_KEY` |
+ | [AIS Commons](https://aiscommons.org/) | `AISCOMMONS_UDP_PORT` or<br/>`AISCOMMONS_SHAREDATA=true` | ingest.aiscommons.org | UDP | Register at [aiscommons.org](https://aiscommons.org/register) and set `AISCOMMONS_UDP_PORT` to your station's port (sent as JSON with signal level, frequency offset and receiver timestamp; an entry in `UDP_FEEDS` sends plain NMEA). Or set `AISCOMMONS_SHAREDATA=true` for the open port, no account: the station shows on the public map, without data access. [Guide](https://aiscommons.org/docs/feeding/shipfeeder), [terms](https://aiscommons.org/terms), [privacy](https://aiscommons.org/privacy) |
  | AIS Friends | `AISFRIENDS_UDP_PORT` | `ais.aisfriends.com` | UDP | Sign up at [AIS Friends](https://www.aisfriends.com/register) to receive a dedicated UDP port by email |
  | AISHub | `AISHUB_UDP_PORT` | [data.aishub.net](http://data.aishub.net) | UDP | [https://www.aishub.net/join-us](https://www.aishub.net/join-us) |
  | AIS Trail | `AISTRAIL_FEEDER_KEY` or<br/>`AISTRAIL_UDP_PORT` | [https://api.aistrail.com/feed](https://api.aistrail.com/feed) or<br/>feed.aistrail.com | HTTP / UDP | Register your station at [https://app.aistrail.com/stations/new](https://app.aistrail.com/stations/new) (no account required). Set `AISTRAIL_FEEDER_KEY` to your station key to feed over HTTPS (recommended), or set `AISTRAIL_UDP_PORT` to your assigned UDP port. Please use either HTTP or UDP, but not both! |
