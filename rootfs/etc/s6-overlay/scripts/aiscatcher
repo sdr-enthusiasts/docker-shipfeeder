@@ -122,7 +122,7 @@ connection_metadata() {
             data.aishub.net) description="AISHub"; link="https://www.aishub.net/" ;;
             feed.aistrail.com) description="AIS Trail"; link="https://aistrail.com/" ;;
             boatbeaconapp.com) description="BoatBeacon"; link="https://pocketmariner.com/" ;;
-            ais.gangway.app) description="Gangway AIS"; link="https://ais.gangway.app/ais/feed/" ;;
+            gangwayais.com|ais.gangway.app) description="Gangway AIS"; link="https://gangwayais.com/ais/feed/" ;;
             aisfeed.hpradar.com) description="HPRadar"; link="https://hpradar.com/" ;;
             ingest.mrnetwork.co.uk) description="Marine Receiver Network"; link="https://mrnetwork.co.uk/" ;;
             udp.ais.openwaters.io) description="Open Waters"; link="https://openwaters.io/ais/" ;;
@@ -386,7 +386,7 @@ fi
 
 # Gangway AIS: fixed UDP destination, no key or assigned port
 if chk_enabled "$GANGWAY_SHAREDATA"; then
-    add_udp_feed "ais.gangway.app:10110"
+    add_udp_feed "gangwayais.com:10110"
 fi
 
 # HPRadar:
