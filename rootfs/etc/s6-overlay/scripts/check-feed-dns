@@ -1,0 +1,45 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash disable=SC1091
+
+source /scripts/aiscatcher-dns
+
+APPNAME="check-feed-dns"
+s6wrap=(s6wrap --quiet --timestamps --prepend="${APPNAME}")
+watchlist="/run/aiscatcher/dns-watchlist"
+
+while true; do
+    sleep 300
+    mkdir -p /run/aiscatcher || {
+        "${s6wrap[@]}" echo "[ERROR] Could not create DNS watchlist directory"
+        continue
+    }
+    exec 9>/run/aiscatcher/dns-watchlist.lock || {
+        "${s6wrap[@]}" echo "[ERROR] Could not open DNS watchlist lock"
+        continue
+    }
+    if flock -n -E 75 9; then
+        :
+    else
+        lock_status=$?
+        if [[ "$lock_status" -ne 75 ]]; then
+            "${s6wrap[@]}" echo "[ERROR] Could not lock DNS watchlist"
+        fi
+        exec 9>&-
+        continue
+    fi
+    if [[ -s "$watchlist" ]]; then
+        while IFS= read -r hostname; do
+            if hostname_resolves "$hostname"; then
+                if [[ "$(s6-svstat -o up /run/service/aiscatcher)" == "true" ]] &&
+                    s6-svc -t /run/service/aiscatcher; then
+                    "${s6wrap[@]}" echo "Hostname '${hostname}' now resolves; restarting AIS-catcher to retry feed targets"
+                else
+                    "${s6wrap[@]}" echo "[WARNING] Hostname '${hostname}' now resolves, but could not restart AIS-catcher; will retry"
+                fi
+                break
+            fi
+        done < "$watchlist"
+    fi
+    flock -u 9
+    exec 9>&-
+done
