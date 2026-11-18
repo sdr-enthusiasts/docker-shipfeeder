@@ -6,6 +6,9 @@
 ^https://ais\.feed\.sdrmap\.org
 ^https://skydex\.online/api/ais/feed
 ^http://ais\.shipfinder\.co\.uk:4001
+^http://feed\.airframes\.io:5599
+^https://pliw\.co\.uk/ais
+^https://www\.gnu\.org/licenses/
 
 # Marine Receiver Network registration page: refuses connections as of
 # 2026-11-15. Kept in the README; re-check and remove this entry later.
