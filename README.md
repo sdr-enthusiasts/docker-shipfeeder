@@ -224,6 +224,7 @@ For backwards compatibility reasons the SDR related variables all have `RTLSDR` 
 | `AISCATCHER_DECODER_SRC` | `-go SRC` flag for `ais-catcher` | Empty |
 | `AISCATCHER_DECODER_DROOP` | `-go DROOP` flag for `ais-catcher` | Empty |
 | `AISCATCHER_UDP_INPUTS` | List of comma-separated `hostname:port[:CHANNELS]` combinations of external NMEA AIS data UDP sources. You can use this to feed data between `ais-catcher` or `docker-shipfeeder` instances. The `:CHANNELS` part is optional; channels `AB` will be used if omitted. Examples</br>`AISCATCHER_UDP_INPUTS=remotehost-1:9999:AB CD,remotehost-2:9988,remotehost-3:8899:CD` | Empty |
+| `AISCATCHER_TCP_INPUTS` | List of comma-separated `hostname:port` combinations of external NMEA AIS data TCP sources. You can use this to feed data between `ais-catcher` or `docker-shipfeeder` instances. Example</br>`AISCATCHER_TCP_INPUTS=remotehost-1:9999,remotehost-2:9988` | Empty |
 | `AISCATCHER_EXTRA_OPTIONS` | Any additional command line parameters you wish to pass to `AIS-catcher` | Empty |
 | `VERBOSE_LOGGING` | If set to a number (`0`-`5`), it's set to the `AIS-Catcher -o` [log level](https://github.com/jvde-github/AIS-catcher#usage). Any other non-empty string corresponds to `-o 2`. To silence `AIS-Catcher` logs, set this parameter to `0` | `2` (a summary is displayed every 60 seconds) |
 

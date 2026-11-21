@@ -324,6 +324,18 @@ if [[ -n "$AISCATCHER_UDP_INPUTS" ]]; then
     done
 fi
 
+# NMEA TCP inputs become additional RTLTCP receivers using the plain-text protocol.
+if [[ -n "$AISCATCHER_TCP_INPUTS" ]]; then
+    readarray -d "," -t feedsarray <<< "$AISCATCHER_TCP_INPUTS"
+    for feeds in "${feedsarray[@]}"
+    do
+        feeds="${feeds//$'\n'/}"
+        [[ -z "$feeds" ]] && continue
+        IFS=":" read -r tcp_host tcp_port _ <<< "$feeds"
+        [[ -n "$tcp_host" && -n "$tcp_port" ]] && additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":\"txt\",\"host\":$(jstr "$tcp_host"),\"port\":${tcp_port}}}")
+    done
+fi
+
 # Add a number of well-known feeders:
 # ADSBNetwork / RadarVirtuel:
 if [[ -n "${RADARVIRTUEL_STATION_ID}" ]]; then

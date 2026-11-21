@@ -60,6 +60,8 @@ services:
       - TCP_FEEDS=${TCP_FEEDS}
 #     incoming UDP data related parameters:
       - AISCATCHER_UDP_INPUTS=${AISCATCHER_UDP_INPUTS}
+#     incoming TCP data related parameters:
+      - AISCATCHER_TCP_INPUTS=${AISCATCHER_TCP_INPUTS}
     ports:
       - 90:80
       - 9988:9988/udp
