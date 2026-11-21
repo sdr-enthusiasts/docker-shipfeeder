@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""Bridge configured TCP/UDP AIS inputs to local UDP NMEA receivers."""
+
+import json
+import signal
+import socket
+import sys
+import threading
+
+
+FORMATS = {"NMEA", "JSON_NMEA", "JSON_FULL"}
+running = True
+LOCALHOST = "127.0.0.1"
+
+
+def emit_nmea(payload, output):
+    if payload == b"":
+        return
+    try:
+        if output == "NMEA":
+            nmea = [payload]
+        else:
+            message = json.loads(payload)
+            nmea = message.get("nmea", [])
+            if isinstance(nmea, str):
+                nmea = [nmea]
+        for sentence in nmea:
+            if isinstance(sentence, str):
+                data = sentence.encode()
+                if not data.endswith(b"\n"):
+                    data += b"\n"
+                output.send(data)
+    except (UnicodeDecodeError, json.JSONDecodeError, AttributeError, TypeError):
+        print("Ignoring malformed AIS input", file=sys.stderr, flush=True)
+
+
+def udp_listener(bind_host, bind_port, input_format, target):
+    receiver = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    receiver.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    receiver.bind((bind_host, bind_port))
+    output = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    output_target = (LOCALHOST, target)
+    receiver.settimeout(1)
+    print(f"Listening for UDP {input_format} input on {bind_host}:{bind_port}", flush=True)
+    try:
+        while running:
+            try:
+                data, _ = receiver.recvfrom(65535)
+            except socket.timeout:
+                continue
+            if input_format == "NMEA":
+                output.sendto(data, output_target)
+            else:
+                emit_nmea(data, DatagramOutput(output, output_target))
+    finally:
+        receiver.close()
+        output.close()
+
+
+class DatagramOutput:
+    def __init__(self, socket_obj, target):
+        self.socket = socket_obj
+        self.target = target
+
+    def send(self, data):
+        self.socket.sendto(data, self.target)
+
+
+def tcp_client(connection, address, input_format, target):
+    output = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    output_target = (LOCALHOST, target)
+    buffer = b""
+    try:
+        while running:
+            data = connection.recv(65535)
+            if not data:
+                break
+            buffer += data
+            while b"\n" in buffer:
+                line, buffer = buffer.split(b"\n", 1)
+                if input_format == "NMEA":
+                    output.sendto(line + b"\n", output_target)
+                else:
+                    emit_nmea(line, DatagramOutput(output, output_target))
+        if buffer:
+            if input_format == "NMEA":
+                output.sendto(buffer, output_target)
+            else:
+                emit_nmea(buffer, DatagramOutput(output, output_target))
+    finally:
+        connection.close()
+        output.close()
+        print(f"TCP input disconnected: {address[0]}:{address[1]}", flush=True)
+
+
+def tcp_listener(bind_host, bind_port, input_format, target):
+    receiver = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    receiver.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    receiver.bind((bind_host, bind_port))
+    receiver.listen()
+    receiver.settimeout(1)
+    print(f"Listening for TCP {input_format} input on {bind_host}:{bind_port}", flush=True)
+    try:
+        while running:
+            try:
+                connection, address = receiver.accept()
+            except socket.timeout:
+                continue
+            thread = threading.Thread(
+                target=tcp_client,
+                args=(connection, address, input_format, target),
+                daemon=True,
+            )
+            thread.start()
+    finally:
+        receiver.close()
+
+
+def stop_bridge(_signum, _frame):
+    global running
+    running = False
+
+
+def main():
+    if len(sys.argv) != 2:
+        print(f"Usage: {sys.argv[0]} SPEC_FILE", file=sys.stderr)
+        return 2
+
+    signal.signal(signal.SIGTERM, stop_bridge)
+    signal.signal(signal.SIGINT, stop_bridge)
+    threads = []
+    with open(sys.argv[1], encoding="utf-8") as spec_file:
+        for line in spec_file:
+            protocol, bind_host, bind_port, input_format, target = line.rstrip("\n").split("\t")
+            if input_format not in FORMATS:
+                print(f"Unsupported input format: {input_format}", file=sys.stderr)
+                return 1
+            listener = tcp_listener if protocol == "tcp" else udp_listener
+            thread = threading.Thread(
+                target=listener,
+                args=(bind_host, int(bind_port), input_format, int(target)),
+                daemon=True,
+            )
+            thread.start()
+            threads.append(thread)
+
+    while running and any(thread.is_alive() for thread in threads):
+        for thread in threads:
+            thread.join(timeout=1)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

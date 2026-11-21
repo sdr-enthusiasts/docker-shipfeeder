@@ -135,9 +135,12 @@ services:
       - UDP_FEEDS=${SX_UDP_FEEDS}
 #     incoming UDP data related parameters:
       - AISCATCHER_UDP_INPUTS=${AISCATCHER_UDP_INPUTS}
+#     incoming TCP data related parameters:
+      - AISCATCHER_TCP_INPUTS=${AISCATCHER_TCP_INPUTS}
     ports:
       - 90:80
       - 9988:9988/udp
+      - 9988:9988/tcp
     device_cgroup_rules:
       - 'c 189:* rwm' # USB
       - 'c 188:* rwm' # serial over USB
@@ -223,14 +226,14 @@ For backwards compatibility reasons the SDR related variables all have `RTLSDR` 
 | `AISCATCHER_DECODER_SOXR` | `-go SOXR` flag for `ais-catcher` | Empty |
 | `AISCATCHER_DECODER_SRC` | `-go SRC` flag for `ais-catcher` | Empty |
 | `AISCATCHER_DECODER_DROOP` | `-go DROOP` flag for `ais-catcher` | Empty |
-| `AISCATCHER_UDP_INPUTS` | List of comma-separated `hostname:port[:CHANNELS]` combinations of external NMEA AIS data UDP sources. You can use this to feed data between `ais-catcher` or `docker-shipfeeder` instances. The `:CHANNELS` part is optional; channels `AB` will be used if omitted. Examples</br>`AISCATCHER_UDP_INPUTS=remotehost-1:9999:AB CD,remotehost-2:9988,remotehost-3:8899:CD` | Empty |
-| `AISCATCHER_TCP_INPUTS` | List of comma-separated `hostname:port` combinations of external NMEA AIS data TCP sources. You can use this to feed data between `ais-catcher` or `docker-shipfeeder` instances. Example</br>`AISCATCHER_TCP_INPUTS=remotehost-1:9999,remotehost-2:9988` | Empty |
+| `AISCATCHER_UDP_INPUTS` | List of comma-separated `hostname:port[:CHANNELS][:FORMAT]` external AIS data UDP inputs. `FORMAT` may be `NMEA` (default), `JSON_NMEA`, or `JSON_FULL`; legacy `CHANNELS` is accepted but ignored. Bind to `0.0.0.0` to accept datagrams on all interfaces, allowing any reachable sender. Examples</br>`AISCATCHER_UDP_INPUTS=remotehost-1:9999,0.0.0.0:9988:JSON_NMEA` | Empty |
+| `AISCATCHER_TCP_INPUTS` | List of comma-separated `hostname:port[:FORMAT]` external AIS data TCP inputs. `FORMAT` may be `NMEA` (default), `JSON_NMEA`, or `JSON_FULL`. Bind to `0.0.0.0` to listen on all interfaces, allowing any reachable client such as a remote `AIS-catcher` using `TCP_FEEDS=host:port`. Examples</br>`AISCATCHER_TCP_INPUTS=0.0.0.0:9988,0.0.0.0:9989:JSON_NMEA` | Empty |
 | `AISCATCHER_EXTRA_OPTIONS` | Any additional command line parameters you wish to pass to `AIS-catcher` | Empty |
 | `VERBOSE_LOGGING` | If set to a number (`0`-`5`), it's set to the `AIS-Catcher -o` [log level](https://github.com/jvde-github/AIS-catcher#usage). Any other non-empty string corresponds to `-o 2`. To silence `AIS-Catcher` logs, set this parameter to `0` | `2` (a summary is displayed every 60 seconds) |
 
 If the `AISCATCHER_CHANNELS` and `AISCATCHER_DECODER_XXXX` parameters listed above are set, they will overwrite/remove any equivalent parameters added to the `AISCATCHER_EXTRA_OPTIONS` parameter.
 
-Note: internally, `docker-shipfeeder` translates most of the environment variables above into an [AIS-catcher JSON configuration file](https://jvde-github.github.io/AIS-catcher-docs/usage/json-configuration/) (`/data/aiscatcher-config.json`) instead of a long command line, which `AIS-catcher` is started with using `-C`. A small number of settings (console verbosity, `AISCATCHER_CHANNELS`, `AISCATCHER_UDP_INPUTS`, `ADSB_CONNECTOR`, and `AISCATCHER_EXTRA_OPTIONS`) are still passed as regular command line parameters alongside `-C`. This is transparent to you as a user - all documented environment variables continue to work the same way.
+Note: internally, `docker-shipfeeder` translates most of the environment variables above into an [AIS-catcher JSON configuration file](https://jvde-github.github.io/AIS-catcher-docs/usage/json-configuration/) (`/data/aiscatcher-config.json`) instead of a long command line, which `AIS-catcher` is started with using `-C`. A small number of settings (console verbosity, `AISCATCHER_CHANNELS`, `ADSB_CONNECTOR`, and `AISCATCHER_EXTRA_OPTIONS`) are still passed as regular command line parameters alongside `-C`. TCP inputs use a small bridge only when `AISCATCHER_TCP_INPUTS` or a JSON UDP input is configured; the bridge extracts the original `nmea` sentences from JSON input and forwards them to AIS-catcher's JSON-configured UDP receiver.
 
 ### Website Related Parameters
 

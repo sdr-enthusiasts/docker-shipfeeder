@@ -65,6 +65,7 @@ services:
     ports:
       - 90:80
       - 9988:9988/udp
+      - 9988:9988/tcp
     device_cgroup_rules:
       - 'c 189:* rwm' # USB
       - 'c 188:* rwm' # serial over USB

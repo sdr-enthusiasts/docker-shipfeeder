@@ -28,6 +28,7 @@ source /scripts/aiscatcher-dns
 
 AISCATCHER_CONFIG_FILE="/run/aiscatcher/config.json"
 AISCATCHER_DNS_WATCHLIST="/run/aiscatcher/dns-watchlist"
+AISCATCHER_INPUT_BRIDGE_FILE="/run/aiscatcher/input-bridge.conf"
 
 mkdir -p /run/aiscatcher || {
     "${s6wrap[@]}" echo "[ERROR] Could not create DNS watchlist directory"
@@ -102,6 +103,19 @@ tcp_outputs=()
 http_outputs=()
 mqtt_outputs=()
 additional_receiver_entries=()
+input_bridge_specs=()
+input_bridge_next_port=35000
+
+normalize_input_format() {
+    local format="${1^^}"
+    case "$format" in
+        NMEA|JSON_NMEA|JSON_FULL) printf '%s' "$format" ;;
+        *)
+            "${s6wrap[@]}" echo "[ERROR] Unsupported AIS input format '${1}'. Use NMEA, JSON_NMEA, or JSON_FULL."
+            return 1
+            ;;
+    esac
+}
 
 # Add human-readable metadata for an output connection. Unknown destinations get
 # a protocol-specific description and a link to the configured endpoint.
@@ -310,29 +324,54 @@ fi
 # They are passed on the command line together with "-C <config file>".
 extra_cli_args=()
 
-# NMEA UDP inputs become additional UDPSERVER receivers. Per the AIS-catcher schema,
-# "channel"/"nmea_channel" only apply to SDR inputs, so any inline channel suffix
-# (e.g. "host:port:CD") can no longer be represented and is dropped.
+# NMEA UDP inputs become additional UDPSERVER receivers. The optional format is
+# NMEA, JSON_NMEA, or JSON_FULL; legacy channel suffixes are still accepted and ignored.
 if [[ -n "$AISCATCHER_UDP_INPUTS" ]]; then
     readarray -d "," -t feedsarray <<< "$AISCATCHER_UDP_INPUTS"
     for feeds in "${feedsarray[@]}"
     do
         feeds="${feeds//$'\n'/}"
         [[ -z "$feeds" ]] && continue
-        IFS=":" read -r udp_host udp_port _ <<< "$feeds"
-        [[ -n "$udp_host" && -n "$udp_port" ]] && additional_receiver_entries+=("{\"input\":\"UDPSERVER\",\"udpserver\":{\"server\":$(jstr "$udp_host"),\"port\":${udp_port}}}")
+        IFS=":" read -r udp_host udp_port udp_option udp_format <<< "$feeds"
+        udp_option="${udp_option^^}"
+        if [[ "$udp_option" == "NMEA" || "$udp_option" == "JSON_NMEA" || "$udp_option" == "JSON_FULL" ]]; then
+            udp_format="$udp_option"
+        elif [[ -n "$udp_format" ]]; then
+            normalize_input_format "$udp_format" >/dev/null || exit 1
+            udp_format="${udp_format^^}"
+        elif [[ -n "$udp_option" && "$udp_option" != "AB" && "$udp_option" != "CD" && "$udp_option" != "AB CD" ]]; then
+            normalize_input_format "$udp_option" >/dev/null || exit 1
+            udp_format="${udp_option^^}"
+        else
+            udp_format="NMEA"
+        fi
+        [[ -n "$udp_host" && -n "$udp_port" ]] || continue
+        if [[ "$udp_format" != "NMEA" ]]; then
+            input_bridge_specs+=("udp"$'\t'"$udp_host"$'\t'"$udp_port"$'\t'"$udp_format"$'\t'"$input_bridge_next_port")
+            additional_receiver_entries+=("{\"input\":\"UDPSERVER\",\"udpserver\":{\"server\":\"127.0.0.1\",\"port\":${input_bridge_next_port}}}")
+            ((input_bridge_next_port++))
+        else
+            additional_receiver_entries+=("{\"input\":\"UDPSERVER\",\"udpserver\":{\"server\":$(jstr "$udp_host"),\"port\":${udp_port}}}")
+        fi
     done
 fi
 
-# NMEA TCP inputs become additional RTLTCP receivers using the plain-text protocol.
+# TCP inputs are accepted by the bridge and forwarded to local JSON-configured
+# UDPSERVER receivers. The bridge is only started when this list is non-empty.
 if [[ -n "$AISCATCHER_TCP_INPUTS" ]]; then
     readarray -d "," -t feedsarray <<< "$AISCATCHER_TCP_INPUTS"
     for feeds in "${feedsarray[@]}"
     do
         feeds="${feeds//$'\n'/}"
         [[ -z "$feeds" ]] && continue
-        IFS=":" read -r tcp_host tcp_port _ <<< "$feeds"
-        [[ -n "$tcp_host" && -n "$tcp_port" ]] && additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":\"txt\",\"host\":$(jstr "$tcp_host"),\"port\":${tcp_port}}}")
+        IFS=":" read -r tcp_host tcp_port tcp_format <<< "$feeds"
+        [[ -n "$tcp_host" && -n "$tcp_port" ]] || continue
+        tcp_format="${tcp_format:-NMEA}"
+        normalize_input_format "$tcp_format" >/dev/null || exit 1
+        tcp_format="${tcp_format^^}"
+        input_bridge_specs+=("tcp"$'\t'"$tcp_host"$'\t'"$tcp_port"$'\t'"$tcp_format"$'\t'"$input_bridge_next_port")
+        additional_receiver_entries+=("{\"input\":\"UDPSERVER\",\"udpserver\":{\"server\":\"127.0.0.1\",\"port\":${input_bridge_next_port}}}")
+        ((input_bridge_next_port++))
     done
 fi
 
@@ -742,6 +781,12 @@ if ! printf '%s\n' "$config_json" | jq . > "$AISCATCHER_CONFIG_FILE"; then
     exit 1
 fi
 
+if [[ "${#input_bridge_specs[@]}" -gt 0 ]]; then
+    printf '%s\n' "${input_bridge_specs[@]}" > "$AISCATCHER_INPUT_BRIDGE_FILE"
+else
+    : > "$AISCATCHER_INPUT_BRIDGE_FILE"
+fi
+
 watchlist_tmp="$(mktemp /run/aiscatcher/dns-watchlist.XXXXXX)" || {
     "${s6wrap[@]}" echo "[ERROR] Could not create DNS watchlist"
     exit 1
@@ -767,6 +812,18 @@ extra_options_array=(${AISCATCHER_EXTRA_OPTIONS})
 aiscatcher_command=("/usr/local/bin/AIS-catcher" "-C" "$AISCATCHER_CONFIG_FILE" "${extra_cli_args[@]}" "${extra_options_array[@]}")
 
 "${s6wrap[@]}" echo "Using AIS-catcher configuration file: $AISCATCHER_CONFIG_FILE"
+bridge_pid=""
+if [[ -s "$AISCATCHER_INPUT_BRIDGE_FILE" ]]; then
+    /scripts/aiscatcher-input-bridge "$AISCATCHER_INPUT_BRIDGE_FILE" &
+    bridge_pid="$!"
+    "${s6wrap[@]}" echo "Starting AIS input bridge"
+fi
 "${s6wrap[@]}" echo "Starting: ${aiscatcher_command[*]}"
 
-exec "${s6wrap[@]}" "${aiscatcher_command[@]}"
+"${s6wrap[@]}" "${aiscatcher_command[@]}" &
+aiscatcher_pid="$!"
+trap '[[ -n "$bridge_pid" ]] && kill "$bridge_pid" 2>/dev/null || true; kill "$aiscatcher_pid" 2>/dev/null || true' TERM INT
+wait "$aiscatcher_pid"
+status="$?"
+[[ -n "$bridge_pid" ]] && kill "$bridge_pid" 2>/dev/null || true
+exit "$status"
