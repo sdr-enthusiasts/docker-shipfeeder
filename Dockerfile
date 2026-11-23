@@ -1,8 +1,4 @@
-# syntax=docker/dockerfile:1@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32
-# DO NOT remove the @sha256 digest from the ais-catcher image below.
-# .github/workflows/deploy-on-aiscatcher-changes.yml parses it to detect upstream
-# changes and opens the bump PR that triggers a rebuild. The Lint workflow fails if it is missing.
-FROM ghcr.io/jvde-github/ais-catcher:edge@sha256:689fb79bd50a5679b7501c59ac23cbbc8aa9d682be3947b6db0b275d9bd2393a AS build
+FROM ghcr.io/jvde-github/ais-catcher:edge AS build
 
 # Build libhydrasdr (HydraSDR RFOne host library) in a dedicated stage.
 # This changes rarely, so it stays cached even when the main image layers are rebuilt.
@@ -160,31 +156,31 @@ RUN set -x && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/*
 
 # Add plugins from the same image as the AIS-catcher binary.
-COPY --from=build /etc/AIS-catcher/plugins/ /etc/AIS-catcher/plugins/
+# COPY --from=build /etc/AIS-catcher/plugins/ /etc/AIS-catcher/plugins/
 
 # Add libhydrasdr built in the dedicated stage above.
 # The ldconfig in the AIS-catcher layer below also picks up these libraries.
 COPY --from=build-hydrasdr /tmp/hydrasdr-install/ /
 
 # add AIS-catcher and libairspyhf
+# Add Container Version
+ARG VERSION_SHA
+# hadolint ignore=DL3003,SC2154,SC3044
 RUN \
     --mount=type=bind,from=build,source=/,target=/build/ \
     set -x && \
+    mkdir -p /etc/AIS-catcher/plugins && \
     cp -v /build/usr/bin/AIS-catcher /usr/local/bin/AIS-catcher && \
+    cp -v /build/etc/AIS-catcher/plugins/* /etc/AIS-catcher/plugins && \
     find /build | grep libairspyhf | cut -d/ --complement -f1,2 | xargs --replace cp -a -T -v /build/'{}' /'{}' && \
     ldconfig && \
-    true
-
-# Add Container Version
-ARG VERSION_SHA
-# hadolint ignore=DL3003,SC2154
-RUN set -x && \
+    true && \
     pushd /tmp && \
-    branch="##BRANCH##" && \
-    { [[ "${branch:0:1}" == "#" ]] && branch="main" || true; } && \
-    commit="${VERSION_SHA:-local}" && commit="${commit:0:7}" && \
-    [[ -n "$commit" && "$commit" != "null" ]] && \
-    echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_${commit}_$branch" > "/.CONTAINER_VERSION" && \
+        branch="##BRANCH##" && \
+        { [[ "${branch:0:1}" == "#" ]] && branch="main" || true; } && \
+        commit="${VERSION_SHA:-local}" && commit="${commit:0:7}" && \
+        [[ -n "$commit" && "$commit" != "null" ]] && \
+        echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_${commit}_$branch" > "/.CONTAINER_VERSION" && \
     popd && \
     rm -rf /tmp/*
 
