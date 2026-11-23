@@ -157,6 +157,7 @@ connection_metadata() {
             aisfeed.hpradar.com) description="HPRadar"; link="https://hpradar.com/" ;;
             ingest.mrnetwork.co.uk) description="Marine Receiver Network"; link="https://mrnetwork.co.uk/" ;;
             udp.ais.openwaters.io) description="Open Waters"; link="https://openwaters.io/ais/" ;;
+            udp.pelyr.com) description="Pelyr"; link="https://pelyr.com/" ;;
             ais.shipfinder.co.uk) description="ShipFinder"; link="https://shipfinder.co/" ;;
             hub.shipxplorer.com) description="ShipXplorer"; link="https://www.shipxplorer.com/" ;;
             ais.vesselfinder.com) description="VesselFinder"; link="https://www.vesselfinder.com/" ;;
@@ -557,6 +558,13 @@ if [[ -n "$OPENWATERS_FEEDER_KEY" ]] || chk_enabled "$OPENWATERS_SHAREDATA"; the
         "${s6wrap[@]}" echo "[WARNING] Open Waters: could not obtain a station token; feeding anonymously over UDP instead"
         add_udp_feed "${OPENWATERS_UDP_HOST:-udp.ais.openwaters.io}:${OPENWATERS_UDP_PORT:-10110}"
     fi
+fi
+
+# Pelyr: prefer HTTPS when both credentials are configured; use UDP only as a fallback.
+if [[ -n "$PELYR_STATION_ID" && -n "$PELYR_FEEDER_KEY" ]]; then
+    add_http_feed "https://ingest.pelyr.com/v1/aiscatcher" "\"userpwd\":$(jstr "${PELYR_STATION_ID}:${PELYR_FEEDER_KEY}"),\"interval\":10,\"gzip\":true,\"protocol\":\"MINIMAL\",\"response\":false" "Pelyr" "https://pelyr.com/"
+elif [[ -n "$PELYR_UDP_PORT" ]]; then
+    add_udp_feed "udp.pelyr.com:${PELYR_UDP_PORT}" "\"msgformat\":\"JSON_NMEA\""
 fi
 
 
