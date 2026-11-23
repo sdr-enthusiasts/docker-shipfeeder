@@ -582,7 +582,7 @@ fi
 
 # MastChain: the station ID is the account email used with the station token.
 if [[ -n "$MASTCHAIN_STATION_ID" && -n "$MASTCHAIN_FEEDER_KEY" ]]; then
-    add_http_feed "https://api.mastchain.io/api/upload" "\"userpwd\":$(jstr "${MASTCHAIN_STATION_ID}:${MASTCHAIN_FEEDER_KEY}"),\"interval\":60" "MastChain" "https://mastchain.io/"
+    add_http_feed "https://api.mastchain.io/api/upload" "\"userpwd\":$(jstr "${MASTCHAIN_STATION_ID}:${MASTCHAIN_FEEDER_KEY}"),\"interval\":60,\"gzip\":true,\"protocol\":\"MINIMAL\",\"response\":false" "MastChain" "https://mastchain.io/"
 fi
 
 
