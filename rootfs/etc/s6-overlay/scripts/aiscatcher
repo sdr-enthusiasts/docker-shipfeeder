@@ -814,9 +814,9 @@ aiscatcher_command=("/usr/local/bin/AIS-catcher" "-C" "$AISCATCHER_CONFIG_FILE" 
 "${s6wrap[@]}" echo "Using AIS-catcher configuration file: $AISCATCHER_CONFIG_FILE"
 bridge_pid=""
 if [[ -s "$AISCATCHER_INPUT_BRIDGE_FILE" ]]; then
-    /scripts/aiscatcher-input-bridge "$AISCATCHER_INPUT_BRIDGE_FILE" &
-    bridge_pid="$!"
     "${s6wrap[@]}" echo "Starting AIS input bridge"
+    s6wrap --quiet --timestamps --prepend="aiscatcher-input-bridge" --args /scripts/aiscatcher-input-bridge "$AISCATCHER_INPUT_BRIDGE_FILE" &
+    bridge_pid="$!"
 fi
 "${s6wrap[@]}" echo "Starting: ${aiscatcher_command[*]}"
 
