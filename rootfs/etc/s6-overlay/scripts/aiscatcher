@@ -402,7 +402,7 @@ fi
 
 # AirFrames:
 if [[ -n "$AIRFRAMES_STATION_ID" ]]; then
-    add_http_feed "http://feed.airframes.io:5599" "\"id\":$(jstr "$AIRFRAMES_STATION_ID"),\"interval\":30,\"response\":false" "Airframes" "https://airframes.io/"
+    add_http_feed "http://feed.airframes.io:5599" "\"id\":$(jstr "$AIRFRAMES_STATION_ID"),\"protocol\":\"AIRFRAMES\",\"interval\":30,\"response\":false" "Airframes" "https://airframes.io/"
 fi
 
 # AIS-Catcher (community feed sharing):
