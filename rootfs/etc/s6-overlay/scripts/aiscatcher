@@ -121,48 +121,61 @@ normalize_input_format() {
 # a protocol-specific description and a link to the configured endpoint.
 connection_metadata() {
     local protocol="$1" target="$2" description="${3:-}" link="${4:-}"
-    local host="${target%%:*}" authority scheme label="$target"
+    local protocol_name="${protocol,,}" authority scheme host website="$description" known_website=""
 
-    if [[ -z "$link" ]]; then
-        if [[ "$protocol" == "http" ]]; then
+    case "$protocol_name" in
+        http)
             scheme="${target%%://*}"
             authority="${target#*://}"
+            authority="${authority##*@}"
             authority="${authority%%/*}"
             authority="${authority%%\?*}"
             authority="${authority%%\#*}"
-            label="$authority"
-            link="${scheme}://${authority}"
-        elif [[ "$protocol" == "mqtt" ]]; then
+            host="${authority%%:*}"
+            ;;
+        mqtt)
+            scheme="${target%%://*}"
             authority="${target#*://}"
-            authority="${authority%%/*}"
             authority="${authority##*@}"
+            authority="${authority%%/*}"
             authority="${authority%%\?*}"
-            label="$authority"
-            link="${target%%://*}://${authority}"
+            host="${authority%%:*}"
+            ;;
+        *) host="${target%%:*}" ;;
+    esac
+
+    case "${host,,}" in
+        ingest.aiscommons.org) known_website="AIS Commons"; [[ -n "$link" ]] || link="https://aiscommons.org/" ;;
+        ais.aisfriends.com) known_website="AIS Friends"; [[ -n "$link" ]] || link="https://www.aisfriends.com/" ;;
+        ais.adsbnetwork.com) known_website="RadarVirtuel"; [[ -n "$link" ]] || link="https://ais.adsbnetwork.com/" ;;
+        feed.adsbitalia.it) known_website="ADSBItalia"; [[ -n "$link" ]] || link="https://adsbitalia.it/marine/" ;;
+        feed.airframes.io) known_website="Airframes"; [[ -n "$link" ]] || link="https://airframes.io/" ;;
+        data.aishub.net) known_website="AISHub"; [[ -n "$link" ]] || link="https://www.aishub.net/" ;;
+        feed.aistrail.com|api.aistrail.com) known_website="AIS Trail"; [[ -n "$link" ]] || link="https://aistrail.com/" ;;
+        boatbeaconapp.com) known_website="BoatBeacon"; [[ -n "$link" ]] || link="https://pocketmariner.com/" ;;
+        gangwayais.com|ais.gangway.app) known_website="Gangway AIS"; [[ -n "$link" ]] || link="https://gangwayais.com/ais/feed/" ;;
+        aisfeed.hpradar.com) known_website="HPRadar"; [[ -n "$link" ]] || link="https://hpradar.com/" ;;
+        ingest.mrnetwork.co.uk) known_website="Marine Receiver Network"; [[ -n "$link" ]] || link="https://mrnetwork.co.uk/" ;;
+        udp.ais.openwaters.io|ais.openwaters.io) known_website="Open Waters"; [[ -n "$link" ]] || link="https://openwaters.io/ais/" ;;
+        udp.pelyr.com|ingest.pelyr.com) known_website="Pelyr"; [[ -n "$link" ]] || link="https://pelyr.com/" ;;
+        api.mastchain.io) known_website="MastChain"; [[ -n "$link" ]] || link="https://mastchain.io/" ;;
+        ais.shipfinder.co.uk) known_website="ShipFinder"; [[ -n "$link" ]] || link="https://shipfinder.co/" ;;
+        hub.shipxplorer.com) known_website="ShipXplorer"; [[ -n "$link" ]] || link="https://www.shipxplorer.com/" ;;
+        ais.vesselfinder.com) known_website="VesselFinder"; [[ -n "$link" ]] || link="https://www.vesselfinder.com/" ;;
+        ais.feed.sdrmap.org) known_website="SDRMap"; [[ -n "$link" ]] || link="https://sdrmap.org/" ;;
+        skydex.online) known_website="Skydex"; [[ -n "$link" ]] || link="https://skydex.online/" ;;
+        aprs.fi) known_website="APRS.fi"; [[ -n "$link" ]] || link="https://aprs.fi/" ;;
+    esac
+
+    if [[ -z "$website" ]]; then website="${known_website:-$host}"; fi
+    if [[ -z "$link" ]]; then
+        if [[ "$protocol_name" == "http" && -n "$scheme" ]]; then
+            link="${scheme}://${host}/"
         else
-            link="${protocol}://${target}"
+            link="https://${host}/"
         fi
     fi
-    if [[ -z "$description" ]]; then description="${protocol^^} feed to ${label}"; fi
-
-    if [[ "$protocol" == "udp" || "$protocol" == "tcp" ]]; then
-        case "${host,,}" in
-            ingest.aiscommons.org) description="AIS Commons"; link="https://aiscommons.org/" ;;
-            ais.aisfriends.com) description="AIS Friends"; link="https://www.aisfriends.com/" ;;
-            feed.adsbitalia.it) description="ADSBItalia"; link="https://adsbitalia.it/marine/"; [[ -n "$ADSBITALIA_EXTERNAL_IP" ]] && link="https://adsbitalia.it/api/ais?id=${ADSBITALIA_EXTERNAL_IP}" ;;
-            data.aishub.net) description="AISHub"; link="https://www.aishub.net/" ;;
-            feed.aistrail.com) description="AIS Trail"; link="https://aistrail.com/" ;;
-            boatbeaconapp.com) description="BoatBeacon"; link="https://pocketmariner.com/" ;;
-            gangwayais.com|ais.gangway.app) description="Gangway AIS"; link="https://gangwayais.com/ais/feed/" ;;
-            aisfeed.hpradar.com) description="HPRadar"; link="https://hpradar.com/" ;;
-            ingest.mrnetwork.co.uk) description="Marine Receiver Network"; link="https://mrnetwork.co.uk/" ;;
-            udp.ais.openwaters.io) description="Open Waters"; link="https://openwaters.io/ais/" ;;
-            udp.pelyr.com) description="Pelyr"; link="https://pelyr.com/" ;;
-            ais.shipfinder.co.uk) description="ShipFinder"; link="https://shipfinder.co/" ;;
-            hub.shipxplorer.com) description="ShipXplorer"; link="https://www.shipxplorer.com/" ;;
-            ais.vesselfinder.com) description="VesselFinder"; link="https://www.vesselfinder.com/" ;;
-        esac
-    fi
+    description="${website} (${protocol_name})"
 
     printf '\"description\":%s,\"link\":%s' "$(jstr "$description")" "$(jstr "$link")"
 }
@@ -181,17 +194,17 @@ check_feed_target() {
 
 # Add a "host:port" style feed to the udp_outputs/tcp_outputs array, with optional extra JSON fields appended:
 add_udp_feed() {
-    local hostport="$1" extra="$2" metadata
+    local hostport="$1" extra="${2:-}" metadata
     [[ -n "${hostport%%:*}" && -n "${hostport##*:}" ]] || return 0
     check_feed_target udp "$hostport" || return 0
-    metadata="$(connection_metadata udp "$hostport")"
+    metadata="$(connection_metadata udp "$hostport" "${3:-}" "${4:-}")"
     udp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra}}")
 }
 add_tcp_feed() {
-    local hostport="$1" extra="$2" metadata
+    local hostport="$1" extra="${2:-}" metadata
     [[ -n "${hostport%%:*}" && -n "${hostport##*:}" ]] || return 0
     check_feed_target tcp "$hostport" || return 0
-    metadata="$(connection_metadata tcp "$hostport")"
+    metadata="$(connection_metadata tcp "$hostport" "${3:-}" "${4:-}")"
     tcp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra}}")
 }
 add_http_feed() {
@@ -469,7 +482,7 @@ if [[ -n "$BOATBEACON_UDP_PORT" ]]; then
     add_udp_feed "$BOATBEACON_UDP_PORT"
 elif [[ -n "$BOATBEACON_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$BOATBEACON_TCP_PORT"; then BOATBEACON_TCP_PORT="data.aishub.net:$BOATBEACON_TCP_PORT"; fi
-    add_tcp_feed "$BOATBEACON_TCP_PORT"
+    add_tcp_feed "$BOATBEACON_TCP_PORT" "" "BoatBeacon" "https://pocketmariner.com/"
 elif chk_enabled "$BOATBEACON_SHAREDATA"; then
     add_udp_feed "boatbeaconapp.com:5322"
 fi
@@ -488,7 +501,7 @@ if [[ -n "$HPRADAR_UDP_PORT" ]]; then
     add_udp_feed "$HPRADAR_UDP_PORT" "\"msgformat\":\"JSON_NMEA\""
 fi
 if [[ -n "$HPRADAR_TCP_PORT" ]]; then
-    if ! grep -q ":" <<< "$HPRADAR_TCP_PORT"; then HPRADAR_TCP_PORT="data.aishub.net:$HPRADAR_TCP_PORT"; fi
+    if ! grep -q ":" <<< "$HPRADAR_TCP_PORT"; then HPRADAR_TCP_PORT="aisfeed.hpradar.com:$HPRADAR_TCP_PORT"; fi
     add_tcp_feed "$HPRADAR_TCP_PORT"
 fi
 if [[ -n "$HPRADAR_UDP_PORT" ]] && [[ -n "$HPRADAR_TCP_PORT" ]]; then
@@ -498,11 +511,11 @@ fi
 # MarineTraffic:
 if [[ -n "$MARINETRAFFIC_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$MARINETRAFFIC_UDP_PORT"; then MARINETRAFFIC_UDP_PORT="5.9.207.224:$MARINETRAFFIC_UDP_PORT"; fi
-    add_udp_feed "$MARINETRAFFIC_UDP_PORT"
+    add_udp_feed "$MARINETRAFFIC_UDP_PORT" "" "MarineTraffic" "https://www.marinetraffic.com/en/join-us/cover-your-area"
 fi
 if [[ -n "$MARINETRAFFIC_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$MARINETRAFFIC_TCP_PORT"; then MARINETRAFFIC_TCP_PORT="5.9.207.224:$MARINETRAFFIC_TCP_PORT"; fi
-    add_tcp_feed "$MARINETRAFFIC_TCP_PORT"
+    add_tcp_feed "$MARINETRAFFIC_TCP_PORT" "" "MarineTraffic" "https://www.marinetraffic.com/en/join-us/cover-your-area"
 fi
 if [[ -n "$MARINETRAFFIC_UDP_PORT" ]] && [[ -n "$MARINETRAFFIC_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both MARINETRAFFIC_UDP_PORT and MARINETRAFFIC_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -577,11 +590,11 @@ fi
 MYSHIPTRACKING_UDP_PORT="${MYSHIPTRACKING_UDP_PORT:-$MYSHIPTRACKER_UDP_PORT}" # bug fix - originally wrote wrongly MYSHIPTRACKER_UDP_PORT, now we need to keep this for backward compatibility
 if [[ -n "$MYSHIPTRACKING_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$MYSHIPTRACKING_UDP_PORT"; then MYSHIPTRACKING_UDP_PORT="178.162.215.175:$MYSHIPTRACKING_UDP_PORT"; fi
-    add_udp_feed "$MYSHIPTRACKING_UDP_PORT"
+    add_udp_feed "$MYSHIPTRACKING_UDP_PORT" "" "MyShipTracking" "https://www.myshiptracking.com/help-center/contributors/add-your-station"
 fi
 if [[ -n "$MYSHIPTRACKING_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$MYSHIPTRACKING_TCP_PORT"; then MYSHIPTRACKING_TCP_PORT="178.162.215.175:$MYSHIPTRACKING_TCP_PORT"; fi
-    add_tcp_feed "$MYSHIPTRACKING_TCP_PORT"
+    add_tcp_feed "$MYSHIPTRACKING_TCP_PORT" "" "MyShipTracking" "https://www.myshiptracking.com/help-center/contributors/add-your-station"
 fi
 if [[ -n "$MYSHIPTRACKING_UDP_PORT" ]] && [[ -n "$MYSHIPTRACKING_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both MYSHIPTRACKING_UDP_PORT and MYSHIPTRACKING_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -600,11 +613,11 @@ fi
 # ShippingExplorer:
 if [[ -n "$SHIPPINGEXPLORER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPPINGEXPLORER_UDP_PORT"; then SHIPPINGEXPLORER_UDP_PORT="144.76.54.111:$SHIPPINGEXPLORER_UDP_PORT"; fi
-    add_udp_feed "$SHIPPINGEXPLORER_UDP_PORT"
+    add_udp_feed "$SHIPPINGEXPLORER_UDP_PORT" "" "ShippingExplorer" "https://www.shippingexplorer.net/en/contact"
 fi
 if [[ -n "$SHIPPINGEXPLORER_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPPINGEXPLORER_TCP_PORT"; then SHIPPINGEXPLORER_TCP_PORT="178.162.215.175:$SHIPPINGEXPLORER_TCP_PORT"; fi
-    add_tcp_feed "$SHIPPINGEXPLORER_TCP_PORT"
+    add_tcp_feed "$SHIPPINGEXPLORER_TCP_PORT" "" "ShippingExplorer" "https://www.shippingexplorer.net/en/contact"
 fi
 if [[ -n "$SHIPPINGEXPLORER_UDP_PORT" ]] && [[ -n "$SHIPPINGEXPLORER_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both SHIPPINGEXPLORER_UDP_PORT and SHIPPINGEXPLORER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -619,7 +632,7 @@ elif chk_enabled "$SHIPFINDER_SHAREDATA"; then
 fi
 if [[ -n "$SHIPFINDER_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$SHIPFINDER_TCP_PORT"; then SHIPFINDER_TCP_PORT="178.162.215.175:$SHIPFINDER_TCP_PORT"; fi
-    add_tcp_feed "$SHIPFINDER_TCP_PORT"
+    add_tcp_feed "$SHIPFINDER_TCP_PORT" "" "ShipFinder" "https://shipfinder.co/"
 fi
 if [[ -n "$SHIPFINDER_UDP_PORT" ]] && [[ -n "$SHIPFINDER_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both SHIPFINDER_UDP_PORT and SHIPFINDER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -644,7 +657,7 @@ if [[ -n "$VESSELFINDER_UDP_PORT" ]]; then
 fi
 if [[ -n "$VESSELFINDER_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELFINDER_TCP_PORT"; then VESSELFINDER_TCP_PORT="178.162.215.175:$VESSELFINDER_TCP_PORT"; fi
-    add_tcp_feed "$VESSELFINDER_TCP_PORT"
+    add_tcp_feed "$VESSELFINDER_TCP_PORT" "" "VesselFinder" "https://www.vesselfinder.com/"
 fi
 if [[ -n "$VESSELFINDER_UDP_PORT" ]] && [[ -n "$VESSELFINDER_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both VESSELFINDER_UDP_PORT and VESSELFINDER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
@@ -653,19 +666,19 @@ fi
 # VesselTracker:
 if [[ -n "$VESSELTRACKER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELTRACKER_UDP_PORT"; then VESSELTRACKER_UDP_PORT="83.220.137.136:$VESSELTRACKER_UDP_PORT"; fi
-    add_udp_feed "$VESSELTRACKER_UDP_PORT"
+    add_udp_feed "$VESSELTRACKER_UDP_PORT" "" "VesselTracker" "https://www.vesseltracker.com/en/static/antenna-partner.html"
 fi
 if [[ -n "$VESSELTRACKER_TCP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELTRACKER_TCP_PORT"; then VESSELTRACKER_TCP_PORT="83.220.137.136:$VESSELTRACKER_TCP_PORT"; fi
-    add_tcp_feed "$VESSELTRACKER_TCP_PORT"
+    add_tcp_feed "$VESSELTRACKER_TCP_PORT" "" "VesselTracker" "https://www.vesseltracker.com/en/static/antenna-partner.html"
 fi
 if [[ -n "$VESSELTRACKER_UDP_PORT" ]] && [[ -n "$VESSELTRACKER_TCP_PORT" ]]; then
     "${s6wrap[@]}" echo "[WARNING] Both VESSELTRACKER_UDP_PORT and VESSELTRACKER_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
 # Local feeds for sxfeeder (always added):
-add_udp_feed "127.0.0.1:34994"
-add_udp_feed "127.0.0.1:34995"
+add_udp_feed "127.0.0.1:34994" "" "ShipXplorer" "https://www.shipxplorer.com/"
+add_udp_feed "127.0.0.1:34995" "" "ShipXplorer" "https://www.shipxplorer.com/"
 
 # Build the primary SDR receiver only when a physical device was configured.
 receiver_entries=()
