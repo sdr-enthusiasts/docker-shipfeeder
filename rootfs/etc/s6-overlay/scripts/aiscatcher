@@ -393,9 +393,10 @@ fi
 # ADSBNetwork / RadarVirtuel:
 if [[ -n "${RADARVIRTUEL_STATION_ID}" ]]; then
     if [[ -z "$FEEDER_LAT" ]] || [[ -z "$FEEDER_LONG" ]]; then
-        add_http_feed "http://ais.adsbnetwork.com:3002/ingester/insert/lourd" "\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"interval\":15,\"response\":false" "RadarVirtuel" "https://ais.adsbnetwork.com/"
+#        add_http_feed "http://ais.adsbnetwork.com:3002/ingester/insert/lourd" "\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"interval\":30,\"response\":false" "RadarVirtuel" "https://ais.adsbnetwork.com/"
+        add_http_feed "http://ais.adsbnetwork.com:3002/ingester/insert/lourd" "\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"interval\":30,\"response\":false" "RadarVirtuel" "https://ais.adsbnetwork.com/"
     else
-        add_http_feed "http://ais.adsbnetwork.com:3002/ingester/insert/lourd" "\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG"),\"interval\":15,\"response\":false" "RadarVirtuel" "https://ais.adsbnetwork.com/"
+        add_http_feed "http://ais.adsbnetwork.com:3002/ingester/insert/lourd" "\"id\":$(jstr "$RADARVIRTUEL_STATION_ID"),\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG"),\"interval\":30,\"response\":false" "RadarVirtuel" "https://ais.adsbnetwork.com/"
     fi
 fi
 
@@ -461,7 +462,7 @@ fi
 
 # AIS Trail:
 if [[ -n "$AISTRAIL_FEEDER_KEY" ]]; then
-    add_http_feed "https://api.aistrail.com/feed" "\"userpwd\":$(jstr "station:${AISTRAIL_FEEDER_KEY}"),\"gzip\":true,\"interval\":10,\"response\":false" "AIS Trail" "https://aistrail.com/"
+    add_http_feed "https://api.aistrail.com/feed" "\"userpwd\":$(jstr "station:${AISTRAIL_FEEDER_KEY}"),\"gzip\":true,\"interval\":30,\"response\":false" "AIS Trail" "https://aistrail.com/"
 fi
 if [[ -n "$AISTRAIL_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$AISTRAIL_UDP_PORT"; then AISTRAIL_UDP_PORT="feed.aistrail.com:$AISTRAIL_UDP_PORT"; fi
@@ -521,7 +522,8 @@ if [[ -n "$MARINETRAFFIC_UDP_PORT" ]] && [[ -n "$MARINETRAFFIC_TCP_PORT" ]]; the
     "${s6wrap[@]}" echo "[WARNING] Both MARINETRAFFIC_UDP_PORT and MARINETRAFFIC_TCP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
-#Maritime Receiver Network (MRNetwork)
+# Maritime Receiver Network (MRNetwork)
+# looks like this one is offline. we'll keep it here for now in case they come back
 if [[ -n "$MRNETWORK_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$MRNETWORK_UDP_PORT"; then MRNETWORK_UDP_PORT="ingest.mrnetwork.co.uk:$MRNETWORK_UDP_PORT"; fi
     add_udp_feed "$MRNETWORK_UDP_PORT"
@@ -560,8 +562,8 @@ if [[ -n "$OPENWATERS_FEEDER_KEY" ]] || chk_enabled "$OPENWATERS_SHAREDATA"; the
     fi
     if [[ -n "$openwaters_token" ]]; then
         # Print the token here (not in the helper, whose stdout is captured) so it reaches the container log:
-        "${s6wrap[@]}" echo "Open Waters: feeding with station token ${openwaters_token}"
-        "${s6wrap[@]}" echo "Open Waters: save this token (e.g., as OPENWATERS_FEEDER_KEY) to reuse this station identity in future deployments"
+#        "${s6wrap[@]}" echo "Open Waters: feeding with station token ${openwaters_token}"
+#        "${s6wrap[@]}" echo "Open Waters: save this token (e.g., as OPENWATERS_FEEDER_KEY) to reuse this station identity in future deployments"
         # MQTT over WebSocket: each message goes out as it is decoded. AIS-catcher needs the port spelled out in the URL.
         ow_hostport="${OPENWATERS_URL#*://}"; ow_hostport="${ow_hostport%%/*}"
         if [[ "$OPENWATERS_URL" == https://* ]]; then ow_scheme="wssmqtt"; ow_port="443"; else ow_scheme="wsmqtt"; ow_port="80"; fi
@@ -575,7 +577,7 @@ fi
 
 # Pelyr: prefer HTTPS when both credentials are configured; use UDP only as a fallback.
 if [[ -n "$PELYR_STATION_ID" && -n "$PELYR_FEEDER_KEY" ]]; then
-    add_http_feed "https://ingest.pelyr.com/v1/aiscatcher" "\"userpwd\":$(jstr "${PELYR_STATION_ID}:${PELYR_FEEDER_KEY}"),\"interval\":10,\"gzip\":true,\"protocol\":\"MINIMAL\",\"response\":false" "Pelyr" "https://pelyr.com/"
+    add_http_feed "https://ingest.pelyr.com/v1/aiscatcher" "\"userpwd\":$(jstr "${PELYR_STATION_ID}:${PELYR_FEEDER_KEY}"),\"interval\":30,\"gzip\":true,\"protocol\":\"MINIMAL\",\"response\":false" "Pelyr" "https://pelyr.com/"
 elif [[ -n "$PELYR_UDP_PORT" ]]; then
     add_udp_feed "udp.pelyr.com:${PELYR_UDP_PORT}" "\"msgformat\":\"JSON_NMEA\""
 fi
