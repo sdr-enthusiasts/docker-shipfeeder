@@ -211,18 +211,40 @@ check_feed_target() {
 
 # Add a "host:port" style feed to the udp_outputs/tcp_outputs array, with optional extra JSON fields appended:
 add_udp_feed() {
-    local hostport="$1" extra="${2:-}" metadata
-    [[ -n "${hostport%%:*}" && -n "${hostport##*:}" ]] || return 0
-    check_feed_target udp "$hostport" || return 0
-    metadata="$(connection_metadata udp "$hostport" "${3:-}" "${4:-}")"
-    udp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra},${output_filter_fields}}")
+    add_network_feed udp "$@"
 }
 add_tcp_feed() {
-    local hostport="$1" extra="${2:-}" metadata
-    [[ -n "${hostport%%:*}" && -n "${hostport##*:}" ]] || return 0
-    check_feed_target tcp "$hostport" || return 0
-    metadata="$(connection_metadata tcp "$hostport" "${3:-}" "${4:-}")"
-    tcp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra},${output_filter_fields}}")
+    add_network_feed tcp "$@"
+}
+add_network_feed() {
+    local protocol="$1" target="$2" extra="${3:-}" description="${4:-}" link="${5:-}"
+    local host="${target%%:*}" remainder port metadata generated output option_text switch
+    local -a arguments=()
+    if [[ "$target" != *:* || -z "$host" ]]; then
+        "${s6wrap[@]}" echo "[ERROR] Invalid ${protocol^^} feed target: expected host:port"
+        exit 1
+    fi
+    remainder="${target#*:}"
+    remainder="${remainder//:/ }"
+    read -r -a arguments <<< "$remainder"
+    port="${arguments[0]:-}"
+    if [[ ! "$port" =~ ^[0-9]{1,5}$ ]] || (( 10#$port < 1 || 10#$port > 65535 )); then
+        "${s6wrap[@]}" echo "[ERROR] Invalid ${protocol^^} feed port for host '${host}'"
+        exit 1
+    fi
+    check_feed_target "$protocol" "${host}:${port}" || return 0
+    metadata="$(connection_metadata "$protocol" "${host}:${port}" "$description" "$link")"
+    generated="{\"host\":$(jstr "$host"),\"port\":$(jstr "$port")${extra:+,$extra}}"
+    if (( ${#arguments[@]} > 1 )); then
+        if [[ "$protocol" == udp ]]; then switch=-u; else switch=-P; fi
+        if ! option_text="$(/usr/local/bin/AIS-catcher "$switch" "$host" "$port" "${arguments[@]:1}" -J)" || ! output="$(jq -ce --arg protocol "$protocol" '.[$protocol] | if type == "array" and length == 1 then .[0] else error("expected one output") end' <<< "$option_text")"; then
+            "${s6wrap[@]}" echo "[ERROR] Invalid ${protocol^^} feed options for host '${host}'"
+            exit 1
+        fi
+        generated="$(jq -cn --argjson defaults "$generated" --argjson options "$output" '$defaults + $options')" || exit 1
+    fi
+    output="$(jq -cn --argjson feed "$generated" --argjson metadata "{$metadata}" --argjson filters "{$output_filter_fields}" --argjson port "$((10#$port))" '$feed + $metadata + $filters | .port = $port')" || exit 1
+    if [[ "$protocol" == udp ]]; then udp_outputs+=("$output"); else tcp_outputs+=("$output"); fi
 }
 add_http_feed() {
     local url="$1" extra="${2:-}" metadata
@@ -243,7 +265,8 @@ then
     readarray -d "," -t feedsarray <<< "$UDP_FEEDS"
     for feeds in "${feedsarray[@]}"
     do
-        [[ -n "$feeds" ]] && add_udp_feed "${feeds//$'\n'/}"
+        feeds="${feeds//$'\n'/}"
+        if [[ -n "$feeds" ]]; then add_udp_feed "$feeds"; fi
     done
 fi
 if [[ -n "$TCP_FEEDS" ]]
@@ -251,7 +274,8 @@ then
     readarray -d "," -t feedsarray <<< "$TCP_FEEDS"
     for feeds in "${feedsarray[@]}"
     do
-        [[ -n "$feeds" ]] && add_tcp_feed "${feeds//$'\n'/}"
+        feeds="${feeds//$'\n'/}"
+        if [[ -n "$feeds" ]]; then add_tcp_feed "$feeds"; fi
     done
 fi
 
@@ -816,7 +840,13 @@ fi
 if [[ -n "${AISCATCHER_MQTT_URL}" ]]; then
     mqtt_fields=("\"msgformat\":$(jstr "${AISCATCHER_MQTT_MSGFORMAT:-JSON_FULL}")")
     if [[ -n "${AISCATCHER_MQTT_CLIENT_ID}" ]]; then mqtt_fields+=("\"client_id\":$(jstr "$AISCATCHER_MQTT_CLIENT_ID")"); fi
-    if [[ -n "${AISCATCHER_MQTT_QOS}" ]]; then mqtt_fields+=("\"qos\":${AISCATCHER_MQTT_QOS}"); fi
+    if [[ -n "${AISCATCHER_MQTT_QOS}" ]]; then
+        if [[ ! "$AISCATCHER_MQTT_QOS" =~ ^[012]$ ]]; then
+            "${s6wrap[@]}" echo "[ERROR] AISCATCHER_MQTT_QOS must be 0, 1, or 2"
+            exit 1
+        fi
+        mqtt_fields+=("\"qos\":${AISCATCHER_MQTT_QOS}")
+    fi
     if [[ -n "${AISCATCHER_MQTT_TOPIC}" ]]; then mqtt_fields+=("\"topic\":$(jstr "$AISCATCHER_MQTT_TOPIC")"); fi
     add_mqtt_feed "$AISCATCHER_MQTT_URL" "$(IFS=,; printf '%s' "${mqtt_fields[*]}")"
 fi
@@ -831,10 +861,14 @@ if [[ -n "$ADSB_CONNECTOR" ]]; then
     adsb_description="${connector[3]//$'\n'/}"
     adsb_description="${adsb_description:-ADSB Input}"
     if [[ -n "$adsb_protocol" && -n "$adsb_host" && -n "$adsb_port" ]]; then
+        if [[ ! "$adsb_port" =~ ^[0-9]{1,5}$ ]] || (( 10#$adsb_port < 1 || 10#$adsb_port > 65535 )); then
+            "${s6wrap[@]}" echo "[ERROR] Invalid ADSB_CONNECTOR port"
+            exit 1
+        fi
         if [[ -n "$FEEDER_LAT" && -n "$FEEDER_LONG" ]]; then
-            additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"description\":$(jstr "$adsb_description"),\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}},\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG")}")
+            additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"description\":$(jstr "$adsb_description"),\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":$((10#$adsb_port))},\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG")}")
         else
-            additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"description\":$(jstr "$adsb_description"),\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}}}")
+            additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"description\":$(jstr "$adsb_description"),\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":$((10#$adsb_port))}}")
         fi
     fi
 fi

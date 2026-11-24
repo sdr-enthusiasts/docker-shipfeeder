@@ -79,6 +79,12 @@ for connector in 'beast,readsb,30005' 'beast,readsb,30005,'; do
     generate_adsb "$connector" '' '' | jq -e 'length == 1 and .[0] == {input:"RTLTCP",description:"ADSB Input",rtltcp:{protocol:"beast",host:"readsb",port:30005}}' >/dev/null
 done
 generate_adsb 'raw1090,readsb,30002,Roof "ADS-B"' '42.1' '-71.2' | jq -e 'length == 1 and .[0].description == "Roof \"ADS-B\"" and .[0].lat == "42.1" and .[0].lon == "-71.2" and .[0].rtltcp.protocol == "raw1090"' >/dev/null
+for invalid_port in 0 65536 notaport; do
+    if generate_adsb "beast,readsb,$invalid_port" '' '' >/dev/null; then
+        printf 'Unexpectedly accepted ADS-B port %s\n' "$invalid_port" >&2
+        exit 1
+    fi
+done
 
 # shellcheck disable=SC2016
 sdr_parser="$(sed -n '/^# Build the primary SDR receiver/,/^if \[\[ -n "${AISCATCHER_MQTT_URL}" \]\]; then/p' "$script" | sed '$d')"

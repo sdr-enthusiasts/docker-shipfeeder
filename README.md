@@ -429,7 +429,7 @@ You can now map this file into your container:
 
 ### Feeding Additional Services Using UDP
 
-If you want to feed and additional AIS aggregator that uses a hostname/UDP port that is not listed above, then simply add a comma separated list of hostnames/ip addresses and UDP ports to the `UDP_FEEDS` parameter. Format: `UDP_FEEDS=domain1.com:port1[:params],domain2,com:port2[:params],...`
+If you want to feed an additional AIS aggregator using UDP, add a comma-separated list of `hostname:port` destinations to `UDP_FEEDS`. Optional AIS-catcher output settings may follow each port, separated by spaces or colons, e.g. `UDP_FEEDS=10.0.0.107:9988 JSON on,ais.example.org:10110:MSGFORMAT:NMEA`. `JSON on` is the legacy setting for JSON-wrapped NMEA (`MSGFORMAT JSON_NMEA`). Commas separate destinations, so option values cannot contain commas. Invalid ports or options stop startup with an error. Shared `AISCATCHER_FILTER_*` settings and generated connection metadata take precedence over conflicting per-feed options.
 
 Each generated `udp`, `tcp`, `http`, and `mqtt` connection in `/run/aiscatcher/config.json` includes `description` and `link` fields. Known aggregators use their service name and public page; other destinations get a generic protocol/endpoint description and a link derived from the connection address. HTTP links point to the endpoint's origin, and MQTT links omit credentials. No additional environment variables are required.
 
@@ -441,7 +441,7 @@ For example:
 
 ### Feeding Additional Services Using TCP
 
-If you want to feed and additional AIS aggregator that uses a hostname/TCP port that is not listed above, then simply add a comma separated list of hostnames/ip addresses and UDP ports to the `TCP_FEEDS` parameter. Format: `TCP_FEEDS=domain1.com:port1[:params],domain2,com:port2[:params],...`
+If you want to feed an additional AIS aggregator using TCP, add a comma-separated list of `hostname:port` destinations to `TCP_FEEDS`. Optional AIS-catcher output settings may follow each port, separated by spaces or colons, e.g. `TCP_FEEDS=ais.example.org:8888 MSGFORMAT JSON_NMEA`. The same comma, validation, and precedence rules as `UDP_FEEDS` apply.
 
 For example:
 
