@@ -63,4 +63,21 @@ if generate_inputs '' ':9988::Bad:description' >/dev/null; then
     exit 1
 fi
 
+adsb_parser="$(sed -n '/^# ADSB connector becomes/,/^# Assemble the final JSON/p' "$script")"
+generate_adsb() (
+    set +eu
+    eval "$json_helpers"
+    additional_receiver_entries=()
+    ADSB_CONNECTOR="$1"
+    FEEDER_LAT="$2"
+    FEEDER_LONG="$3"
+    eval "$adsb_parser"
+    printf '%s\n' "${additional_receiver_entries[@]}" | jq -s .
+)
+
+for connector in 'beast,readsb,30005' 'beast,readsb,30005,'; do
+    generate_adsb "$connector" '' '' | jq -e 'length == 1 and .[0] == {input:"RTLTCP",description:"ADSB Input",rtltcp:{protocol:"beast",host:"readsb",port:30005}}' >/dev/null
+done
+generate_adsb 'raw1090,readsb,30002,Roof "ADS-B"' '42.1' '-71.2' | jq -e 'length == 1 and .[0].description == "Roof \"ADS-B\"" and .[0].lat == "42.1" and .[0].lon == "-71.2" and .[0].rtltcp.protocol == "raw1090"' >/dev/null
+
 printf 'Native TCP and UDP input tests passed\n'

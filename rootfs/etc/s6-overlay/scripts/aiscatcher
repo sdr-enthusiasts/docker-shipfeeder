@@ -827,11 +827,13 @@ if [[ -n "$ADSB_CONNECTOR" ]]; then
     adsb_protocol="${connector[0]//$'\n'/}"
     adsb_host="${connector[1]//$'\n'/}"
     adsb_port="${connector[2]//$'\n'/}"
+    adsb_description="${connector[3]//$'\n'/}"
+    adsb_description="${adsb_description:-ADSB Input}"
     if [[ -n "$adsb_protocol" && -n "$adsb_host" && -n "$adsb_port" ]]; then
         if [[ -n "$FEEDER_LAT" && -n "$FEEDER_LONG" ]]; then
-            additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}},\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG")}")
+            additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"description\":$(jstr "$adsb_description"),\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}},\"lat\":$(jstr "$FEEDER_LAT"),\"lon\":$(jstr "$FEEDER_LONG")}")
         else
-            additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}}}")
+            additional_receiver_entries+=("{\"input\":\"RTLTCP\",\"description\":$(jstr "$adsb_description"),\"rtltcp\":{\"protocol\":$(jstr "$adsb_protocol"),\"host\":$(jstr "$adsb_host"),\"port\":${adsb_port}}}")
         fi
     fi
 fi
