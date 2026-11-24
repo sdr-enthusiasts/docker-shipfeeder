@@ -100,6 +100,7 @@ services:
       - REALTIME=on
 #     ais-catcher receiver-related parameters
       - RTLSDR_DEVICE_SERIAL=${RTLSDR_DEVICE_SERIAL}
+        - RTLSDR_DEVICE_DESCRIPTION=${RTLSDR_DEVICE_DESCRIPTION}
       - RTLSDR_DEVICE_GAIN=${RTLSDR_DEVICE_GAIN}
       - RTLSDR_DEVICE_PPM=${RTLSDR_DEVICE_PPM}
       - RTLSDR_DEVICE_BANDWIDTH=${RTLSDR_DEVICE_BANDWIDTH}
@@ -161,6 +162,7 @@ Example accompanying `.env` file:
 FEEDER_LAT=xx.xxxxxx
 FEEDER_LONG=yy.yyyyyy
 RTLSDR_DEVICE_SERIAL=DEVICE-SERIAL
+RTLSDR_DEVICE_DESCRIPTION=
 RTLSDR_DEVICE_GAIN=xxx
 RTLSDR_DEVICE_PPM=xxx
 AISCATCHER_DECODER_AFC_WIDE=on
@@ -213,6 +215,7 @@ For backwards compatibility reasons the SDR related variables all have `RTLSDR` 
 | ---------------------- | ------------------------------- | --- |
 | `SDR_TYPE` | `RTLSDR` or `AIRSPY` or `SDRPLAY` | `RTLSDR` |
 | `RTLSDR_DEVICE_SERIAL` | Serial Number of your SDR dongle | Empty |
+| `RTLSDR_DEVICE_DESCRIPTION` | Description of the SDR receiver shown in AIS-catcher | |
 | `RTLSDR_DEVICE_GAIN` | SDR device gain. Can also be set to `auto` (RTLSDR only) | `33` (RTLSDR) / `12` (AIRSPY) / `32` (SDRPLAY) |
 | `RTLSDR_DEVICE_PPM` | PPM deviation of your SDR device | Empty |
 | `RTLSDR_DEVICE_RTLAGC` | Switches AGC on/off for your RTLSDR or SDRPLAY device. | `on` |

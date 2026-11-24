@@ -734,6 +734,7 @@ fi
 receiver_entries=()
 if [[ -n "${RTLSDR_DEVICE_SERIAL}" ]]; then
     primary_receiver_fields=("\"verbose\":${receiver_verbose}")
+    primary_receiver_fields+=("\"description\":$(jstr "${RTLSDR_DEVICE_DESCRIPTION:-$RTLSDR_DEVICE_SERIAL}")")
     AISCATCHER_CHANNELS="${AISCATCHER_CHANNELS^^}"
     read -r chan_primary chan_relabel <<< "${AISCATCHER_CHANNELS:-AB}"
     primary_receiver_fields+=("\"channel\":$(jstr "${chan_primary:-AB}")")

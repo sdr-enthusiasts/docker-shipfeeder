@@ -80,4 +80,35 @@ for connector in 'beast,readsb,30005' 'beast,readsb,30005,'; do
 done
 generate_adsb 'raw1090,readsb,30002,Roof "ADS-B"' '42.1' '-71.2' | jq -e 'length == 1 and .[0].description == "Roof \"ADS-B\"" and .[0].lat == "42.1" and .[0].lon == "-71.2" and .[0].rtltcp.protocol == "raw1090"' >/dev/null
 
+# shellcheck disable=SC2016
+sdr_parser="$(sed -n '/^# Build the primary SDR receiver/,/^if \[\[ -n "${AISCATCHER_MQTT_URL}" \]\]; then/p' "$script" | sed '$d')"
+generate_sdr() (
+    set +eu
+    eval "$json_helpers"
+    # shellcheck disable=SC2317
+    chk_enabled() { return 1; }
+    # shellcheck disable=SC2317
+    chk_disabled() { return 1; }
+    # shellcheck disable=SC2317
+    jbool_enabled() { printf false; }
+    receiver_entries=()
+    RTLSDR_DEVICE_SERIAL="$1"
+    if [[ "$2" == '__unset__' ]]; then
+        unset RTLSDR_DEVICE_DESCRIPTION
+    else
+        RTLSDR_DEVICE_DESCRIPTION="$2"
+    fi
+    SDR_TYPE=RTLSDR
+    DEVICE_JSON_KEY=rtlsdr
+    DEVICE_JSON_FIELDS='"tuner":"auto"'
+    receiver_verbose=false
+    eval "$sdr_parser"
+    printf '%s\n' "${receiver_entries[@]}" | jq -s 'map(select(. != null))'
+)
+
+generate_sdr '12345678' 'Roof "AIS"' | jq -e 'length == 1 and .[0].description == "Roof \"AIS\"" and .[0].serial == "12345678" and (.[0].rtlsdr | has("description") | not)' >/dev/null
+generate_sdr '12345678' '' | jq -e 'length == 1 and .[0].description == "12345678"' >/dev/null
+generate_sdr '12345678' '__unset__' | jq -e 'length == 1 and .[0].description == "12345678"' >/dev/null
+generate_sdr '' 'Unused name' | jq -e 'length == 0' >/dev/null
+
 printf 'Native TCP and UDP input tests passed\n'
