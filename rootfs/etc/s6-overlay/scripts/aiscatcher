@@ -97,6 +97,37 @@ else
 fi
 
 # Arrays that will collect the JSON objects for each output channel, and any extra receivers (UDPSERVER/RTLTCP):
+filter_fields=()
+filter_configured=false
+for filter_key in allow_type block_type allow_repeat block_repeat allow_mmsi block_mmsi allow_channel id; do
+    filter_env="AISCATCHER_FILTER_${filter_key^^}"
+    filter_value="${!filter_env}"
+    if [[ -n "$filter_value" ]]; then
+        filter_fields+=("\"${filter_key}\":$(jstr "$filter_value")")
+        filter_configured=true
+    fi
+done
+for filter_key in gps ais remove_empty; do
+    filter_env="AISCATCHER_FILTER_${filter_key^^}"
+    filter_value="${!filter_env}"
+    if [[ -n "$filter_value" ]]; then
+        filter_fields+=("\"${filter_key}\":$(jbool_enabled "$filter_value")")
+        filter_configured=true
+    fi
+done
+for filter_key in position_interval own_interval; do
+    filter_env="AISCATCHER_FILTER_${filter_key^^}"
+    filter_value="${!filter_env}"
+    if [[ -n "$filter_value" ]]; then
+        filter_fields+=("\"${filter_key}\":$(jstr "$filter_value")")
+        filter_configured=true
+    fi
+done
+[[ -n "$AISCATCHER_FILTER_UNIQUE" ]] && filter_configured=true
+if "$filter_configured"; then filter_fields+=("\"filter\":true"); fi
+filter_fields+=("\"unique\":$(jbool_enabled "${AISCATCHER_FILTER_UNIQUE:-true}")")
+output_filter_fields="$(IFS=,; printf '%s' "${filter_fields[*]}")"
+
 udp_outputs=()
 tcp_outputs=()
 http_outputs=()
@@ -184,26 +215,26 @@ add_udp_feed() {
     [[ -n "${hostport%%:*}" && -n "${hostport##*:}" ]] || return 0
     check_feed_target udp "$hostport" || return 0
     metadata="$(connection_metadata udp "$hostport" "${3:-}" "${4:-}")"
-    udp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra}}")
+    udp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra},${output_filter_fields}}")
 }
 add_tcp_feed() {
     local hostport="$1" extra="${2:-}" metadata
     [[ -n "${hostport%%:*}" && -n "${hostport##*:}" ]] || return 0
     check_feed_target tcp "$hostport" || return 0
     metadata="$(connection_metadata tcp "$hostport" "${3:-}" "${4:-}")"
-    tcp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra}}")
+    tcp_outputs+=("{\"host\":$(jstr "${hostport%%:*}"),\"port\":${hostport##*:},${metadata}${extra:+,$extra},${output_filter_fields}}")
 }
 add_http_feed() {
     local url="$1" extra="${2:-}" metadata
     check_feed_target http "$url" || return 0
     metadata="$(connection_metadata http "$url" "${3:-}" "${4:-}")"
-    http_outputs+=("{\"url\":$(jstr "$url")${extra:+,$extra},${metadata}}")
+    http_outputs+=("{\"url\":$(jstr "$url")${extra:+,$extra},${metadata},${output_filter_fields}}")
 }
 add_mqtt_feed() {
     local url="$1" extra="${2:-}" metadata
     check_feed_target mqtt "$url" || return 0
     metadata="$(connection_metadata mqtt "$url" "${3:-}" "${4:-}")"
-    mqtt_outputs+=("{\"url\":$(jstr "$url")${extra:+,$extra},${metadata}}")
+    mqtt_outputs+=("{\"url\":$(jstr "$url")${extra:+,$extra},${metadata},${output_filter_fields}}")
 }
 
 # Interpret additional feed targets, if defined
@@ -301,6 +332,10 @@ if [[ -z "$STATION_LINK" ]] && [[ -n "$SX_SERIAL_NUMBER" ]]; then STATION_LINK="
 # set the web site (viewer) parameters:
 if ! chk_enabled "${DISABLE_WEBSITE}"; then
     server_fields=("\"port\":80" "\"file\":\"/data/aiscatcher.bin\"")
+    server_fields+=("$output_filter_fields")
+    if ! "$filter_configured" && chk_enabled "${AISCATCHER_FILTER_UNIQUE:-true}"; then
+        server_fields+=("\"filter\":true")
+    fi
     if ! chk_enabled "${DISABLE_GEOJSON}"; then server_fields+=("\"geojson\":true"); fi
     if chk_enabled "${DISABLE_SHIPSJSON_COMPRESS}"; then server_fields+=("\"zlib\":false"); fi
     if [[ -d "/data/plugins" ]]; then server_fields+=("\"plugin_dir\":\"/data/plugins\""); fi
@@ -331,19 +366,29 @@ if [[ -n "$AISCATCHER_UDP_INPUTS" ]]; then
     do
         feeds="${feeds//$'\n'/}"
         [[ -z "$feeds" ]] && continue
-        IFS=":" read -r udp_host udp_port udp_option udp_format <<< "$feeds"
+        IFS=":" read -r udp_host udp_port udp_option udp_format udp_description <<< "$feeds"
         udp_host="${udp_host:-0.0.0.0}"
-        udp_option="${udp_option^^}"
-        udp_format="${udp_format^^}"
         if [[ ! "$udp_port" =~ ^[0-9]+$ ]] || (( 10#$udp_port < 1 || 10#$udp_port > 65535 )); then
             "${s6wrap[@]}" echo "[ERROR] Invalid UDP input port in '${feeds}'"
             exit 1
         fi
-        if [[ -n "$udp_option" && "$udp_option" != "AB" && "$udp_option" != "CD" && "$udp_option" != "AB CD" && "$udp_option" != "NMEA" && "$udp_option" != "TXT" ]] || [[ -n "$udp_format" && "$udp_format" != "NMEA" && "$udp_format" != "TXT" ]]; then
-            "${s6wrap[@]}" echo "[ERROR] UDP inputs support NMEA text only; unsupported option in '${feeds}'"
+        case "${udp_option^^}" in
+            ""|AB|CD|"AB CD"|NMEA|TXT) ;;
+            JSON_NMEA|JSON_FULL) "${s6wrap[@]}" echo "[ERROR] UDP inputs support NMEA text only; unsupported option in '${feeds}'"; exit 1 ;;
+            *) udp_description="$udp_option${udp_format:+:$udp_format}${udp_description:+:$udp_description}"; udp_format="" ;;
+        esac
+        case "${udp_format^^}" in
+            ""|NMEA|TXT) ;;
+            JSON_NMEA|JSON_FULL) "${s6wrap[@]}" echo "[ERROR] UDP inputs support NMEA text only; unsupported option in '${feeds}'"; exit 1 ;;
+            *) udp_description="$udp_format${udp_description:+:$udp_description}" ;;
+        esac
+        if [[ "$udp_description" == *:* ]]; then
+            "${s6wrap[@]}" echo "[ERROR] UDP input descriptions cannot contain ':'"
             exit 1
         fi
-        additional_receiver_entries+=("{\"input\":\"udpserver\",\"udpserver\":{\"server\":$(jstr "$udp_host"),\"port\":$(jstr "$udp_port")}}")
+        udp_fields="\"input\":\"udpserver\""
+        [[ -n "$udp_description" ]] && udp_fields+=",\"description\":$(jstr "$udp_description")"
+        additional_receiver_entries+=("{${udp_fields},\"udpserver\":{\"server\":$(jstr "$udp_host"),\"port\":$(jstr "$udp_port")}}")
     done
 fi
 
@@ -354,21 +399,36 @@ if [[ -n "$AISCATCHER_TCP_INPUTS" ]]; then
     do
         feeds="${feeds//$'\n'/}"
         [[ -z "$feeds" ]] && continue
-        IFS=":" read -r tcp_host tcp_port tcp_format <<< "$feeds"
+        IFS=":" read -r tcp_host tcp_port tcp_format tcp_description <<< "$feeds"
         tcp_host="${tcp_host:-0.0.0.0}"
         if [[ ! "$tcp_port" =~ ^[0-9]+$ ]] || (( 10#$tcp_port < 1 || 10#$tcp_port > 65535 )); then
             "${s6wrap[@]}" echo "[ERROR] Invalid TCP input port in '${feeds}'"
             exit 1
         fi
+        case "${tcp_format^^}" in
+            ""|TXT|N2K|BASESTATION|RAW1090|NMEA) ;;
+            JSON_NMEA|JSON_FULL) "${s6wrap[@]}" echo "[ERROR] Unsupported TCP input format '${tcp_format}'. Use TXT, N2K, BASESTATION, or RAW1090."; exit 1 ;;
+            *)
+                if [[ -z "$tcp_description" && "$feeds" != *:*:*:* ]]; then
+                    tcp_description="$tcp_format"
+                    tcp_format=""
+                else
+                    "${s6wrap[@]}" echo "[ERROR] Unsupported TCP input format '${tcp_format}'. Use TXT, N2K, BASESTATION, or RAW1090."
+                    exit 1
+                fi
+                ;;
+        esac
         tcp_format="${tcp_format^^}"
         [[ "$tcp_format" == "NMEA" ]] && tcp_format="TXT"
-        case "$tcp_format" in
-            ""|TXT|N2K|BASESTATION|RAW1090) ;;
-            *) "${s6wrap[@]}" echo "[ERROR] Unsupported TCP input format '${tcp_format}'. Use TXT, N2K, BASESTATION, or RAW1090."; exit 1 ;;
-        esac
+        if [[ "$tcp_description" == *:* ]]; then
+            "${s6wrap[@]}" echo "[ERROR] TCP input descriptions cannot contain ':'"
+            exit 1
+        fi
         tcp_fields="\"server\":$(jstr "$tcp_host"),\"port\":$(jstr "$tcp_port")"
         [[ -n "$tcp_format" ]] && tcp_fields+=",\"format\":$(jstr "$tcp_format")"
-        additional_receiver_entries+=("{\"input\":\"tcpserver\",\"tcpserver\":{${tcp_fields}}}")
+        tcp_receiver_fields="\"input\":\"tcpserver\""
+        [[ -n "$tcp_description" ]] && tcp_receiver_fields+=",\"description\":$(jstr "$tcp_description")"
+        additional_receiver_entries+=("{${tcp_receiver_fields},\"tcpserver\":{${tcp_fields}}}")
     done
 fi
 
@@ -779,7 +839,9 @@ fi
 # Assemble the final JSON configuration document:
 config_json="{\"config\":\"aiscatcher\",\"version\":1"
 [[ -n "$sharing_json" ]] && config_json+=",${sharing_json}"
-[[ -n "$root_screen" ]] && config_json+=",\"screen\":$(jstr "$root_screen")"
+screen_fields="$output_filter_fields"
+[[ -n "$root_screen" ]] && screen_fields+=",\"msgformat\":$(jstr "$root_screen")"
+config_json+=",\"screen\":{${screen_fields}}"
 [[ -n "$root_verbose_time" ]] && config_json+=",\"verbose_time\":${root_verbose_time}"
 receiver_entries+=("${additional_receiver_entries[@]}")
 if [[ "${#receiver_entries[@]}" -gt 0 ]]; then config_json+=",\"receiver\":[$(IFS=,; printf '%s' "${receiver_entries[*]}")]"; fi

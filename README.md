@@ -226,12 +226,14 @@ For backwards compatibility reasons the SDR related variables all have `RTLSDR` 
 | `AISCATCHER_DECODER_SOXR` | `-go SOXR` flag for `ais-catcher` | Empty |
 | `AISCATCHER_DECODER_SRC` | `-go SRC` flag for `ais-catcher` | Empty |
 | `AISCATCHER_DECODER_DROOP` | `-go DROOP` flag for `ais-catcher` | Empty |
-| `AISCATCHER_UDP_INPUTS` | Comma-separated `[address]:port` UDP listeners for NMEA AIS datagrams. Omit `address` to listen on `0.0.0.0`, e.g. `:9988`. Legacy `:CHANNELS` suffixes are accepted but ignored. | Empty |
-| `AISCATCHER_TCP_INPUTS` | Comma-separated `[address]:port[:FORMAT]` TCP listeners. Omit `address` to listen on `0.0.0.0`, e.g. `:5013`. `FORMAT` is `TXT` (NMEA AIS, default), `N2K` (NMEA 2000 frame lines), `BASESTATION` (BaseStation ADS-B), or `RAW1090` (raw 1090 MHz ADS-B frames). | Empty |
+| `AISCATCHER_UDP_INPUTS` | Comma-separated `[address]:port[:DESCRIPTION]` UDP listeners for NMEA AIS datagrams, e.g. `:9988:Dzi feed`. Omit `address` to listen on `0.0.0.0`. Legacy `:CHANNELS` suffixes are accepted but ignored; a description may follow them. | Empty |
+| `AISCATCHER_TCP_INPUTS` | Comma-separated `[address]:port[:FORMAT][:DESCRIPTION]` TCP listeners, e.g. `:5013::Dzi feed` or `:5013:N2K:Dzi feed`. Omit `address` to listen on `0.0.0.0`. `FORMAT` is `TXT` (NMEA AIS, default), `N2K` (NMEA 2000 frame lines), `BASESTATION` (BaseStation ADS-B), or `RAW1090` (raw 1090 MHz ADS-B frames). A description may also immediately follow the port when it is not a format name. | Empty |
 | `AISCATCHER_EXTRA_OPTIONS` | Any additional command line parameters you wish to pass to `AIS-catcher` | Empty |
 | `VERBOSE_LOGGING` | If set to a number (`0`-`5`), it's set to the `AIS-Catcher -o` [log level](https://github.com/jvde-github/AIS-catcher#usage). Any other non-empty string corresponds to `-o 2`. To silence `AIS-Catcher` logs, set this parameter to `0` | `2` (a summary is displayed every 60 seconds) |
 
 If the `AISCATCHER_CHANNELS` and `AISCATCHER_DECODER_XXXX` parameters listed above are set, they will overwrite/remove any equivalent parameters added to the `AISCATCHER_EXTRA_OPTIONS` parameter.
+
+Input descriptions are optional and cannot contain `:` or `,`. If a description is omitted or empty, AIS-catcher uses its default receiver name. Use an empty format field (`::DESCRIPTION`) to disambiguate TCP descriptions that match a format name. For UDP descriptions matching a legacy channel or format, use empty channel and format fields (`:::DESCRIPTION`).
 
 Note: internally, `docker-shipfeeder` translates most of the environment variables above into an [AIS-catcher JSON configuration file](https://jvde-github.github.io/AIS-catcher-docs/usage/json-configuration/) (`/run/aiscatcher/config.json`) instead of a long command line, which `AIS-catcher` is started with using `-C`. TCP and UDP inputs use native [AIS-catcher network listeners](https://jvde-github.github.io/AIS-catcher-docs/configuration/input/udp/); their address specifies where to listen, not the remote sender. `0.0.0.0` listens on all interfaces, so any sender that can reach the port can inject data. Restrict access with a local address and network/firewall rules. The previous bridge-only `JSON_NMEA` and `JSON_FULL` input formats are not supported by these listeners. A small number of settings are still passed as regular command line parameters alongside `-C`.
 
@@ -258,6 +260,31 @@ Note: internally, `docker-shipfeeder` translates most of the environment variabl
 | `ADSB_CONNECTOR` | Connect to a `beast` or `raw1090` ADS-B data stream to show aircraft on your AIS map. Format: `ADSB_CONNECTOR=<format>,<hostname>,<port>` where `<format>` is either `beast` or `raw1090`, and the `<hostname>` and `<port>` parameters indicate where the data comes from | Empty |
 
 ## Feeding AIS Aggregator Services
+
+### Output Filtering
+
+These settings are applied to all generated UDP, TCP, HTTP and MQTT outputs, the console and the web viewer. Set them once for the instance; setting a filter value enables AIS-catcher's output filter automatically. List values are comma-separated, without spaces. See [AIS-catcher message filtering](https://jvde-github.github.io/AIS-catcher-docs/configuration/output/message-filtering/#filter-settings) for details.
+
+| Environment Variable | Purpose | Default |
+| --- | --- | --- |
+| `AISCATCHER_FILTER_ALLOW_TYPE` | Message types to allow, from 1 to 27 | All |
+| `AISCATCHER_FILTER_BLOCK_TYPE` | Message types to block | None |
+| `AISCATCHER_FILTER_ALLOW_REPEAT` | Repeat counter values to allow, from 0 to 3 | All |
+| `AISCATCHER_FILTER_BLOCK_REPEAT` | Repeat counter values to block | None |
+| `AISCATCHER_FILTER_ALLOW_MMSI` | MMSI numbers to allow | All |
+| `AISCATCHER_FILTER_BLOCK_MMSI` | MMSI numbers to block | None |
+| `AISCATCHER_FILTER_ALLOW_CHANNEL` | Channels to allow, e.g. `AB` | All |
+| `AISCATCHER_FILTER_ID` | Station IDs to allow | All |
+| `AISCATCHER_FILTER_GPS` | Include GPS messages | `true` |
+| `AISCATCHER_FILTER_AIS` | Include AIS messages | `true` |
+| `AISCATCHER_FILTER_REMOVE_EMPTY` | Drop messages with empty decoded JSON payloads | `false` |
+| `AISCATCHER_FILTER_UNIQUE` | Suppress duplicate messages within AIS-catcher's unique interval | `true` |
+| `AISCATCHER_FILTER_POSITION_INTERVAL` | Minimum seconds between position updates per vessel; `0` or `false` disables | Disabled |
+| `AISCATCHER_FILTER_OWN_INTERVAL` | Minimum seconds between own-station VDO messages; `0` or `false` disables | Disabled |
+
+Boolean values use the same enabled values as other ShipFeeder settings, such as `true`, `on`, `1`, `enabled`, and `yes`; other non-empty values are disabled. `AISCATCHER_FILTER_UNIQUE` defaults to enabled even when no other filters are set. These settings do not affect AIS-catcher's community feed or arbitrary outputs supplied through `AISCATCHER_EXTRA_OPTIONS`. Filters also apply to the internal UDP feed used for the container health check and ShipXplorer, so restrictive filters can cause the container to be marked unhealthy or limit ShipXplorer data.
+
+AIS-catcher requires the viewer's filter to be enabled for `unique` to take effect. An enabled viewer filter uses a separate tracker and its own backup, as described in the [viewer documentation](https://jvde-github.github.io/AIS-catcher-docs/configuration/output/web-viewer/#a-viewer-with-ships-of-its-own).
 
 ### Easy sharing with other services
 
