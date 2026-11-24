@@ -226,14 +226,14 @@ For backwards compatibility reasons the SDR related variables all have `RTLSDR` 
 | `AISCATCHER_DECODER_SOXR` | `-go SOXR` flag for `ais-catcher` | Empty |
 | `AISCATCHER_DECODER_SRC` | `-go SRC` flag for `ais-catcher` | Empty |
 | `AISCATCHER_DECODER_DROOP` | `-go DROOP` flag for `ais-catcher` | Empty |
-| `AISCATCHER_UDP_INPUTS` | List of comma-separated `hostname:port[:CHANNELS][:FORMAT]` external AIS data UDP inputs. `FORMAT` may be `NMEA` (default), `JSON_NMEA`, or `JSON_FULL`; legacy `CHANNELS` is accepted but ignored. Bind to `0.0.0.0` to accept datagrams on all interfaces, allowing any reachable sender. Examples</br>`AISCATCHER_UDP_INPUTS=remotehost-1:9999,0.0.0.0:9988:JSON_NMEA` | Empty |
-| `AISCATCHER_TCP_INPUTS` | List of comma-separated `hostname:port[:FORMAT]` external AIS data TCP inputs. `FORMAT` may be `NMEA` (default), `JSON_NMEA`, or `JSON_FULL`. Bind to `0.0.0.0` to listen on all interfaces, allowing any reachable client such as a remote `AIS-catcher` using `TCP_FEEDS=host:port`. Examples</br>`AISCATCHER_TCP_INPUTS=0.0.0.0:9988,0.0.0.0:9989:JSON_NMEA` | Empty |
+| `AISCATCHER_UDP_INPUTS` | Comma-separated `[address]:port` UDP listeners for NMEA AIS datagrams. Omit `address` to listen on `0.0.0.0`, e.g. `:9988`. Legacy `:CHANNELS` suffixes are accepted but ignored. | Empty |
+| `AISCATCHER_TCP_INPUTS` | Comma-separated `[address]:port[:FORMAT]` TCP listeners. Omit `address` to listen on `0.0.0.0`, e.g. `:5013`. `FORMAT` is `TXT` (NMEA AIS, default), `N2K` (NMEA 2000 frame lines), `BASESTATION` (BaseStation ADS-B), or `RAW1090` (raw 1090 MHz ADS-B frames). | Empty |
 | `AISCATCHER_EXTRA_OPTIONS` | Any additional command line parameters you wish to pass to `AIS-catcher` | Empty |
 | `VERBOSE_LOGGING` | If set to a number (`0`-`5`), it's set to the `AIS-Catcher -o` [log level](https://github.com/jvde-github/AIS-catcher#usage). Any other non-empty string corresponds to `-o 2`. To silence `AIS-Catcher` logs, set this parameter to `0` | `2` (a summary is displayed every 60 seconds) |
 
 If the `AISCATCHER_CHANNELS` and `AISCATCHER_DECODER_XXXX` parameters listed above are set, they will overwrite/remove any equivalent parameters added to the `AISCATCHER_EXTRA_OPTIONS` parameter.
 
-Note: internally, `docker-shipfeeder` translates most of the environment variables above into an [AIS-catcher JSON configuration file](https://jvde-github.github.io/AIS-catcher-docs/usage/json-configuration/) (`/data/aiscatcher-config.json`) instead of a long command line, which `AIS-catcher` is started with using `-C`. A small number of settings (console verbosity, `AISCATCHER_CHANNELS`, `ADSB_CONNECTOR`, and `AISCATCHER_EXTRA_OPTIONS`) are still passed as regular command line parameters alongside `-C`. TCP inputs use a small bridge only when `AISCATCHER_TCP_INPUTS` or a JSON UDP input is configured; the bridge extracts the original `nmea` sentences from JSON input and forwards them to AIS-catcher's JSON-configured UDP receiver.
+Note: internally, `docker-shipfeeder` translates most of the environment variables above into an [AIS-catcher JSON configuration file](https://jvde-github.github.io/AIS-catcher-docs/usage/json-configuration/) (`/run/aiscatcher/config.json`) instead of a long command line, which `AIS-catcher` is started with using `-C`. TCP and UDP inputs use native [AIS-catcher network listeners](https://jvde-github.github.io/AIS-catcher-docs/configuration/input/udp/); their address specifies where to listen, not the remote sender. `0.0.0.0` listens on all interfaces, so any sender that can reach the port can inject data. Restrict access with a local address and network/firewall rules. The previous bridge-only `JSON_NMEA` and `JSON_FULL` input formats are not supported by these listeners. A small number of settings are still passed as regular command line parameters alongside `-C`.
 
 ### Website Related Parameters
 
@@ -508,16 +508,16 @@ Do the following. We are assuming that the hostname/container name for the insta
 - In the section of the `docker-compose.yml` file for `shipfeeder_cd`, make sure to add the following to the `UDP_FEEDS` parameter. Make sure that you replace `target_machine` with the IP or hostname of the machine where `shipfeeder_ab` runs:
 
 ```yaml
-    - UDP_FEEDS=.....;target_machine:9988
+    - UDP_FEEDS=target_machine:9988
 ```
 
-- In the section of the `docker-compose.yml` file for `shipfeeder_ab`, make sure to add the following to the `AISCATCHER_UDP_INPUTS` parameter. (DO NOT USE `localhost` or `127.0.0.1` - that won't work):
+- In the section of the `docker-compose.yml` file for `shipfeeder_ab`, listen on all interfaces for the incoming UDP feed:
 
 ```yaml
-    - AISCATCHER_UDP_INPUTS=shipfeeder_cd:9988:AB CD
+    - AISCATCHER_UDP_INPUTS=:9988
 ```
 
-- In addition, to the same section of the `docker-compose.yml` file for `shipfeeder_cd`, make sure to forward the UPD port to the container:
+- In addition, in the `docker-compose.yml` section for `shipfeeder_ab`, forward the UDP port to the container:
 
 ```yaml
     ports:
