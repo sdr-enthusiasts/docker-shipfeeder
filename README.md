@@ -100,7 +100,9 @@ services:
       - REALTIME=on
 #     ais-catcher receiver-related parameters
       - RTLSDR_DEVICE_SERIAL=${RTLSDR_DEVICE_SERIAL}
-        - RTLSDR_DEVICE_DESCRIPTION=${RTLSDR_DEVICE_DESCRIPTION}
+      - RTLSDR_DEVICE_DESCRIPTION=${RTLSDR_DEVICE_DESCRIPTION}
+      - AISCATCHER_GPS_SERIAL=${AISCATCHER_GPS_SERIAL}
+      - AISCATCHER_GPSD_PORT=${AISCATCHER_GPSD_PORT}
       - RTLSDR_DEVICE_GAIN=${RTLSDR_DEVICE_GAIN}
       - RTLSDR_DEVICE_PPM=${RTLSDR_DEVICE_PPM}
       - RTLSDR_DEVICE_BANDWIDTH=${RTLSDR_DEVICE_BANDWIDTH}
@@ -144,6 +146,7 @@ services:
       - 9988:9988/tcp
     device_cgroup_rules:
       - 'c 189:* rwm' # USB
+      - 'c 166:* rwm' # USB ACM serial (ttyACM)
       - 'c 188:* rwm' # serial over USB
       - 'c 204:* rwm' # serial over GPIO
     tmpfs:
@@ -163,6 +166,8 @@ FEEDER_LAT=xx.xxxxxx
 FEEDER_LONG=yy.yyyyyy
 RTLSDR_DEVICE_SERIAL=DEVICE-SERIAL
 RTLSDR_DEVICE_DESCRIPTION=
+AISCATCHER_GPS_SERIAL=
+AISCATCHER_GPSD_PORT=
 RTLSDR_DEVICE_GAIN=xxx
 RTLSDR_DEVICE_PPM=xxx
 AISCATCHER_DECODER_AFC_WIDE=on
@@ -231,6 +236,8 @@ For backwards compatibility reasons the SDR related variables all have `RTLSDR` 
 | `AISCATCHER_DECODER_DROOP` | `-go DROOP` flag for `ais-catcher` | Empty |
 | `AISCATCHER_UDP_INPUTS` | Comma-separated `[address]:port[:DESCRIPTION]` UDP listeners for NMEA AIS datagrams, e.g. `:9988:Dzi feed`. Omit `address` to listen on `0.0.0.0`. Legacy `:CHANNELS` suffixes are accepted but ignored; a description may follow them. | Empty |
 | `AISCATCHER_TCP_INPUTS` | Comma-separated `[address]:port[:FORMAT][:DESCRIPTION]` TCP listeners, e.g. `:5013::Dzi feed` or `:5013:N2K:Dzi feed`. Omit `address` to listen on `0.0.0.0`. `FORMAT` is `TXT` (NMEA AIS, default), `N2K` (NMEA 2000 frame lines), `BASESTATION` (BaseStation ADS-B), or `RAW1090` (raw 1090 MHz ADS-B frames). A description may also immediately follow the port when it is not a format name. | Empty |
+| `AISCATCHER_GPS_SERIAL` | GPS serial device and optional baud rate, e.g. `/dev/ttyACM0:9600`. See [Connecting a GPS](#connecting-a-gps). | Empty |
+| `AISCATCHER_GPSD_PORT` | GPSD host and port, e.g. `gpsd:2947`. Both are required. See [Connecting a GPS](#connecting-a-gps). | Empty |
 | `AISCATCHER_EXTRA_OPTIONS` | Any additional command line parameters you wish to pass to `AIS-catcher` | Empty |
 | `VERBOSE_LOGGING` | If set to a number (`0`-`5`), it's set to the `AIS-Catcher -o` [log level](https://github.com/jvde-github/AIS-catcher#usage). Any other non-empty string corresponds to `-o 2`. To silence `AIS-Catcher` logs, set this parameter to `0` | `2` (a summary is displayed every 60 seconds) |
 
@@ -261,6 +268,34 @@ Note: internally, `docker-shipfeeder` translates most of the environment variabl
 | `REFRESHRATE` | Refresh rate of the vessel data on the web page, in msec. Larger numbers reduce web page traffic, which can become an issue if there are a large number of vessels | `2500` (msec) |
 | `DISABLE_GEOJSON` | If set to `true`, no GeoJSON info will be available at <http://my_aiscatcher/geojson>. This is normally enabled if the parameter is omitted. | Empty (GeoJSON is default enabled) |
 | `ADSB_CONNECTOR` | Connect to a `beast` or `raw1090` ADS-B data stream to show aircraft on your AIS map. Format: `ADSB_CONNECTOR=<format>,<hostname>,<port>[,<description>]`, for example `beast,readsb,30005,Roof ADSB`. The optional description cannot contain a comma and defaults to `ADSB Input` when omitted or empty. | Empty |
+
+## Connecting a GPS
+
+AIS-catcher can receive GPS fixes directly from a serial device or from GPSD. Choose the method that matches your setup; both settings can be used at the same time for separate inputs. AIS-catcher reads NMEA GGA, RMC and GLL sentences when the GPS has a fix. See the [AIS-catcher GPS guide](https://jvde-github.github.io/AIS-catcher-docs/advanced/GPS/) for station location, map display and troubleshooting.
+
+With ShipFeeder's generated configuration, AIS-catcher follows GPS fixes for the default station. To share the station location on the map, set `FEEDER_LAT` and `FEEDER_LONG` as the initial position and enable `SITESHOW`; these coordinates are used until a GPS fix is available.
+
+### Serial GPS
+
+Set `AISCATCHER_GPS_SERIAL` to the device path, optionally followed by `:baudrate`:
+
+```ini
+AISCATCHER_GPS_SERIAL=/dev/ttyACM0:9600
+```
+
+If the baud rate is omitted, AIS-catcher defaults to 38400; set it to the rate used by your GPS. AIS-catcher documents serial rates of 9600, 19200, 38400, 57600 and 115200. For a 4800-baud GPS, use GPSD instead.
+
+Make the device visible inside the container, for example via the sample's `/dev:/dev:rw` volume or a specific `devices` mapping, and ensure the container has permission to open it. Check the device's major number with `ls -lL /dev/ttyACM0` and allow that character-device major in `device_cgroup_rules`. The sample includes `c 166:* rwm` for `/dev/ttyACM*`, `c 188:* rwm` for `/dev/ttyUSB*`, and `c 204:* rwm` for common GPIO serial devices. Other devices can use different majors, including `4` for `/dev/ttyS*`; add the matching rule if needed.
+
+### GPSD
+
+Set `AISCATCHER_GPSD_PORT` to the GPSD host and port, both required:
+
+```ini
+AISCATCHER_GPSD_PORT=gpsd:2947
+```
+
+The host must be reachable from the ShipFeeder container. A Compose service name such as `gpsd` works when both services share a network. `localhost` refers to the ShipFeeder container itself, not the Docker host. GPSD must listen on an address reachable from the container.
 
 ## Feeding AIS Aggregator Services
 

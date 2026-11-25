@@ -456,6 +456,35 @@ if [[ -n "$AISCATCHER_TCP_INPUTS" ]]; then
     done
 fi
 
+if [[ -n "$AISCATCHER_GPS_SERIAL" ]]; then
+    gps_serial_port="${AISCATCHER_GPS_SERIAL%%:*}"
+    gps_serial_speed=""
+    if [[ "$AISCATCHER_GPS_SERIAL" == *:* ]]; then
+        gps_serial_speed="${AISCATCHER_GPS_SERIAL#*:}"
+        if [[ ! "$gps_serial_speed" =~ ^[0-9]+$ ]] || [[ "$gps_serial_speed" =~ ^0+$ ]]; then
+            "${s6wrap[@]}" echo "[ERROR] Invalid AISCATCHER_GPS_SERIAL baud rate"
+            exit 1
+        fi
+    fi
+    if [[ -z "$gps_serial_port" ]]; then
+        "${s6wrap[@]}" echo "[ERROR] AISCATCHER_GPS_SERIAL requires a serial device path"
+        exit 1
+    fi
+    gps_serial_fields="\"port\":$(jstr "$gps_serial_port")"
+    [[ -n "$gps_serial_speed" ]] && gps_serial_fields+=",\"baudrate\":$(jstr "$gps_serial_speed")"
+    additional_receiver_entries+=("{\"input\":\"serialport\",\"serialport\":{${gps_serial_fields}}}")
+fi
+
+if [[ -n "$AISCATCHER_GPSD_PORT" ]]; then
+    gpsd_host="${AISCATCHER_GPSD_PORT%%:*}"
+    gpsd_port="${AISCATCHER_GPSD_PORT#*:}"
+    if [[ "$AISCATCHER_GPSD_PORT" != *:* || -z "$gpsd_host" || ! "$gpsd_port" =~ ^[0-9]{1,5}$ ]] || (( 10#$gpsd_port < 1 || 10#$gpsd_port > 65535 )); then
+        "${s6wrap[@]}" echo "[ERROR] AISCATCHER_GPSD_PORT requires hostname:port with a port from 1 to 65535"
+        exit 1
+    fi
+    additional_receiver_entries+=("{\"input\":\"rtltcp\",\"rtltcp\":{\"protocol\":\"gpsd\",\"host\":$(jstr "$gpsd_host"),\"port\":$(jstr "$gpsd_port")}}")
+fi
+
 # Add a number of well-known feeders:
 # ADSBNetwork / RadarVirtuel:
 if [[ -n "${RADARVIRTUEL_STATION_ID}" ]]; then

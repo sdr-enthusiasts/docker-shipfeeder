@@ -39,6 +39,8 @@ services:
 #     ais-catcher receiver related parameters
       - RTLSDR_DEVICE_SERIAL=${RTLSDR_DEVICE_SERIAL}
       - RTLSDR_DEVICE_DESCRIPTION=${RTLSDR_DEVICE_DESCRIPTION}
+      - AISCATCHER_GPS_SERIAL=${AISCATCHER_GPS_SERIAL}
+      - AISCATCHER_GPSD_PORT=${AISCATCHER_GPSD_PORT}
       - RTLSDR_DEVICE_GAIN=${RTLSDR_DEVICE_GAIN}
       - RTLSDR_DEVICE_PPM=${RTLSDR_DEVICE_PPM}
       - RTLSDR_DEVICE_BANDWIDTH=${RTLSDR_DEVICE_BANDWIDTH}
@@ -87,6 +89,7 @@ services:
       - 9988:9988/tcp
     device_cgroup_rules:
       - 'c 189:* rwm' # USB
+      - 'c 166:* rwm' # USB ACM serial (ttyACM)
       - 'c 188:* rwm' # serial over USB
       - 'c 204:* rwm' # serial over GPIO
     tmpfs:
