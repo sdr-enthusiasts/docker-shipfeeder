@@ -748,6 +748,12 @@ if [[ -n "${SX_SHARING_KEY}${SX_SERIAL_NUMBER}" && -n "$SHIPXPLORER_UDP_PORT" ]]
     "${s6wrap[@]}" echo "[WARNING] Both [SHIPXPLORER_]SHARING_KEY/[SHIPXPLORER_]SERIAL_NUMBER and SHIPXPLORER_UDP_PORT are defined. This may cause duplicate feeding to this aggregator. Please remove one of these from your environment!"
 fi
 
+# Telltale:
+if [[ -n "$TELLTALE_UDP_PORT" ]]; then
+    if ! grep -q ":" <<< "$TELLTALE_UDP_PORT"; then TELLTALE_UDP_PORT="ais.telltaleapp.ca:$TELLTALE_UDP_PORT"; fi
+    add_udp_feed "$TELLTALE_UDP_PORT" "" "Telltale" "https://telltaleapp.ca/stations/ais"
+fi
+
 # VesselFinder:
 if [[ -n "$VESSELFINDER_UDP_PORT" ]]; then
     if ! grep -q ":" <<< "$VESSELFINDER_UDP_PORT"; then VESSELFINDER_UDP_PORT="ais.vesselfinder.com:$VESSELFINDER_UDP_PORT"; fi

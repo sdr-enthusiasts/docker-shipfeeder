@@ -133,6 +133,7 @@ services:
       - SHIPPINGEXPLORER_UDP_PORT=${SHIPPINGEXPLORER_UDP_PORT}
       - SHIPXPLORER_SHARING_KEY=${SHIPXPLORER_SHARING_KEY}
       - SHIPXPLORER_SERIAL_NUMBER=${SHIPXPLORER_SERIAL_NUMBER}
+      - TELLTALE_UDP_PORT=${TELLTALE_UDP_PORT}
       - VESSELFINDER_UDP_PORT=${VESSELFINDER_UDP_PORT}
       - VESSELTRACKER_UDP_PORT=${VESSELTRACKER_UDP_PORT}
       - UDP_FEEDS=${SX_UDP_FEEDS}
@@ -201,6 +202,7 @@ SHIPFINDER_SHAREDATA=true
 SHIPPINGEXPLORER_UDP_PORT=xxxxx
 SHIPXPLORER_SHARING_KEY=xxxxxxxxxxxxxxxxxxx
 SHIPXPLORER_SERIAL_NUMBER=SXTRPI00xxxx
+TELLTALE_UDP_PORT=xxxxx
 VESSELFINDER_UDP_PORT=xxxxx
 VESSELTRACKER_UDP_PORT=xxxxx
 ```
@@ -354,6 +356,7 @@ This table shows which parameters to set and how to obtain credentials for a num
  | ShippingExplorer | `SHIPPINGEXPLORER_UDP_PORT` or<br/>`SHIPPINGEXPLORER_TCP_PORT` | 144.76.54.111 | UDP or TCP | Request UDP port at [https://www.shippingexplorer.net/en/contact](https://www.shippingexplorer.net/en/contact) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
  | ShipXplorer | `SHIPXPLORER_SHARING_KEY` or `SHARING_KEY` (legacy)<br>`SHIPXPLORER_SERIAL_NUMBER` or `SERIAL_NUMBER` (legacy) | | Other | See [Obtaining a ShipXplorer Sharing Key](#obtaining-a-shipxplorer-sharing-key) |
  | ShipXplorer (alt. config with UDP) | `SHIPXPLORER_UDP_PORT` | hub.shipxplorer.com | UDP | Alternative way to feed ShipXplorer via UDP instead of via a Sharing Key. Please use one or the other, but not both! Sign up at [https://www.shipxplorer.com/addcoverage](https://www.shipxplorer.com/addcoverage) and select "I want to share with: NMEA over UDP" |
+ | Telltale | `TELLTALE_UDP_PORT` | [ais.telltaleapp.ca](https://telltaleapp.ca) | UDP | Sailing race tracker. Sign in at [https://telltaleapp.ca/stations/ais](https://telltaleapp.ca/stations/ais), add a station, and use the UDP port it gives you |
  | VesselFinder | `VESSELFINDER_UDP_PORT` or<br/>`VESSELFINDER_TCP_PORT` | [ais.vesselfinder.com](http://ais.vesselfinder.com) | UDP / TCP | [https://stations.vesselfinder.com/become-partner](https://stations.vesselfinder.com/become-partner) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company. Do not use both! |
  | VesselTracker | `VESSELTRACKER_UDP_PORT` or<br/>`VESSELTRACKER_TCP_PORT` | 83.220.137.136 | UDP or TCP | [https://www.vesseltracker.com/en/static/antenna-partner.html](https://www.vesseltracker.com/en/static/antenna-partner.html) By default, you should use UDP to feed, unless you are specifically asked to use TCP by the company |
 
